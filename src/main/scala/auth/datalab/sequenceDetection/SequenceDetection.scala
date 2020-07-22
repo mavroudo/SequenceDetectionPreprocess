@@ -29,8 +29,8 @@ object SequenceDetection {
   def main(args: Array[String]): Unit = {
     //    start by getting the parameters that we will need, what type of file (xes, txt) , filename, type of combinations
     val typeOfFile: String = "txt"
-        val fileName: String = "testing.txt"
-//    val fileName: String = "BPI Challenge 2017.xes"
+//    val fileName: String = "testing.txt"
+    val fileName: String = "BPI Challenge 2017.xes"
 
     val typeOfCombinations = "skill till match" // without overlapping (we can build different types here)
     val deletePrevious = "1"

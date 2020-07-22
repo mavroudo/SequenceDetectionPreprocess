@@ -79,13 +79,17 @@ class CassandraConnection extends Serializable {
   def dropAlltables() = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._
-    val cluster = Cluster.builder().addContactPointsWithPorts(new InetSocketAddress(this.cassandra_host, this.cassandra_port.toInt)).withCredentials(this.cassandra_user, this.cassandra_pass).build()
-    val session = cluster.connect(this.cassandra_keyspace_name)
+
     try {
+      val cluster = Cluster.builder().addContactPointsWithPorts(new InetSocketAddress(this.cassandra_host, this.cassandra_port.toInt)).withCredentials(this.cassandra_user, this.cassandra_pass).build()
+      val session = cluster.connect(this.cassandra_keyspace_name)
       var tables_iterator = cluster.getMetadata.getKeyspace(this.cassandra_keyspace_name).getTables.iterator()
       while (tables_iterator.hasNext) {
         session.execute("drop table if exists " + this.cassandra_keyspace_name + '.' + tables_iterator.next.getName() + ";")
       }
+      session.close()
+      cluster.close()
+
     } catch {
       case e: Exception =>
         System.out.println("A problem occurred while reading tables")
