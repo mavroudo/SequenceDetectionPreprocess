@@ -3,3 +3,4 @@ target/*
 *.class
 *.log
 .idea/*
+pythonTesting/env/*
