@@ -5,6 +5,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 
 import scala.collection.mutable
+import scala.collection.mutable.HashMap
 
 object SparkUtils {
 
@@ -13,30 +14,50 @@ object SparkUtils {
    * Method to extract the loose (some duplicates) combinations (pairs)
    * along with the timestamps of their events from a sequence of events
    *
-   * @param data The [IdEventList] RDD
+   * @param data              The [IdEventList] RDD
+   * @param type_of_algorithm String that represents the algorithm that will be used
    * @return An RDD of [EventIdTimeLists] class that holds for each pair
    *         the timestamps on each device or user id
    */
-  def createCombinationsRDD(data: RDD[Structs.Sequence], type_of_search: String): RDD[Structs.EventIdTimeLists] = {
-    val spark = SparkSession.builder().getOrCreate()
+  //  def createCombinationsRDD(data: RDD[Structs.Sequence], type_of_algorithm: String): RDD[Structs.EventIdTimeLists] = {
+  //    if (type_of_algorithm == "extractPairs") {
+  //      this.extractPairs(data)
+  //    } else if (type_of_algorithm == "indexing") { //that means it is "next"
+  //      this.indexingMethod(data)
+  //    } else {
+  //      this.stateMethod(data)
+  //    }
+  //
+  //
+  //  }
 
+  def extractPairs(data: RDD[Structs.Sequence]): RDD[Structs.EventIdTimeLists] = {
+    val spark = SparkSession.builder().getOrCreate()
     val combinations = data
       .flatMap(l => {
-        if (type_of_search == "skip till match") {
-          extractPairsSkippTillMatch(l)
-        } else { //that means it is "next"
-          extractPairsNext(l)
-        }
+        extractPairsSkippTillMatch(l)
       }) //get pairs for each user
       .keyBy(l => (l.event1, l.event2)) //combine common combinations of users
       .reduceByKey((a, b) => {
         val newList = List.concat(a.times, b.times)
         Structs.EventIdTimeLists(a.event1, a.event2, newList)
-      })
+      }).filter(a=>{
+      a._2.times.size>0
+    })
       .map(_._2)
       .coalesce(spark.sparkContext.defaultParallelism)
     combinations
   }
+
+
+
+
+
+
+
+  //  def stateMethod(data: RDD[Structs.Sequence]): RDD[Structs.EventIdTimeLists] = {
+  //
+  //  }
 
   /**
    * Private method for creating every combination of events by 2
@@ -47,8 +68,10 @@ object SparkUtils {
    */
   def extractPairsSkippTillMatch(line: Structs.Sequence): List[Structs.EventIdTimeLists] = {
     val spark = SparkSession.builder().getOrCreate()
+
     import spark.implicits._
-    var index = mutable.HashMap[(String, String), List[String]]()
+
+    var index = HashMap[(String, String), List[String]]()
     var checked = mutable.HashSet[String]()
     for (i <- 0 until line.events.size - 1) {
       var eventA: String = ""
@@ -116,6 +139,7 @@ object SparkUtils {
     })
     res
   }
+
 
   def extractPairsNext(line: Structs.Sequence): List[Structs.EventIdTimeLists] = {
     var index = mutable.HashMap[(String, String), List[String]]()

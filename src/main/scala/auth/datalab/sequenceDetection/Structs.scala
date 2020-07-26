@@ -23,6 +23,8 @@ object Structs {
   //general class for id without time
   case class IdTimeList(id: Long, times: List[String])
 
+  case class PerSequencePairs(event1:String,event2:String,times:IdTimeList)
+
   case class CassandraIndex(event1_name: String, event2_name: String, sequences: List[String])
 
 

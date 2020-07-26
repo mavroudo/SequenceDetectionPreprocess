@@ -10,6 +10,7 @@ import org.apache.spark.sql.SparkSession
 import org.deckfour.xes.in.XParserRegistry
 import org.deckfour.xes.model.{XLog, XTrace}
 
+
 import scala.collection.JavaConversions._
 
 
@@ -38,7 +39,7 @@ object Utils {
     }
   }
 
-  def readFromXes(fileName: String)= { //:RDD[Structs.Sequence]
+  def readFromXes(fileName: String)= {
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._
     val file_Object = new File(fileName)
@@ -50,7 +51,6 @@ object Utils {
         parsed_logs = p.parse(new FileInputStream(file_Object)).toList
       }
     }
-    println("I am here")
     val pattern = "MMM d, yyyy HH:mm:ss a"
     val df = new SimpleDateFormat(pattern)
     val df2 = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss")
@@ -63,8 +63,18 @@ object Utils {
       }).toList
       Structs.Sequence(list,index.toLong)
     }
-    var par=spark.sparkContext.parallelize(data)
+    val par = spark.sparkContext.parallelize(data)
     par
+  }
+
+  /**
+   * Return if a is less than b
+   * @param timeA
+   * @param timeB
+   * @return
+   */
+  def compareTimes(timeA:String,timeB:String):Boolean={
+    timeA.toInt<timeB.toInt
   }
 
 
