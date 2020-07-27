@@ -14,7 +14,7 @@ import java.util.Calendar
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 
-import auth.datalab.sequenceDetection.PairExtraction.Indexing
+import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, State}
 import org.apache.spark.broadcast.Broadcast
 import org.deckfour.xes.in.{XParserRegistry, XesXmlParser}
 import org.deckfour.xes.model.XLog
@@ -29,7 +29,6 @@ object SequenceDetection {
 
   def main(args: Array[String]): Unit = {
     //    start by getting the parameters that we will need, what type of file (xes, txt) , filename, type of combinations
-    val typeOfFile: String = "txt"
     val fileName: String = "testing.txt"
 //    val fileName: String = "BPI Challenge 2017.xes"
 
@@ -83,6 +82,12 @@ object SequenceDetection {
       val sequencesRDD: RDD[Structs.Sequence] = Utils.readFromTxt(fileName, ",", false).persist(StorageLevel.MEMORY_AND_DISK)
       val combinations=Indexing.extract(sequencesRDD)
       combinations.foreach(println)
+      println("With square")
+      val combinations2=Parsing.extract(sequencesRDD)
+      combinations2.foreach(println)
+      println("With state")
+      val combinations3=State.extract(sequencesRDD)
+      combinations3.foreach(println)
 //      val combinationsRDD = startCombinationsRDD(sequencesRDD, table_temp, "", join, type_of_algorithm, table_seq, null, 0).persist(StorageLevel.MEMORY_AND_DISK)
 //      println("Writing combinations RDD to Cassandra ..")
 //      cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)
@@ -90,9 +95,12 @@ object SequenceDetection {
 //      println("Writing sequences RDD to Cassandra ...")
 //      cassandraConnection.writeTableSeq(sequencesRDD, table_seq)
 //      sequencesRDD.unpersist()
-//    } else if (fileName.split('.')(1) == "xes") {
-//      println("Getting data from file ...")
-//      val sequencesRDD: RDD[Structs.Sequence] = Utils.readFromXes(fileName).persist(StorageLevel.MEMORY_AND_DISK)
+    } else if (fileName.split('.')(1) == "xes") {
+      println("Getting data from file ...")
+      val sequencesRDD: RDD[Structs.Sequence] = Utils.readFromXes(fileName).persist(StorageLevel.MEMORY_AND_DISK)
+      val combinations=Indexing.extract(sequencesRDD)
+      combinations.take(10).foreach(println)
+      println("hi")
 //      val combinationsRDD = startCombinationsRDD(sequencesRDD, table_temp, "", join, type_of_algorithm, table_seq, null, 0).persist(StorageLevel.MEMORY_AND_DISK)
 //      println("Writing combinations RDD to Cassandra ..")
 //      cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)

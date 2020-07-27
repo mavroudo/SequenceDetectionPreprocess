@@ -74,7 +74,19 @@ object Utils {
    * @return
    */
   def compareTimes(timeA:String,timeB:String):Boolean={
-    timeA.toInt<timeB.toInt
+    if (timeA==""){
+      return true
+    }
+    val dateFormat=new SimpleDateFormat("dd-MM-yyyy hh:mm:ss")
+    try {
+      timeA.toInt < timeB.toInt
+    }catch{
+      case e : Throwable => {
+        e.getMessage()
+        dateFormat.parse(timeA).before(dateFormat.parse(timeB))
+      }
+    }
+
   }
 
 

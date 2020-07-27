@@ -38,6 +38,8 @@ object Indexing extends ExtractPairs {
       mapping.map(eventB => {
         val list = List[Structs.IdTimeList]() :+ this.createPairsIndexing(eventA._2, eventB._2, sequence_id)
         Structs.EventIdTimeLists(eventA._1, eventB._1, list)
+      }).filter(x =>{
+        x.times.head.times.nonEmpty
       })
     }).toList
 
@@ -46,7 +48,7 @@ object Indexing extends ExtractPairs {
   private def createPairsIndexing(eventAtime: List[String], eventBtimes: List[String], sequenceid: Long): Structs.IdTimeList = {
     var posA = 0
     var posB = 0
-    var prev = "-1"
+    var prev = ""
     var response = Structs.IdTimeList(sequenceid, List[String]())
     while (posA < eventAtime.size && posB < eventBtimes.size) {
       if (Utils.compareTimes(eventAtime(posA), eventBtimes(posB))) { // goes in if a  b
