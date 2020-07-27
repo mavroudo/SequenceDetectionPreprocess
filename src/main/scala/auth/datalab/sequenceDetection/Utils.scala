@@ -5,11 +5,12 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
 import auth.datalab.sequenceDetection.Structs.Event
+import javax.swing.JPopupMenu.Separator
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.storage.StorageLevel
 import org.deckfour.xes.in.XParserRegistry
 import org.deckfour.xes.model.{XLog, XTrace}
-
 
 import scala.collection.JavaConversions._
 
@@ -29,7 +30,18 @@ object Utils {
     envVariable
   }
 
-  def readFromTxt(fileName: String, seperator: String, hasTimestamp: Boolean): RDD[Structs.Sequence] = {
+  def readLog(fileName:String,separator: String=","):RDD[Structs.Sequence]={
+    if (fileName.split('.')(1) == "txt") { //there is no time limitations
+      this.readFromTxt(fileName, separator).persist(StorageLevel.MEMORY_AND_DISK)
+    } else if (fileName.split('.')(1) == "xes") {
+      this.readFromXes(fileName).persist(StorageLevel.MEMORY_AND_DISK)
+    }else{
+      throw new Exception("Not recognised file type")
+    }
+
+  }
+
+  def readFromTxt(fileName: String, seperator: String): RDD[Structs.Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
     spark.sparkContext.textFile(fileName).zipWithIndex map { case (line, index) =>
       val sequence = line.split(seperator).zipWithIndex map { case (event, inner_index) =>
@@ -39,23 +51,22 @@ object Utils {
     }
   }
 
-  def readFromXes(fileName: String)= {
+  def readFromXes(fileName: String):RDD[Structs.Sequence]= {
     val spark = SparkSession.builder().getOrCreate()
-    import spark.implicits._
     val file_Object = new File(fileName)
     var parsed_logs: List[XLog] = null
     val parsers_iterator = XParserRegistry.instance().getAvailable.iterator()
     while (parsers_iterator.hasNext) {
-      var p = parsers_iterator.next
+      val p = parsers_iterator.next
       if (p.canParse(file_Object)) {
         parsed_logs = p.parse(new FileInputStream(file_Object)).toList
       }
     }
-    val pattern = "MMM d, yyyy HH:mm:ss a"
-    val df = new SimpleDateFormat(pattern)
-    val df2 = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss")
 
-    val data=parsed_logs(0).zipWithIndex map { case (trace:XTrace, index:Int) =>
+    val df = new SimpleDateFormat("MMM d, yyyy HH:mm:ss a" ) //read this pattern from xes
+    val df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss") // transform it to this patter
+
+    val data=parsed_logs.head.zipWithIndex map { case (trace:XTrace, index:Int) =>
       val list =trace.map(event=>{
         val event_name = event.getAttributes.get("concept:name").toString
         val timestamp_occurred=event.getAttributes.get("time:timestamp").toString
@@ -77,14 +88,11 @@ object Utils {
     if (timeA==""){
       return true
     }
-    val dateFormat=new SimpleDateFormat("dd-MM-yyyy hh:mm:ss")
     try {
       timeA.toInt < timeB.toInt
     }catch{
-      case e : Throwable => {
-        e.getMessage()
-        dateFormat.parse(timeA).before(dateFormat.parse(timeB))
-      }
+      case e : Throwable =>
+        Timestamp.valueOf(timeA).before(Timestamp.valueOf(timeB))
     }
 
   }
