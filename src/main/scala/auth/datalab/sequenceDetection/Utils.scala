@@ -97,5 +97,16 @@ object Utils {
 
   }
 
+  /**
+   * Method for sorting entries based on their timestamps
+   * @param s1 Timestamp in string format
+   * @param s2 Timestamp in string format
+   * @return True or false based on order
+   */
+  def sortByTime(s1: String, s2: String):Boolean = {
+    val time1 = Timestamp.valueOf(s1)
+    val time2 = Timestamp.valueOf(s2)
+    time1.before(time2)
+  }
 
 }

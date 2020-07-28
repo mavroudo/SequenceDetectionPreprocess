@@ -1,17 +1,19 @@
 package auth.datalab.sequenceDetection
 
 import java.net.InetSocketAddress
-
+import java.sql.Timestamp
 
 import com.datastax.driver.core.{Cluster, ConsistencyLevel, KeyspaceMetadata, Session, TableMetadata}
-
 import org.apache.spark.SparkConf
 import org.apache.spark.sql._
-
 import org.apache.spark.rdd.RDD
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
+import org.apache.spark.storage.StorageLevel
+
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 
 class CassandraConnection extends Serializable {
@@ -28,6 +30,7 @@ class CassandraConnection extends Serializable {
   private var cassandra_write_consistency_level: String = null
   private var cassandra_gc_grace_seconds: String = null
   private var _configuration: SparkConf = null
+  private val DELIMITER= "¦delab¦"
 
 
   def startSpark(): Unit = {
@@ -185,6 +188,100 @@ class CassandraConnection extends Serializable {
       ), writeConf
     )
   }
+
+  /**
+   * Method to read the data from a cassandra table
+   *
+   * @param name Table name
+   * @return A Dataframe with the table data
+   */
+  def readTable(name: String): DataFrame = {
+    val spark = SparkSession.builder().getOrCreate()
+    val table = spark
+      .read
+      .format("org.apache.spark.sql.cassandra")
+      .options(Map(
+        "table" -> name,
+        "keyspace" -> cassandra_keyspace_name
+      ))
+      .load()
+    table
+  }
+
+  def readTemp(temp: String, funnel_date: Timestamp): DataFrame = {
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.implicits._
+    val tempTable = this.readTable(temp)
+      .rdd
+      .flatMap(row => {
+        val res = ListBuffer[(String, String, String, String)]()
+        row
+          .getAs[mutable.WrappedArray[String]](2)
+          .toList
+          .foreach(l => {
+            val split = l.split(DELIMITER)
+            res.+=((row.getString(0), row.getString(1), split(0), split(1).replace("(", "").replace(")", "")))
+          })
+        res
+      })
+      .filter(row => {
+        println(row._4)
+        Utils.compareTimes(funnel_date.toString, row._4)
+      })
+      .toDF("ev1", "ev2", "id", "time")
+      .persist(StorageLevel.MEMORY_AND_DISK)
+    //cache it
+    tempTable.count()
+    tempTable
+  }
+
+  def writeTableUserTemp(table: RDD[Structs.EventIdTimeLists], name: String): Unit = {
+    val latest_times = table.map(row => {
+      val users = row.times
+        .map(p => {
+          val user = p.id
+          val time = p.times.last.trim
+          Structs.IdTimeList(user, List(time))
+        })
+      Structs.EventIdTimeLists(row.event1, row.event2, users)
+    })
+
+    val toWrite = latest_times
+      .map(r => {
+        val formatted = detailsToCassandraFormat(r)
+        Structs.CassandraIndex(formatted._1, formatted._2, formatted._3)
+      })
+
+    toWrite.saveToCassandra(
+      keyspaceName = cassandra_keyspace_name,
+      tableName = name,
+      columns = SomeColumns(
+        "event1_name",
+        "event2_name",
+        "sequences"
+      )
+    )
+  }
+
+
+  /**
+   * Method for transforming the details index
+   * to a common format with the quering code
+   *
+   * @param line A row of data
+   * @return The formatted row
+   */
+  private def detailsToCassandraFormat(line: Structs.EventIdTimeLists): (String, String, List[String]) = {
+    val newList = line.times
+      .map(r => {
+        var userString = r.id + DELIMITER + "("
+        r.times.foreach(l => userString = userString + l + ",")
+        userString = userString.dropRight(1) + ")"
+        userString
+      })
+    (line.event1, line.event2, newList)
+  }
+
 
   private def combinationsToCassandraFormat(line: Structs.EventIdTimeLists): (String, String, List[String]) = {
     val spark = SparkSession.builder().getOrCreate()

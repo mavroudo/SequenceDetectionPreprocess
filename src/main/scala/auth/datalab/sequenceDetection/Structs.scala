@@ -21,11 +21,15 @@ object Structs {
   case class EventIdTimeLists(event1: String, event2: String, times: List[IdTimeList])
 
   //general class for id without time
-  case class IdTimeList(id: Long, val times: List[String])
+  case class IdTimeList(id: Long, times: List[String])
 
   case class PerSequencePairs(event1:String,event2:String,times:IdTimeList)
 
   case class CassandraIndex(event1_name: String, event2_name: String, sequences: List[String])
 
   case class Pair(event1:String,event2:String,var first_event:String, pairs:IdTimeList, count:Int)
+
+  case class JoinTemp(event1: String, event2: String, id: String, times: List[String])
+
+
 }
