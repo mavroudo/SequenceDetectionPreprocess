@@ -5,7 +5,6 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
 import auth.datalab.sequenceDetection.Structs.Event
-import javax.swing.JPopupMenu.Separator
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
@@ -35,6 +34,8 @@ object Utils {
       this.readFromTxt(fileName, separator).persist(StorageLevel.MEMORY_AND_DISK)
     } else if (fileName.split('.')(1) == "xes") {
       this.readFromXes(fileName).persist(StorageLevel.MEMORY_AND_DISK)
+    }else if (fileName.split('.')(1) == "withTimestamp"){
+      this.readWithTimestamps(fileName,",","/delab/")
     }else{
       throw new Exception("Not recognised file type")
     }
@@ -78,10 +79,20 @@ object Utils {
     par
   }
 
+  def readWithTimestamps(fileName: String, seperator: String, delimiter: String): RDD[Structs.Sequence] = {
+    val spark = SparkSession.builder().getOrCreate()
+    spark.sparkContext.textFile(fileName).zipWithIndex map { case (line, index) =>
+      val sequence = line.split(seperator).map(event => {
+        Structs.Event(event.split(delimiter)(1),event.split(delimiter)(0))
+      })
+      Structs.Sequence( sequence.toList,index)
+    }
+  }
+
   /**
    * Return if a is less than b
-   * @param timeA
-   * @param timeB
+   * @param timeA first time
+   * @param timeB second time
    * @return
    */
   def compareTimes(timeA:String,timeB:String):Boolean={
@@ -91,7 +102,7 @@ object Utils {
     try {
       timeA.toInt < timeB.toInt
     }catch{
-      case e : Throwable =>
+      case _ : Throwable =>
         Timestamp.valueOf(timeA).before(Timestamp.valueOf(timeB))
     }
 

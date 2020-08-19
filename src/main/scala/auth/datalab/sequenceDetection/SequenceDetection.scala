@@ -6,7 +6,7 @@ import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, State, 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
 import scala.collection.mutable
@@ -17,15 +17,21 @@ object SequenceDetection {
   private var table_date = ""
 
   def main(args: Array[String]): Unit = {
-    //    start by getting the parameters that we will need, what type of file (xes, txt) , filename, type of combinations
-    val fileName: String = "testing.txt"
-//        val fileName: String = "BPI Challenge 2017.xes"
-
-
-    val deletePrevious = "1"
-    val deleteAll = "1"
+    //    start by getting the parameters that we will need,filename, type_of_algorithm, deleteAll, join
+    //    val fileName: String = "testing.txt"
+        val fileName: String = "BPI Challenge 2017.xes"
+//    val fileName: String = "logTest.withTimestamp"
     val type_of_algorithm = "indexing"
+    val deleteAll = "1"
     val join = 0
+//    val fileName: String = args(0)
+//    val type_of_algorithm = args(1)
+//    val deleteAll = args(2)
+//    val join = args(3).toInt
+//    val spark=SparkSession.builder().getOrCreate()
+    println(fileName,type_of_algorithm,deleteAll,join)
+    val deletePrevious = "1"
+
 
     Logger.getLogger("org").setLevel(Level.ERROR)
 
@@ -67,9 +73,9 @@ object SequenceDetection {
     println("Finding Combinations ...")
     try {
       val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
-//      TODO: if needed to combine with previous existing records
+      //      TODO: if needed to combine with previous existing records
       val combinationsRDD = startCombinationsRDD(sequencesRDD, table_temp, "", join, type_of_algorithm, table_seq, null, 0).persist(StorageLevel.MEMORY_AND_DISK)
-//      combinationsRDD.take(10).foreach(println)
+      //      combinationsRDD.take(10).foreach(println)
       println("Writing combinations RDD to Cassandra ..")
       cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)
       combinationsRDD.unpersist()
@@ -77,16 +83,12 @@ object SequenceDetection {
       cassandraConnection.writeTableSeq(sequencesRDD, table_seq)
       sequencesRDD.unpersist()
       cassandraConnection.closeSpark()
-    }catch {
-      case e:Exception=>{
+    } catch {
+      case e: Exception => {
         println(e.getMessage())
         cassandraConnection.closeSpark()
       }
     }
-
-
-
-
 
 
   }
@@ -106,13 +108,13 @@ object SequenceDetection {
     if (join == 0) { // we have no prio knowledge and it will not have next
       res = createCombinationsRDD(seqRDD, type_of_algorithm)
       if (time != "") { // we need to eliminate all the pairs completed before the time
-        res=TimeCombinations.timeCombinationsRDD(res,time)
+        res = TimeCombinations.timeCombinationsRDD(res, time)
       }
-    }else{
+    } else {
       val funnel_time = Timestamp.valueOf(time).getTime - (look_back_hours * 3600 * 1000)
       val funnel_date = new Timestamp(funnel_time)
-      val tempTable:DataFrame=cassandraConnection.readTemp(table_temp,funnel_date)
-      res=ZipCombinations.zipCombinationsRDD(seqRDD,tempTable,table_name, funnel_date)
+      val tempTable: DataFrame = cassandraConnection.readTemp(table_temp, funnel_date)
+      res = ZipCombinations.zipCombinationsRDD(seqRDD, tempTable, table_name, funnel_date)
     }
     res
   }
