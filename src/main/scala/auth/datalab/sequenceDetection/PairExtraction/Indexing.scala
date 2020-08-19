@@ -1,5 +1,7 @@
 package auth.datalab.sequenceDetection.PairExtraction
 
+import java.util.Collections
+
 import auth.datalab.sequenceDetection.{Structs, Utils}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
@@ -41,21 +43,24 @@ object Indexing extends ExtractPairs {
       }).filter(x =>{
         x.times.head.times.nonEmpty
       })
-    }).toList
+    })toList
 
   }
 
-  private def createPairsIndexing(eventAtime: List[String], eventBtimes: List[String], sequenceid: Long): Structs.IdTimeList = {
+  private def createPairsIndexing(eventAtimes: List[String], eventBtimes: List[String], sequenceid: Long): Structs.IdTimeList = {
     var posA = 0
     var posB = 0
     var prev = ""
+
+    val sortedA=eventAtimes.sortWith(Utils.compareTimes)
+    val sortedB=eventBtimes.sortWith(Utils.compareTimes)
     var response = Structs.IdTimeList(sequenceid, List[String]())
-    while (posA < eventAtime.size && posB < eventBtimes.size) {
-      if (Utils.compareTimes(eventAtime(posA), eventBtimes(posB))) { // goes in if a  b
-        if (Utils.compareTimes(prev, eventAtime(posA))) {
-          val newList = response.times :+ eventAtime(posA) :+ eventBtimes(posB)
+    while (posA < sortedA.size && posB < sortedB.size) {
+      if (Utils.compareTimes(sortedA(posA), sortedB(posB))) { // goes in if a  b
+        if (Utils.compareTimes(prev, sortedA(posA))) {
+          val newList = response.times :+ sortedA(posA) :+ sortedB(posB)
           response = Structs.IdTimeList(response.id, newList)
-          prev = eventBtimes(posB)
+          prev = sortedB(posB)
           posA += 1
           posB += 1
         } else {
@@ -66,6 +71,7 @@ object Indexing extends ExtractPairs {
       }
     }
     response
+
   }
 
 

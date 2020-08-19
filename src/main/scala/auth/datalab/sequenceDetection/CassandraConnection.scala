@@ -45,6 +45,7 @@ class CassandraConnection extends Serializable {
       cassandra_replication_rack = Utils.readEnvVariable("cassandra_replication_rack")
       cassandra_replication_factor = Utils.readEnvVariable("cassandra_replication_factor")
       cassandra_write_consistency_level = Utils.readEnvVariable("cassandra_write_consistency_level")
+
     } catch {
       case e: NullPointerException =>
         e.printStackTrace()
@@ -52,7 +53,7 @@ class CassandraConnection extends Serializable {
     }
     _configuration = new SparkConf()
       .setAppName("FA Indexing")
-      .setMaster("local[*]")
+//      .setMaster("local[*]")
       .set("spark.cassandra.connection.host", cassandra_host)
       .set("spark.cassandra.auth.username", cassandra_user)
       .set("spark.cassandra.auth.password", cassandra_pass)

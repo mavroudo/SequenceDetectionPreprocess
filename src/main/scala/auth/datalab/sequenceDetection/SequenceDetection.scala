@@ -18,17 +18,18 @@ object SequenceDetection {
 
   def main(args: Array[String]): Unit = {
     //    start by getting the parameters that we will need,filename, type_of_algorithm, deleteAll, join
-    //    val fileName: String = "testing.txt"
-        val fileName: String = "BPI Challenge 2017.xes"
+//        val fileName: String = "testing.txt"
+//        val fileName: String = "BPI Challenge 2017.xes"
 //    val fileName: String = "logTest.withTimestamp"
-    val type_of_algorithm = "indexing"
-    val deleteAll = "1"
-    val join = 0
-//    val fileName: String = args(0)
-//    val type_of_algorithm = args(1)
-//    val deleteAll = args(2)
-//    val join = args(3).toInt
-//    val spark=SparkSession.builder().getOrCreate()
+//    val type_of_algorithm = "indexing"
+//    val deleteAll = "0"
+//    val join = 0
+    val fileName: String = args(0)
+    val type_of_algorithm = args(1) //parsing, indexing or state
+    val deleteAll = args(2)
+    val join = args(3).toInt
+    val spark=SparkSession.builder().getOrCreate()
+    println(s"Starting Spark version ${spark.version}")
     println(fileName,type_of_algorithm,deleteAll,join)
     val deletePrevious = "1"
 
@@ -64,6 +65,9 @@ object SequenceDetection {
     cassandraConnection = new CassandraConnection()
     cassandraConnection.startSpark()
 
+    if(deletePrevious=="1"){
+      cassandraConnection.dropTables(List(table_idx,table_seq,table_temp,table_count))
+    }
     if (deleteAll == "1") {
       cassandraConnection.dropAlltables()
     }
