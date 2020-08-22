@@ -31,5 +31,8 @@ object Structs {
 
   case class JoinTemp(event1: String, event2: String, id: String, times: List[String])
 
+  //for count table
+  case class CountList(event1_name: String, times: List[(String, Long, Int)])
 
+  case class CassandraCount(event1_name:String, sequences_per_field:List[String])
 }

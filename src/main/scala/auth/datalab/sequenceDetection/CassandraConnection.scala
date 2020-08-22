@@ -30,7 +30,7 @@ class CassandraConnection extends Serializable {
   private var cassandra_write_consistency_level: String = null
   private var cassandra_gc_grace_seconds: String = null
   private var _configuration: SparkConf = null
-  private val DELIMITER= "¦delab¦"
+  private val DELIMITER = "¦delab¦"
 
 
   def startSpark(): Unit = {
@@ -53,7 +53,7 @@ class CassandraConnection extends Serializable {
     }
     _configuration = new SparkConf()
       .setAppName("FA Indexing")
-//      .setMaster("local[*]")
+      .setMaster("local[*]")
       .set("spark.cassandra.connection.host", cassandra_host)
       .set("spark.cassandra.auth.username", cassandra_user)
       .set("spark.cassandra.auth.password", cassandra_pass)
@@ -190,6 +190,20 @@ class CassandraConnection extends Serializable {
     )
   }
 
+  def writeTableSeqCount(combinations: RDD[Structs.CountList], tableName: String): Unit = {
+    val table = combinations
+      .map(r => {
+        val formatted = combinationsCountToCassandraFormat(r)
+        Structs.CassandraCount(formatted._1, formatted._2)
+      })
+    table
+      .saveToCassandra(
+        cassandra_keyspace_name.toLowerCase,
+        tableName.toLowerCase,
+        SomeColumns("event1_name", "sequences_per_field" append)
+      )
+  }
+
   /**
    * Method to read the data from a cassandra table
    *
@@ -203,7 +217,7 @@ class CassandraConnection extends Serializable {
       .format("org.apache.spark.sql.cassandra")
       .options(Map(
         "table" -> name,
-        "keyspace" -> cassandra_keyspace_name
+        "keyspace" -> cassandra_keyspace_name.toLowerCase()
       ))
       .load()
     table
@@ -226,7 +240,6 @@ class CassandraConnection extends Serializable {
         res
       })
       .filter(row => {
-        println(row._4)
         Utils.compareTimes(funnel_date.toString, row._4)
       })
       .toDF("ev1", "ev2", "id", "time")
@@ -236,7 +249,7 @@ class CassandraConnection extends Serializable {
     tempTable
   }
 
-  def writeTableUserTemp(table: RDD[Structs.EventIdTimeLists], name: String): Unit = {
+  def writeTableSeqTemp(table: RDD[Structs.EventIdTimeLists], name: String): Unit = {
     val latest_times = table.map(row => {
       val users = row.times
         .map(p => {
@@ -254,8 +267,8 @@ class CassandraConnection extends Serializable {
       })
 
     toWrite.saveToCassandra(
-      keyspaceName = cassandra_keyspace_name,
-      tableName = name,
+      keyspaceName = cassandra_keyspace_name.toLowerCase,
+      tableName = name.toLowerCase,
       columns = SomeColumns(
         "event1_name",
         "event2_name",
@@ -303,6 +316,23 @@ class CassandraConnection extends Serializable {
       })
     (line.event1, line.event2, newList)
 
+  }
+
+  /**
+   * Method for transforming the precomputed combinations counts
+   * to a common format with the quering code
+   *
+   * @param line A row of data
+   * @return The formatted row
+   */
+  private def combinationsCountToCassandraFormat(line: Structs.CountList): (String, List[String]) = {
+    val newEvent = line.event1_name
+    val newList = line.times
+      .map(r => {
+        val userString = r._1 +DELIMITER + r._2 + DELIMITER + r._3
+        userString
+      })
+    (newEvent, newList)
   }
 
   def closeSpark(): Unit = {

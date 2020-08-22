@@ -17,7 +17,6 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1"
 libraryDependencies ++= Seq(
   "org.eu.acolyte" %% "jdbc-scala" % "1.0.46" % "test"
 )
-libraryDependencies += "org.apache.spark" % "spark-catalyst_2.11" % "2.0.0" % "provided"
 
 val sparkVersion = "2.4.4"
 
@@ -25,9 +24,10 @@ val sparkVersion = "2.4.4"
 //to run the sbt assembly the '% "provided",' section must not be in comments
 //to debug in IDE the '% "provided",' section must be in comments
 libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
-  "org.apache.spark" %% "spark-mllib" % sparkVersion % "provided",
-  "org.apache.spark" %% "spark-sql" % sparkVersion % "provided")
+  "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion, //"2.0.0"
+  "org.apache.spark" %% "spark-core" % sparkVersion ,
+  "org.apache.spark" %% "spark-mllib" % sparkVersion ,
+  "org.apache.spark" %% "spark-sql" % sparkVersion )
 
 assemblyMergeStrategy in assembly := {
   case manifest if manifest.contains("MANIFEST.MF") =>

@@ -16,7 +16,7 @@ object ZipCombinations {
    * Method to extract the exact timestamps of each pair combination from a sequence of events
    *
    * @param data The RDD with the sequence for each user/device
-   * @param temp The temp table name from which the method needs to read data from cassandra
+   * @param tempTable The temp table name from which the method needs to read data from cassandra
    * @return An [EventIdTimeLists] class RDD with the all of the pairs and their correct timestamps
    * @note Needs more resources than the loose version because of the join
    */

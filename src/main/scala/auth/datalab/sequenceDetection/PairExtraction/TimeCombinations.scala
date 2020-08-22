@@ -17,6 +17,9 @@ object TimeCombinations {
    * @return
    */
   def timeCombinationsRDD(data: RDD[Structs.EventIdTimeLists], time: String): RDD[Structs.EventIdTimeLists] = {
+    if (time == ""){
+      return data
+    }
     val spark = SparkSession.builder().getOrCreate()
 
     val res = data
