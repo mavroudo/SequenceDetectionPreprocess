@@ -28,10 +28,11 @@ object SequenceDetection {
     val type_of_algorithm = args(1) //parsing, indexing or state
     val deleteAll = args(2)
     val join = args(3).toInt
+    val deletePrevious = args(4)
     //    val spark=SparkSession.builder().getOrCreate()
     //    println(s"Starting Spark version ${spark.version}")
     println(fileName, type_of_algorithm, deleteAll, join)
-    val deletePrevious = "1"
+
 
 
     Logger.getLogger("org").setLevel(Level.ERROR)
