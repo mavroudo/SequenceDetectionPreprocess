@@ -1,0 +1,5 @@
+import os
+stream = os.popen('spark-submit --master local[*] --conf spark.cassandra.connection.host=rabbit.csd.auth.gr  target/scala-2.11/Sequence\ Detection-assembly-0.1.jar 'ten$2.withTimestamp' indexing 0 0 0spark-submit --master local[*] --conf spark.cassandra.connection.host=rabbit.csd.auth.gr  target/scala-2.11/Sequence\ Detection-assembly-0.1.jar 'ten$2.withTimestamp' indexing 0 0 0spark-submit --master local[*] --conf spark.cassandra.connection.host=rabbit.csd.auth.gr  target/scala-2.11/Sequence\ Detection-assembly-0.1.jar 'ten$2.withTimestamp' indexing 0 0 0spark-submit --master local[*] --conf spark.cassandra.connection.host=rabbit.csd.auth.gr  target/scala-2.11/Sequence\ Detection-assembly-0.1.jar 'ten$2.withTimestamp' indexing 0 0 0spark-submit --master local[*] --conf spark.cassandra.connection.host=rabbit.csd.auth.gr  target/scala-2.11/Sequence\ Detection-assembly-0.1.jar 'ten$2.withTimestamp' indexing 0 0 0')
+output = stream.read()
+output
+

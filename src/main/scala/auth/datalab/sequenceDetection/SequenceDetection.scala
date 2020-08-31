@@ -29,10 +29,9 @@ object SequenceDetection {
     val deleteAll = args(2)
     val join = args(3).toInt
     val deletePrevious = args(4)
-    //    val spark=SparkSession.builder().getOrCreate()
+    val spark = SparkSession.builder().getOrCreate()
     //    println(s"Starting Spark version ${spark.version}")
     println(fileName, type_of_algorithm, deleteAll, join)
-
 
 
     Logger.getLogger("org").setLevel(Level.ERROR)
@@ -64,25 +63,27 @@ object SequenceDetection {
 
     println("Finding Combinations ...")
     try {
-      val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName).persist(StorageLevel.MEMORY_AND_DISK)
-      val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
-        "2018-01-01 00:00:00", 10).persist(StorageLevel.MEMORY_AND_DISK)
-      val combinationsRDD = startCombinationsRDD(sequenceCombinedRDD, table_temp, "", join, type_of_algorithm, table_seq,
-        null, 0).persist(StorageLevel.MEMORY_AND_DISK)
-      val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD).persist(StorageLevel.MEMORY_AND_DISK)
-      println("Writing combinations RDD to Cassandra ..")
-      cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)
-      cassandraConnection.writeTableSeqCount(combinationsCountRDD, table_count)
-      if (join!=0) {
-        cassandraConnection.writeTableSeqTemp(combinationsRDD, table_temp)
-      }
-      combinationsRDD.unpersist()
-      combinationsCountRDD.unpersist()
+      spark.time({
+        val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName).persist(StorageLevel.MEMORY_AND_DISK)
+        val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
+          "2018-01-01 00:00:00", 10).persist(StorageLevel.MEMORY_AND_DISK)
+        val combinationsRDD = startCombinationsRDD(sequenceCombinedRDD, table_temp, "", join, type_of_algorithm, table_seq,
+          null, 0).persist(StorageLevel.MEMORY_AND_DISK)
+        val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD).persist(StorageLevel.MEMORY_AND_DISK)
+        println("Writing combinations RDD to Cassandra ..")
+        cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)
+        cassandraConnection.writeTableSeqCount(combinationsCountRDD, table_count)
+        if (join != 0) {
+          cassandraConnection.writeTableSeqTemp(combinationsRDD, table_temp)
+        }
+        combinationsRDD.unpersist()
+        combinationsCountRDD.unpersist()
 
 
-      cassandraConnection.writeTableSeq(sequenceCombinedRDD, table_seq)
-      sequenceCombinedRDD.unpersist()
-      sequencesRDD.unpersist()
+        cassandraConnection.writeTableSeq(sequenceCombinedRDD, table_seq)
+        sequenceCombinedRDD.unpersist()
+        sequencesRDD.unpersist()
+      })
       cassandraConnection.closeSpark()
     } catch {
       case e: Exception => {
