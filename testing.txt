@@ -1,6 +1,0 @@
-d,e,d
-d,e,b,b
-d,e,b,c
-d,e,a
-d,b,b
-d,b,c

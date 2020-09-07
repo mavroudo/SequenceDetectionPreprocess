@@ -1,5 +1,5 @@
 
-name := "Sequence Detection"
+name := "SequenceDetection"
 version := "0.1"
 scalaVersion := "2.11.12"
 organization := "auth.datalab.followUps"
@@ -41,7 +41,8 @@ assemblyMergeStrategy in assembly := {
     // For all the other files, use the default sbt-assembly merge strategy
     //val oldStrategy = (assemblyMergeStrategy in assembly).value
     //oldStrategy(x)
-    MergeStrategy.first
+    //MergeStrategy.first
+    MergeStrategy.last
   case x => {
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)

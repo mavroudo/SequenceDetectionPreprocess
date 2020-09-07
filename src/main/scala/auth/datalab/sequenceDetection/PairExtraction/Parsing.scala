@@ -11,7 +11,7 @@ object Parsing extends ExtractPairs {
     val spark = SparkSession.builder().getOrCreate()
     val combinations = data
       .flatMap(l => {
-        extractPairsSkippTillMatch(l)
+        extractPairsSkipTillMatch(l)
       }) //get pairs for each user
       .keyBy(l => (l.event1, l.event2)) //combine common combinations of users
       .reduceByKey((a, b) => {
@@ -32,7 +32,7 @@ object Parsing extends ExtractPairs {
    * @param line A sequence of events of a user or device
    * @return The list of pairs along with the timestamps of each of their events
    */
-  private def extractPairsSkippTillMatch(line: Structs.Sequence): List[Structs.EventIdTimeLists] = {
+  private def extractPairsSkipTillMatch(line: Structs.Sequence): List[Structs.EventIdTimeLists] = {
     val spark = SparkSession.builder().getOrCreate()
 
     import spark.implicits._
@@ -106,34 +106,7 @@ object Parsing extends ExtractPairs {
     res
   }
 
-  /**
-   * Private method for extracting pairs with "next" O(n)
-   * @param line
-   * @return
-   */
-  private def extractPairsNext(line: Structs.Sequence): List[Structs.EventIdTimeLists] = {
-    var index = mutable.HashMap[(String, String), List[String]]()
-    for (i <- 0 until line.events.size - 1) {
-      val eventA = line.events(i).event
-      val eventB = line.events(i + 1).event
-      val timeA = line.events(i).timestamp
-      val timeB = line.events(i + 1).timestamp
-      val old = index.getOrElse((eventA, eventB), null)
-      if (old == null) {
-        index.+=(((eventA, eventB), List(timeA, timeB)))
-      } else {
-        val newList = timeA :: timeB :: old
-        index.+=(((eventA, eventB), newList))
-      }
-    }
 
-    val res = index.toList.map(row => {
-      var list = row._2
-      Structs.EventIdTimeLists(row._1._1, row._1._2, List(Structs.IdTimeList(line.sequence_id, row._2)))
-    })
-    res
-
-  }
 
 
 }

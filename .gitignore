@@ -4,3 +4,7 @@ target/*
 *.log
 .idea/*
 pythonTesting/env/*
+*.withTimestamp
+*.xes
+logfiles/*
+logfilesPre/*

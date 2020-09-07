@@ -2,7 +2,7 @@ package auth.datalab.sequenceDetection
 
 import java.sql.Timestamp
 
-import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, State, TimeCombinations, ZipCombinations}
+import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, State, StrictContiguity, TimeCombinations, ZipCombinations}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
@@ -29,7 +29,7 @@ object SequenceDetection {
     val deleteAll = args(2)
     val join = args(3).toInt
     val deletePrevious = args(4)
-    val spark = SparkSession.builder().getOrCreate()
+//    val spark = SparkSession.builder().getOrCreate()
     //    println(s"Starting Spark version ${spark.version}")
     println(fileName, type_of_algorithm, deleteAll, join)
 
@@ -63,6 +63,7 @@ object SequenceDetection {
 
     println("Finding Combinations ...")
     try {
+      val spark = SparkSession.builder().getOrCreate()
       spark.time({
         val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName).persist(StorageLevel.MEMORY_AND_DISK)
         val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
@@ -85,6 +86,13 @@ object SequenceDetection {
         sequencesRDD.unpersist()
       })
       cassandraConnection.closeSpark()
+      val mb = 1024*1024
+      val runtime = Runtime.getRuntime
+      println("ALL RESULTS IN MB")
+      println("** Used Memory:  " + (runtime.totalMemory - runtime.freeMemory) / mb)
+      println("** Free Memory:  " + runtime.freeMemory / mb)
+      println("** Total Memory: " + runtime.totalMemory / mb)
+      println("** Max Memory:   " + runtime.maxMemory / mb)
     } catch {
       case e: Exception => {
         println(e.getMessage())
@@ -100,6 +108,7 @@ object SequenceDetection {
       case "parsing" => Parsing.extract(seqRDD)
       case "indexing" => Indexing.extract(seqRDD)
       case "state" => State.extract(seqRDD)
+      case "strict" =>StrictContiguity.extract(seqRDD)
       case _ => throw new Exception("Wrong type of algorithm")
     }
   }

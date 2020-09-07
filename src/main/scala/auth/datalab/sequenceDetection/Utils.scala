@@ -5,6 +5,7 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
 import auth.datalab.sequenceDetection.Structs.Event
+import com.google.protobuf.TextFormat.ParseException
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
@@ -66,6 +67,7 @@ object Utils {
 
     val df = new SimpleDateFormat("MMM d, yyyy HH:mm:ss a") //read this pattern from xes
     val df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss") // transform it to this patter
+    val df3 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
 
     val data = parsed_logs.head.zipWithIndex map { case (trace: XTrace, index: Int) =>
       val list = trace.map(event => {
@@ -126,7 +128,8 @@ object Utils {
 
   /**
    * Method to return the difference in milliseconds between timestamps
-   * @param pr_time The 1st timestamp in string format
+   *
+   * @param pr_time  The 1st timestamp in string format
    * @param new_time The 2nd timestamp in string format
    * @return The difference in long format
    */
