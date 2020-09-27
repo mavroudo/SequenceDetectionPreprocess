@@ -32,9 +32,9 @@ object Utils {
 
   def readLog(fileName: String, separator: String = ","): RDD[Structs.Sequence] = {
     if (fileName.split('.')(1) == "txt") { //there is no time limitations
-      this.readFromTxt(fileName, separator).persist(StorageLevel.MEMORY_AND_DISK)
+      this.readFromTxt(fileName, separator)
     } else if (fileName.split('.')(1) == "xes") {
-      this.readFromXes(fileName).persist(StorageLevel.MEMORY_AND_DISK)
+      this.readFromXes(fileName)
     } else if (fileName.split('.')(1) == "withTimestamp") {
       this.readWithTimestamps(fileName, ",", "/delab/")
     } else {

@@ -36,7 +36,7 @@ object SequenceDetection {
 
     Logger.getLogger("org").setLevel(Level.ERROR)
 
-    var table_name = fileName.split('.')(0).split('$')(0).replace(' ', '_')
+    var table_name = fileName.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
     var table_temp = table_name + "_temp"
     var table_seq = table_name + "_seq"
     var table_idx = table_name + "_idx"
@@ -65,12 +65,12 @@ object SequenceDetection {
     try {
       val spark = SparkSession.builder().getOrCreate()
       spark.time({
-        val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName).persist(StorageLevel.MEMORY_AND_DISK)
+        val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
         val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
-          "2018-01-01 00:00:00", 10).persist(StorageLevel.MEMORY_AND_DISK)
+          "2018-01-01 00:00:00", 10)
         val combinationsRDD = startCombinationsRDD(sequenceCombinedRDD, table_temp, "", join, type_of_algorithm, table_seq,
-          null, 0).persist(StorageLevel.MEMORY_AND_DISK)
-        val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD).persist(StorageLevel.MEMORY_AND_DISK)
+          null, 0)
+        val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD)
         println("Writing combinations RDD to Cassandra ..")
         cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)
         cassandraConnection.writeTableSeqCount(combinationsCountRDD, table_count)
@@ -145,11 +145,11 @@ object SequenceDetection {
         Structs.Sequence(events = events, sequence_id = row.getString(0).toLong)
       })
       .rdd
-      .persist(StorageLevel.MEMORY_AND_DISK)
-    cassandraTable.count()
+//      .persist(StorageLevel.DISK_ONLY)
+//    cassandraTable.count()
     val res = this.mergeSeq(seq_log_RDD, cassandraTable)
       .coalesce(spark.sparkContext.defaultParallelism)
-    res.count()
+//    res.count()
     cassandraTable.unpersist()
     res
   }

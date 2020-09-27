@@ -53,7 +53,7 @@ class CassandraConnection extends Serializable {
     }
     _configuration = new SparkConf()
       .setAppName("FA Indexing")
-      .setMaster("local[*]")
+//      .setMaster("local[*]")
       .set("spark.cassandra.connection.host", cassandra_host)
       .set("spark.cassandra.auth.username", cassandra_user)
       .set("spark.cassandra.auth.password", cassandra_pass)
@@ -243,7 +243,7 @@ class CassandraConnection extends Serializable {
         Utils.compareTimes(funnel_date.toString, row._4)
       })
       .toDF("ev1", "ev2", "id", "time")
-      .persist(StorageLevel.MEMORY_AND_DISK)
+//      .persist(StorageLevel.DISK_ONLY)
     //cache it
     tempTable.count()
     tempTable

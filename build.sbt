@@ -22,7 +22,7 @@ val sparkVersion = "2.4.4"
 
 
 //to run the sbt assembly the '% "provided",' section must not be in comments
-//to debug in IDE the '% "provided",' section must be in comments
+//to debug in IDE the '  "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion , //"2.0.0",' section must be in comments
 libraryDependencies ++= Seq(
   "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion % "provided", //"2.0.0"
   "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
