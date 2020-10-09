@@ -8,7 +8,9 @@ import org.apache.spark.sql.SparkSession
 import scala.collection.mutable
 import scala.collection.mutable.HashSet
 
-
+/**
+ * Extracting pairs using State method
+ */
 object State extends ExtractPairs {
 
 

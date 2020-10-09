@@ -17,20 +17,11 @@ object SequenceDetection {
   private var table_date = ""
 
   def main(args: Array[String]): Unit = {
-    //    start by getting the parameters that we will need,filename, type_of_algorithm, deleteAll, join
-    //        val fileName: String = "testing.txt"
-    //        val fileName: String = "BPI Challenge 2017.xes"
-    //    val fileName: String = "logTest.withTimestamp"
-    //    val type_of_algorithm = "indexing"
-    //    val deleteAll = "0"
-    //    val join = 0
     val fileName: String = args(0)
     val type_of_algorithm = args(1) //parsing, indexing or state
     val deleteAll = args(2)
     val join = args(3).toInt
     val deletePrevious = args(4)
-//    val spark = SparkSession.builder().getOrCreate()
-    //    println(s"Starting Spark version ${spark.version}")
     println(fileName, type_of_algorithm, deleteAll, join)
 
 
@@ -145,11 +136,11 @@ object SequenceDetection {
         Structs.Sequence(events = events, sequence_id = row.getString(0).toLong)
       })
       .rdd
-//      .persist(StorageLevel.DISK_ONLY)
-//    cassandraTable.count()
+      .persist(StorageLevel.DISK_ONLY)
+    cassandraTable.count()
     val res = this.mergeSeq(seq_log_RDD, cassandraTable)
       .coalesce(spark.sparkContext.defaultParallelism)
-//    res.count()
+    res.count()
     cassandraTable.unpersist()
     res
   }
@@ -189,27 +180,4 @@ object SequenceDetection {
     }
     res
   }
-
-  //    if (join == 0) {
-  //      val combinations = SparkUtils.createCombinationsRDD(seqRDD)
-  //      res = SparkUtils.timeCombinationsRDD(combinations, time)
-  //
-  //    }else{
-  //      val funnel_time = Timestamp.valueOf(time).getTime - (look_back_hours * 3600 * 1000)
-  //      val funnel_date = new Timestamp(funnel_time)
-  //      val tempTable:DataFrame=cassandraConnection.readTemp(table_temp,funnel_date)
-  //      res = SparkUtils.zipCombinationsRDD(seqRDD, tempTable,table_name, funnel_date)
-  //        .filter(p => {
-  //          val app1 = p.event1.split("_")(0)
-  //          val app2 = p.event2.split("_")(0)
-  //          if (app1 != app2 && entities.value(app1.toInt) != entities.value(app2.toInt)) false
-  //          else true
-  //        })
-
-
-  //    }
-  //
-  //  }
-
-
 }

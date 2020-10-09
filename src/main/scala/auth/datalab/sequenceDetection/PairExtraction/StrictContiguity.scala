@@ -4,6 +4,9 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import scala.collection.mutable
 
+/**
+ * Extract pairs using Strict Contiguity (SC)
+ */
 object StrictContiguity extends ExtractPairs {
   override def extract(data: RDD[Structs.Sequence]): RDD[Structs.EventIdTimeLists] = {
     val spark = SparkSession.builder().getOrCreate()

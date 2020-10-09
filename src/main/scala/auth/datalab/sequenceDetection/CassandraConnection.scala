@@ -164,20 +164,17 @@ class CassandraConnection extends Serializable {
    */
   def writeTableSeq(table: RDD[Structs.Sequence], name: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-    import spark.implicits._
     val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //this needs to be tested
     table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(), writeConf = writeConf)
   }
 
   def writeTableSequenceIndex(combinations: RDD[Structs.EventIdTimeLists], name: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-    import spark.implicits._
     val table = combinations
       .map(r => {
         val formatted = combinationsToCassandraFormat(r)
         Structs.CassandraIndex(formatted._1, formatted._2, formatted._3)
       })
-    val time = System.currentTimeMillis() //TODO: add one time at the end to know the time
     val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
     table.saveToCassandra(
       keyspaceName = this.cassandra_keyspace_name.toLowerCase(),
@@ -280,7 +277,7 @@ class CassandraConnection extends Serializable {
 
   /**
    * Method for transforming the details index
-   * to a common format with the quering code
+   * to a common format with the querying code
    *
    * @param line A row of data
    * @return The formatted row
@@ -299,7 +296,6 @@ class CassandraConnection extends Serializable {
 
   private def combinationsToCassandraFormat(line: Structs.EventIdTimeLists): (String, String, List[String]) = {
     val spark = SparkSession.builder().getOrCreate()
-    import spark.implicits._
     val newList = line.times
       .map(r => {
         var userString = r.id + "("
@@ -320,7 +316,7 @@ class CassandraConnection extends Serializable {
 
   /**
    * Method for transforming the precomputed combinations counts
-   * to a common format with the quering code
+   * to a common format with the querying code
    *
    * @param line A row of data
    * @return The formatted row

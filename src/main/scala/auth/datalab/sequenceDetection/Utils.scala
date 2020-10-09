@@ -5,10 +5,8 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
 import auth.datalab.sequenceDetection.Structs.Event
-import com.google.protobuf.TextFormat.ParseException
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.storage.StorageLevel
 import org.deckfour.xes.in.XParserRegistry
 import org.deckfour.xes.model.{XLog, XTrace}
 

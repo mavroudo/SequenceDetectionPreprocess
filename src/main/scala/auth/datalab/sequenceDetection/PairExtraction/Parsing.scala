@@ -6,6 +6,9 @@ import org.apache.spark.sql.SparkSession
 import scala.collection.mutable
 import scala.collection.mutable.HashMap
 
+/**
+ * Extract pairs using Parsing method
+ */
 object Parsing extends ExtractPairs {
   override def extract(data: RDD[Structs.Sequence]): RDD[Structs.EventIdTimeLists] = {
     val spark = SparkSession.builder().getOrCreate()

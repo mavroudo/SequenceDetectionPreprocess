@@ -8,6 +8,9 @@ import org.apache.spark.sql.SparkSession
 
 import scala.collection.mutable.HashMap
 
+/**
+ * Extract pairs using Indexing method
+ */
 object Indexing extends ExtractPairs {
 
   override def extract(data: RDD[Structs.Sequence]): RDD[Structs.EventIdTimeLists] = {
