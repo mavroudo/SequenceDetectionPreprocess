@@ -2,7 +2,7 @@
 name := "SequenceDetection"
 version := "0.1"
 scalaVersion := "2.11.12"
-organization := "auth.datalab.followUps"
+organization := "auth.datalab"
 parallelExecution in Test := false
 
 libraryDependencies += "com.typesafe.scala-logging" % "scala-logging-slf4j_2.10" % "2.1.2"
