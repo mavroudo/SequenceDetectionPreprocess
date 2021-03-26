@@ -86,6 +86,7 @@ object SequenceDetection {
       println("** Max Memory:   " + runtime.maxMemory / mb)
     } catch {
       case e: Exception => {
+        e.getStackTrace.foreach(println)
         println(e.getMessage())
         cassandraConnection.closeSpark()
       }

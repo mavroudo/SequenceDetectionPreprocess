@@ -9,9 +9,9 @@ object Structs {
     .add("sequence_id", DataTypes.IntegerType, false)
     .add("event", DataTypes.StringType, false)
 
-  case class Event(timestamp: String, event: String)
+  case class Event(timestamp: String, event: String) extends Serializable
 
-  case class Sequence(events: List[Event], sequence_id: Long)
+  case class Sequence(events: List[Event], sequence_id: Long) extends Serializable
 
   //general class for event with list of times
   case class EventIdTimeLists(event1: String, event2: String, times: List[IdTimeList])
