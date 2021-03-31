@@ -1,8 +1,7 @@
 package auth.datalab.sequenceDetection
 
 import java.sql.Timestamp
-
-import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, State, StrictContiguity, TimeCombinations, ZipCombinations}
+import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, SkipTillAnyMatch, State, StrictContiguity, TimeCombinations, ZipCombinations}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
@@ -101,6 +100,7 @@ object SequenceDetection {
       case "indexing" => Indexing.extract(seqRDD)
       case "state" => State.extract(seqRDD)
       case "strict" =>StrictContiguity.extract(seqRDD)
+      case "anymatch" => SkipTillAnyMatch.extract(seqRDD)
       case _ => throw new Exception("Wrong type of algorithm")
     }
   }
