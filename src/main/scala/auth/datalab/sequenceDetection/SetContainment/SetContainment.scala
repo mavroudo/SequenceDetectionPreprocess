@@ -7,7 +7,7 @@ import org.apache.spark.rdd.RDD
 
 object SetContainment {
   case class SetCInverted(event1: String, event2: String, ids: List[Long])
-  private var cassandraConnection: CassandraConnection = null
+  private var cassandraConnection: CassandraSetContainment = null
 
   def main(args: Array[String]): Unit = {
     val fileName: String = args(0)
@@ -16,12 +16,14 @@ object SetContainment {
     val join = args(3).toInt
     val deletePrevious = args(4)
     println(fileName, type_of_algorithm, deleteAll, join)
+    var logName = fileName.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
     Logger.getLogger("org").setLevel(Level.ERROR)
 
-    val cassandraConnection = new CassandraSetContainment()
+    cassandraConnection = new CassandraSetContainment()
     cassandraConnection.startSpark()
     val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
     val inverted_index = createCombinationsRDD(sequencesRDD,type_of_algorithm)
+    cassandraConnection.writeTableSequenceIndex(inverted_index,logName)
 
   }
 
