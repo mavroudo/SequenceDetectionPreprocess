@@ -1,0 +1,5 @@
+docker build -t preprocess:1.0 .
+docker run --name pre \
+--mount type=bind,source="$(pwd)"/experiments/input,target=/app/input \
+--mount type=bind,source="$(pwd)"/experiments/output/,target=/app/output \
+preprocess:1.0

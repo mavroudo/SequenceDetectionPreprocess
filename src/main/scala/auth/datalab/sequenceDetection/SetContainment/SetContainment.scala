@@ -1,8 +1,6 @@
 package auth.datalab.sequenceDetection.SetContainment
 import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, SkipTillAnyMatch, State, StrictContiguity}
-import auth.datalab.sequenceDetection.SequenceDetection.cassandraConnection
-import auth.datalab.sequenceDetection.SetContainment.CassandraSetContainment
-import auth.datalab.sequenceDetection.{CassandraConnection, Structs, Utils}
+import auth.datalab.sequenceDetection.{Structs, Utils}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel

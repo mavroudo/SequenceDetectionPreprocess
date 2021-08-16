@@ -1,0 +1,2 @@
+python-dotenv==0.17.0
+pm4py==1.2.7

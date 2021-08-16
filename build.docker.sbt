@@ -42,9 +42,8 @@ assemblyMergeStrategy in assembly := {
     //oldStrategy(x)
     //MergeStrategy.first
     MergeStrategy.last
-  case x => {
+  case _ =>
     MergeStrategy.last
-  }
 }
 
-assembly / mainClass := Some("auth.datalab.sequenceDetection.SequenceDetection")
+assembly / mainClass := Some("auth.datalab.sequenceDetection.Main")

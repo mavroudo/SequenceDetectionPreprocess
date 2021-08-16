@@ -6,6 +6,7 @@ COPY src /app/src
 COPY project /app/project
 COPY .environment /app/.env
 
+
 ENV TZ=Europe/Athens
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 #install the sbt and java 8 needed for sbt assembly
@@ -23,9 +24,22 @@ RUN mv target/scala-2.11/app-assembly-0.1.jar preprocess.jar
 RUN curl -O https://archive.apache.org/dist/spark/spark-2.4.4/spark-2.4.4-bin-hadoop2.7.tgz &&\
 tar xvf spark-2.4.4-bin-hadoop2.7.tgz && mv spark-2.4.4-bin-hadoop2.7/ /opt/spark && rm spark-2.4.4-bin-hadoop2.7.tgz
 #create the execution file
-RUN touch script.sh && echo "#!/bin/bash" > script.sh &&\
-echo "echo hello world" >> script.sh && chmod +x script.sh
+#RUN touch script.sh && echo "#!/bin/bash" > script.sh &&\
+#echo "echo hello world" >> script.sh && chmod +x script.sh
+
+#install python3, pip, requirements from experiments file
+COPY experiments/requirements.txt r.txt
+RUN apt install -y python3 python3-pip &&\
+pip3 install -r r.txt
+COPY experiments/execution.py execution.py
+RUN chmod +x execution.py
+
+#create directories to mount
+RUN mkdir /app/input
+VOLUME /app/input
+RUN mkdir /app/output
+VOLUME /app/output
 
 
-ENTRYPOINT ["tail"]
-CMD ["-f","/dev/null"]
+ENTRYPOINT ["python3","/app/execution.py"]
+CMD ["normal"," input/log_100_113.xes","indexing"]
