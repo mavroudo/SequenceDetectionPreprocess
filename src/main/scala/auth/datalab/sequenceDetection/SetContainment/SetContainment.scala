@@ -1,8 +1,11 @@
 package auth.datalab.sequenceDetection.SetContainment
-import auth.datalab.sequenceDetection.PairExtraction._
-import auth.datalab.sequenceDetection.{Structs, Utils}
+import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, SkipTillAnyMatch, State, StrictContiguity}
+import auth.datalab.sequenceDetection.SequenceDetection.cassandraConnection
+import auth.datalab.sequenceDetection.SetContainment.CassandraSetContainment
+import auth.datalab.sequenceDetection.{CassandraConnection, Structs, Utils}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
+import org.apache.spark.storage.StorageLevel
 
 object SetContainment {
   case class SetCInverted(event1: String, event2: String, ids: List[Long])
@@ -21,10 +24,18 @@ object SetContainment {
 
     cassandraConnection = new CassandraSetContainment()
     cassandraConnection.startSpark()
+    if (deletePrevious == "1" || deleteAll == "1") {
+      cassandraConnection.dropTable(logName)
+    }
+    cassandraConnection.createTable(logName)
     val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
+    sequencesRDD.persist(StorageLevel.MEMORY_AND_DISK)
     val inverted_index = createCombinationsRDD(sequencesRDD,type_of_algorithm)
     cassandraConnection.writeTableSequenceIndex(inverted_index,logName)
-
+    cassandraConnection.writeTableSeq(sequencesRDD,logName)
+    inverted_index.unpersist()
+    sequencesRDD.unpersist()
+    cassandraConnection.closeSpark()
   }
 
 
@@ -41,6 +52,7 @@ object SetContainment {
       val l= pair.times.map(_.id).distinct.sortWith((x,y)=>x<y)
       SetCInverted(pair.event1,pair.event2,l)
     })
+      .persist(StorageLevel.MEMORY_AND_DISK)
 
   }
 

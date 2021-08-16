@@ -12,7 +12,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
-class CassandraSetContainment {
+class CassandraSetContainment extends Serializable {
 
   private var cassandra_host: String = null
   private var cassandra_port: String = null
@@ -33,7 +33,7 @@ class CassandraSetContainment {
       cassandra_user = Utils.readEnvVariable("cassandra_user")
       cassandra_pass = Utils.readEnvVariable("cassandra_pass")
       cassandra_gc_grace_seconds = Utils.readEnvVariable("cassandra_gc_grace_seconds")
-      cassandra_keyspace_name = Utils.readEnvVariable("cassandra_keyspace_name_set") // we use different variable
+      cassandra_keyspace_name = Utils.readEnvVariable("cassandra_keyspace_name") // we use different variable
       cassandra_replication_class = Utils.readEnvVariable("cassandra_replication_class")
       cassandra_replication_rack = Utils.readEnvVariable("cassandra_replication_rack")
       cassandra_replication_factor = Utils.readEnvVariable("cassandra_replication_factor")
@@ -77,16 +77,20 @@ class CassandraSetContainment {
 
   def createTable(logName: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-    val table_idx = logName + "_idx"
-    val structure = "event1_name text, event2_name text, sequences list<text>, PRIMARY KEY (event1_name, event2_name)"
-
+    val table_idx = logName + "_set_idx"
+    val table_seq = logName + "_set_seq"
+    val tables: Map[String, String] = Map(
+      table_seq -> "sequence_id text, events list<text>, PRIMARY KEY (sequence_id)",
+      table_idx -> "event1_name text, event2_name text, sequences list<text>, PRIMARY KEY (event1_name, event2_name)"
+    )
     try {
       CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
-        session.execute("CREATE TABLE IF NOT EXISTS " + cassandra_keyspace_name + "." +
-          table_idx + " (" + structure + ") " +
-          "WITH GC_GRACE_SECONDS=" + cassandra_gc_grace_seconds +
-          ";")
-
+        for (table <- tables) {
+          session.execute("CREATE TABLE IF NOT EXISTS " + cassandra_keyspace_name + "." +
+            table._1 + " (" + table._2 + ") " +
+            "WITH GC_GRACE_SECONDS=" + cassandra_gc_grace_seconds +
+            ";")
+        }
       }
     } catch {
       case e: Exception =>
@@ -101,9 +105,11 @@ class CassandraSetContainment {
   def dropTable(logName: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     val table_idx = logName + "_idx"
+    val table_seq = logName + "_seq"
     try {
       CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
         session.execute("DROP TABLE IF EXISTS " + cassandra_keyspace_name + "." + table_idx + ";")
+        session.execute("DROP TABLE IF EXISTS " + cassandra_keyspace_name + "." + table_seq + ";")
 
       }
     }
@@ -116,11 +122,16 @@ class CassandraSetContainment {
         System.exit(1)
     }
   }
+  def writeTableSeq(table: RDD[Structs.Sequence], logName: String): Unit = {
+    val name = logName + "_set_seq"
+    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //this needs to be tested
+    table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(), writeConf = writeConf)
+  }
 
 
   def writeTableSequenceIndex(combinations: RDD[SetCInverted], logName: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-    val table_idx = logName + "_idx"
+    val table_idx = logName + "_set_idx"
     val table = combinations
       .map(r => {
         val formatted = cassandraFormat(r)
@@ -138,8 +149,8 @@ class CassandraSetContainment {
     )
   }
 
-  def cassandraFormat(line:SetCInverted):(String, String, List[String])={
-    (line.event1, line.event2, line.ids.map(x=>x.toString))
+  def cassandraFormat(line: SetCInverted): (String, String, List[String]) = {
+    (line.event1, line.event2, line.ids.map(x => x.toString))
   }
 
   def closeSpark(): Unit = {
