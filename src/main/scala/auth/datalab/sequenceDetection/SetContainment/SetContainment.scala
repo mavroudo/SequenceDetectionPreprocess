@@ -1,7 +1,6 @@
 package auth.datalab.sequenceDetection.SetContainment
-import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, SkipTillAnyMatch, State, StrictContiguity}
-import auth.datalab.sequenceDetection.SetContainment.CassandraSetContainment
-import auth.datalab.sequenceDetection.{CassandraConnection, Structs, Utils}
+import auth.datalab.sequenceDetection.PairExtraction._
+import auth.datalab.sequenceDetection.{Structs, Utils}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 
@@ -16,7 +15,8 @@ object SetContainment {
     val join = args(3).toInt
     val deletePrevious = args(4)
     println(fileName, type_of_algorithm, deleteAll, join)
-    var logName = fileName.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
+//    var logName = fileName.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
+    var logName = fileName.split('/').last.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
     Logger.getLogger("org").setLevel(Level.ERROR)
 
     cassandraConnection = new CassandraSetContainment()

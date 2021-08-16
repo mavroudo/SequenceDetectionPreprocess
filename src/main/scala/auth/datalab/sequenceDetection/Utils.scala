@@ -64,14 +64,16 @@ object Utils {
     }
 
     val df = new SimpleDateFormat("MMM d, yyyy HH:mm:ss a") //read this pattern from xes
-    val df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss") // transform it to this patter
     val df3 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    val df4 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+    val df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss") // transform it to this patter
+
 
     val data = parsed_logs.head.zipWithIndex map { case (trace: XTrace, index: Int) =>
       val list = trace.map(event => {
         val event_name = event.getAttributes.get("concept:name").toString
         val timestamp_occurred = event.getAttributes.get("time:timestamp").toString
-        Event(df2.format(df.parse(timestamp_occurred)), event_name)
+        Event(df2.format(df4.parse(timestamp_occurred)), event_name)
       }).toList
       Structs.Sequence(list, index.toLong)
     }

@@ -26,7 +26,8 @@ object SequenceDetection {
 
     Logger.getLogger("org").setLevel(Level.ERROR)
 
-    var table_name = fileName.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
+//    var table_name = fileName.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
+    var table_name = fileName.split('/').last.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
     var table_temp = table_name + "_temp"
     var table_seq = table_name + "_seq"
     var table_idx = table_name + "_idx"
