@@ -25,6 +25,7 @@ class CassandraSetContainment extends Serializable {
   private var cassandra_write_consistency_level: String = null
   private var cassandra_gc_grace_seconds: String = null
   private var _configuration: SparkConf = null
+  private val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
 
   def startSpark(): Unit = {
     try {
@@ -124,7 +125,7 @@ class CassandraSetContainment extends Serializable {
   }
   def writeTableSeq(table: RDD[Structs.Sequence], logName: String): Unit = {
     val name = logName + "_set_seq"
-    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //this needs to be tested
+//    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //this needs to be tested
     table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(), writeConf = writeConf)
   }
 
@@ -137,7 +138,7 @@ class CassandraSetContainment extends Serializable {
         val formatted = cassandraFormat(r)
         Structs.CassandraIndex(formatted._1, formatted._2, formatted._3)
       })
-    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
+//    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
     table.saveToCassandra(
       keyspaceName = this.cassandra_keyspace_name.toLowerCase(),
       tableName = table_idx.toLowerCase,
