@@ -16,70 +16,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 
-class CassandraConnection extends Serializable {
-
-
-  private var cassandra_host: String = null
-  private var cassandra_port: String = null
-  private var cassandra_user: String = null
-  private var cassandra_pass: String = null
-  private var cassandra_replication_class: String = null
-  private var cassandra_replication_rack: String = null
-  private var cassandra_replication_factor: String = null
-  private var cassandra_keyspace_name: String = null
-  private var cassandra_write_consistency_level: String = null
-  private var cassandra_gc_grace_seconds: String = null
-  private var _configuration: SparkConf = null
-  private val DELIMITER = "¦delab¦"
-  private val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE, throughputMiBPS = 4)
-
-
-  def startSpark(): Unit = {
-    try {
-      cassandra_host = Utils.readEnvVariable("cassandra_host")
-      cassandra_port = Utils.readEnvVariable("cassandra_port")
-      cassandra_user = Utils.readEnvVariable("cassandra_user")
-      cassandra_pass = Utils.readEnvVariable("cassandra_pass")
-      cassandra_gc_grace_seconds = Utils.readEnvVariable("cassandra_gc_grace_seconds")
-      cassandra_keyspace_name = Utils.readEnvVariable("cassandra_keyspace_name")
-      cassandra_replication_class = Utils.readEnvVariable("cassandra_replication_class")
-      cassandra_replication_rack = Utils.readEnvVariable("cassandra_replication_rack")
-      cassandra_replication_factor = Utils.readEnvVariable("cassandra_replication_factor")
-      cassandra_write_consistency_level = Utils.readEnvVariable("cassandra_write_consistency_level")
-      println(cassandra_host,cassandra_keyspace_name,cassandra_keyspace_name)
-    } catch {
-      case e: NullPointerException =>
-        e.printStackTrace()
-        System.exit(1)
-    }
-    _configuration = new SparkConf()
-      .setAppName("FA Indexing")
-      .setMaster("local[*]")
-      .set("spark.cassandra.connection.host", cassandra_host)
-      .set("spark.cassandra.auth.username", cassandra_user)
-      .set("spark.cassandra.auth.password", cassandra_pass)
-      .set("spark.cassandra.connection.port", cassandra_port)
-      .set("spark.cassandra.output.consistency.level", cassandra_write_consistency_level)
-
-
-    val spark = SparkSession.builder().config(_configuration).getOrCreate()
-    println(s"Starting Spark version ${spark.version}")
-    try {
-      CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
-        session.execute("create keyspace if not exists " + cassandra_keyspace_name + " WITH replication = "
-          + "{'class':'" + cassandra_replication_class + "', '" + cassandra_replication_rack + "':" + cassandra_replication_factor + "}")
-        session.execute("USE " + cassandra_keyspace_name + ";")
-      }
-    } catch {
-      case e: Exception =>
-        System.out.println("A problem occurred creating the keyspace")
-        print(e.printStackTrace())
-        //Stop Spark
-        spark.close()
-        System.exit(1)
-    }
-
-  }
+class CassandraConnection extends Serializable with CassandraConnectionTrait {
 
   def dropAlltables() = {
     val spark = SparkSession.builder().getOrCreate()
@@ -332,11 +269,5 @@ class CassandraConnection extends Serializable {
     (newEvent, newList)
   }
 
-  def closeSpark(): Unit = {
-    val spark = SparkSession.builder().getOrCreate()
-    println("Closing Spark")
-    spark.close()
-
-  }
 }
 

@@ -6,7 +6,7 @@ ThisBuild / organization := "auth.datalab"
 parallelExecution in Test := false
 
 libraryDependencies += "com.typesafe.scala-logging" % "scala-logging-slf4j_2.10" % "2.1.2"
-libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "2.4.1"
+libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "2.4.2"
 libraryDependencies += "org.scalatest" % "scalatest_2.11" % "3.0.4" % "test"
 
 //libraryDependencies += "monetdb" % "monetdb-jdbc-new" % "2.36"

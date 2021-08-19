@@ -57,6 +57,7 @@ object SequenceDetection {
       val spark = SparkSession.builder().getOrCreate()
       spark.time({
         val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
+//        val sequenceCombinedRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
         val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
           "2018-01-01 00:00:00", 10)
         val combinationsRDD = startCombinationsRDD(sequenceCombinedRDD, table_temp, "", join, type_of_algorithm, table_seq,
@@ -174,7 +175,6 @@ object SequenceDetection {
       res = createCombinationsRDD(seqRDD, type_of_algorithm)
       res = TimeCombinations.timeCombinationsRDD(res, time) // we need to eliminate all the pairs completed before the time
     } else {
-
       val funnel_time = Timestamp.valueOf("2000-01-01 00:00:00").getTime - (look_back_hours * 3600 * 1000)
       val funnel_date = new Timestamp(funnel_time)
       val tempTable: DataFrame = cassandraConnection.readTemp(table_temp, funnel_date)
