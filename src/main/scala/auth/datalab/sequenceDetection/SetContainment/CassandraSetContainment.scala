@@ -39,8 +39,8 @@ class CassandraSetContainment extends Serializable with CassandraConnectionTrait
 
   def dropTable(logName: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-    val table_idx = logName + "_idx"
-    val table_seq = logName + "_seq"
+    val table_idx = logName + "_set_idx"
+    val table_seq = logName + "_set_seq"
     try {
       CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
         session.execute("DROP TABLE IF EXISTS " + cassandra_keyspace_name + "." + table_idx + ";")
@@ -60,7 +60,6 @@ class CassandraSetContainment extends Serializable with CassandraConnectionTrait
 
   def writeTableSeq(table: RDD[Structs.Sequence], logName: String): Unit = {
     val name = logName + "_set_seq"
-    //    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //this needs to be tested
     table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(), writeConf = writeConf)
   }
 
