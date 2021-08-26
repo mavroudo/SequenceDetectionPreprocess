@@ -31,7 +31,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
             "WITH GC_GRACE_SECONDS=" + cassandra_gc_grace_seconds +
             ";")
         }
-        session.execute(s"create index signature_idx on ${this.cassandra_keyspace_name+"."+table_signatures} (entries( signature ));")
+        session.execute(s"create index ${table_signatures}_index on ${this.cassandra_keyspace_name+"."+table_signatures} (entries( signature ));")
       }
     } catch {
       case e: Exception =>
