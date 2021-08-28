@@ -14,14 +14,14 @@ if __name__ == "__main__":
     # strategy = "indexing"
     spark_folder = "/opt/spark/bin/spark-submit"
     stream = os.popen(
-        """{} --master local[*] --executor-memory 2g --driver-memory 4g --conf spark.cassandra.output.consistency.level=ONE preprocess.jar {} {} 1 0 1 {}""".format(
+        """{} --master local[*] --executor-memory 2g --driver-memory 4g --conf spark.cassandra.output.consistency.level=ONE preprocess.jar {} {} 0 0 1 {}""".format(
             spark_folder, filename, strategy, mode))
     output = stream.read()
     print(output)
     try:
         m = int(re.search("Time taken: ([0-9]*?) ms", output).group(1)) / 1000
         print(m)
-        with open("""output/{}${}.txt""".format(file, strategy), "w") as f:
+        with open("""output/{}${}.txt""".format(file, mode), "w") as f:
             f.write(str(m))
     except:
         print("nop")
