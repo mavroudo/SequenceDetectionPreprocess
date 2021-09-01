@@ -14,7 +14,7 @@ if __name__ == "__main__":
     # strategy = "indexing"
     spark_folder = "/opt/spark/bin/spark-submit"
     stream = os.popen(
-        """{} --master local[*] --executor-memory 2g --driver-memory 4g --conf spark.cassandra.output.consistency.level=ONE preprocess.jar {} {} 0 0 1 {}""".format(
+        """{} --master local[*] --executor-memory 16g --driver-memory 16g --conf spark.executor.memoryOverhead=6g --conf spark.driver.memoryOverhead=6g --conf spark.cassandra.output.consistency.level=ONE preprocess.jar {} {} 0 0 1 {}""".format(
             spark_folder, filename, strategy, mode))
     output = stream.read()
     print(output)
@@ -25,3 +25,5 @@ if __name__ == "__main__":
             f.write(str(m))
     except:
         print("nop")
+
+    # --executor - memory 4g - -driver - memory 5g
