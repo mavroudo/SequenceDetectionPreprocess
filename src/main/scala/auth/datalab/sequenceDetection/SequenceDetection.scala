@@ -26,8 +26,16 @@ object SequenceDetection {
 
     Logger.getLogger("org").setLevel(Level.ERROR)
 
-//    var table_name = fileName.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
-    var table_name = fileName.split('/').last.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
+    //    var table_name = fileName.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
+    var table_name = ""
+    if (args.length == 6) {
+      table_name = fileName.split('/').last.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
+    } else if (args.length == 10) {
+      table_name = fileName
+    } else {
+      println("Not acceptable number of parameters")
+      System.exit(2)
+    }
     var table_temp = table_name + "_temp"
     var table_seq = table_name + "_seq"
     var table_idx = table_name + "_idx"
@@ -56,8 +64,15 @@ object SequenceDetection {
     try {
       val spark = SparkSession.builder().getOrCreate()
       spark.time({
-        val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
-//        val sequenceCombinedRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
+        val sequencesRDD:RDD[Structs.Sequence]={
+          if (args.length == 6) {
+            Utils.readLog(fileName)
+          }else{ //already checked that if there are not 6, there are 10
+            val traceGenerator:TraceGenerator=new TraceGenerator(args(6).toInt,args(7).toInt,args(8).toInt,args(9).toInt)
+            traceGenerator.produce()
+          }
+        }
+        //        val sequenceCombinedRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
         val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
           "2018-01-01 00:00:00", 10)
         val combinationsRDD = startCombinationsRDD(sequenceCombinedRDD, table_temp, "", join, type_of_algorithm, table_seq,
@@ -78,7 +93,7 @@ object SequenceDetection {
         sequencesRDD.unpersist()
       })
       cassandraConnection.closeSpark()
-      val mb = 1024*1024
+      val mb = 1024 * 1024
       val runtime = Runtime.getRuntime
       println("ALL RESULTS IN MB")
       println("** Used Memory:  " + (runtime.totalMemory - runtime.freeMemory) / mb)
@@ -101,7 +116,7 @@ object SequenceDetection {
       case "parsing" => Parsing.extract(seqRDD)
       case "indexing" => Indexing.extract(seqRDD)
       case "state" => State.extract(seqRDD)
-      case "strict" =>StrictContiguity.extract(seqRDD)
+      case "strict" => StrictContiguity.extract(seqRDD)
       case "anymatch" => SkipTillAnyMatch.extract(seqRDD)
       case _ => throw new Exception("Wrong type of algorithm")
     }
