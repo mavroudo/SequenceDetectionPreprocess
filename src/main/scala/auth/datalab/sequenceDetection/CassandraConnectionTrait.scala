@@ -49,15 +49,14 @@ trait CassandraConnectionTrait {
       .set("spark.cassandra.auth.password", cassandra_pass)
       .set("spark.cassandra.connection.port", cassandra_port)
       .set("spark.cassandra.output.consistency.level", cassandra_write_consistency_level)
-//      .set("spark.driver.memory","10240m")
+      .set("spark.driver.memory","10g")
 //      .set("spark.executor.memory","61440m")
 //      .set("spark.executor.memoryOverhead","61440m")
-//      .set("spark.driver.memoryOverhead","6144m")
+      .set("spark.driver.memoryOverhead","6g")
 
 
     val spark = SparkSession.builder().config(_configuration).getOrCreate()
     println(s"Starting Spark version ${spark.version}")
-    println(s"Executors ${spark.sparkContext.defaultParallelism}")
     try {
       CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
         session.execute("create keyspace if not exists " + cassandra_keyspace_name + " WITH replication = "

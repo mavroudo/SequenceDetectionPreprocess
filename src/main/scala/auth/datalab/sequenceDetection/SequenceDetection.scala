@@ -7,6 +7,7 @@ import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.util.SizeEstimator
 
 import scala.collection.mutable
 
@@ -51,6 +52,7 @@ object SequenceDetection {
     cassandraConnection = new CassandraConnection()
     cassandraConnection.startSpark()
 
+
     if (deletePrevious == "1") {
       cassandraConnection.dropTables(List(table_idx, table_seq, table_temp, table_count))
     }
@@ -60,37 +62,59 @@ object SequenceDetection {
     cassandraConnection.createTables(tables)
 
 
-    println("Finding Combinations ...")
     try {
       val spark = SparkSession.builder().getOrCreate()
-      spark.time({
-        val sequencesRDD:RDD[Structs.Sequence]={
+
+        val sequencesRDD_before_repartitioned: RDD[Structs.Sequence] = {
           if (args.length == 6) {
             Utils.readLog(fileName)
-          }else{ //already checked that if there are not 6, there are 10
-            val traceGenerator:TraceGenerator=new TraceGenerator(args(6).toInt,args(7).toInt,args(8).toInt,args(9).toInt)
+
+          } else { //already checked that if there are not 6, there are 10
+            val traceGenerator: TraceGenerator = new TraceGenerator(args(6).toInt, args(7).toInt, args(8).toInt, args(9).toInt)
             traceGenerator.produce()
           }
         }
-        //        val sequenceCombinedRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
-        val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
-          "2018-01-01 00:00:00", 10)
-        val combinationsRDD = startCombinationsRDD(sequenceCombinedRDD, table_temp, "", join, type_of_algorithm, table_seq,
-          null, 0)
-        val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD)
-        println("Writing combinations RDD to Cassandra ..")
-        cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)
-        cassandraConnection.writeTableSeqCount(combinationsCountRDD, table_count)
-        if (join != 0) {
-          cassandraConnection.writeTableSeqTemp(combinationsRDD, table_temp)
+      spark.time({
+//        val spark = SparkSession.builder().getOrCreate()
+        val available_memory: scala.math.BigInt = spark.sparkContext.getConf.get("spark.driver.memory").split("g")(0).toInt * scala.math.BigInt(1000000000)
+        val executors = spark.sparkContext.defaultParallelism
+        val traces = sequencesRDD_before_repartitioned.count()
+        val average_length = sequencesRDD_before_repartitioned.takeSample(false, 50).map(_.events.size).sum / 50
+        val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(sequencesRDD_before_repartitioned.take(1)(0).events.head) * average_length * (average_length / 2)
+        //        each trace has approximate average_length events (each event has size equal to size estimator)
+        val iterations: Int = if (available_memory / size_estimate_trace > traces) 1 else ((size_estimate_trace * traces) / available_memory).toInt + 1
+
+
+        val ids = sequencesRDD_before_repartitioned.map(_.sequence_id).collect().sortWith((x, y) => x < y).sliding((traces / iterations).toInt, (traces / iterations).toInt).toList
+//        val sequencesRDD: RDD[Structs.Sequence] = sequencesRDD_before_repartitioned
+        println("Iterations: ",ids.length)
+        for (id <- ids) {
+          val sequencesRDD: RDD[Structs.Sequence] = sequencesRDD_before_repartitioned
+            .filter(x=> x.sequence_id>=id(0) && x.sequence_id<=id.last)
+            .repartition(spark.sparkContext.defaultParallelism)
+          //        val sequenceCombinedRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
+          val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
+            "2018-01-01 00:00:00", 10)
+
+
+          println("Finding Combinations ...")
+          val combinationsRDD = startCombinationsRDD(sequenceCombinedRDD, table_temp, "", join, type_of_algorithm, table_seq,
+            null, 0)
+          val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD)
+          println("Writing combinations RDD to Cassandra ..")
+          cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)
+          cassandraConnection.writeTableSeqCount(combinationsCountRDD, table_count)
+          if (join != 0) {
+            cassandraConnection.writeTableSeqTemp(combinationsRDD, table_temp)
+          }
+          combinationsRDD.unpersist()
+          combinationsCountRDD.unpersist()
+
+
+          cassandraConnection.writeTableSeq(sequenceCombinedRDD, table_seq)
+          sequenceCombinedRDD.unpersist()
+          sequencesRDD.unpersist()
         }
-        combinationsRDD.unpersist()
-        combinationsCountRDD.unpersist()
-
-
-        cassandraConnection.writeTableSeq(sequenceCombinedRDD, table_seq)
-        sequenceCombinedRDD.unpersist()
-        sequencesRDD.unpersist()
       })
       cassandraConnection.closeSpark()
       val mb = 1024 * 1024
