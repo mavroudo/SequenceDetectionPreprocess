@@ -29,9 +29,9 @@ object SequenceDetection {
 
     //    var table_name = fileName.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
     var table_name = ""
-    if (args.length == 6) {
+    if (args.length == 7) {
       table_name = fileName.split('/').last.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
-    } else if (args.length == 10) {
+    } else if (args.length == 11) {
       table_name = fileName
     } else {
       println("Not acceptable number of parameters")
@@ -64,26 +64,27 @@ object SequenceDetection {
 
     try {
       val spark = SparkSession.builder().getOrCreate()
+      var iterations:Int = 10
 
         val sequencesRDD_before_repartitioned: RDD[Structs.Sequence] = {
-          if (args.length == 6) {
+          if (args.length == 7) {
+            iterations=args(6).toInt
             Utils.readLog(fileName)
-
           } else { //already checked that if there are not 6, there are 10
+            iterations=args(10).toInt
             val traceGenerator: TraceGenerator = new TraceGenerator(args(6).toInt, args(7).toInt, args(8).toInt, args(9).toInt)
             traceGenerator.produce()
           }
         }
       spark.time({
 //        val spark = SparkSession.builder().getOrCreate()
-        val available_memory: scala.math.BigInt = spark.sparkContext.getConf.get("spark.driver.memory").split("g")(0).toInt * scala.math.BigInt(1000000000)
-        val executors = spark.sparkContext.defaultParallelism
+//        val available_memory: scala.math.BigInt = spark.sparkContext.getConf.get("spark.driver.memory").split("g")(0).toInt * scala.math.BigInt(1000000000)
+//        val executors = spark.sparkContext.defaultParallelism
         val traces = sequencesRDD_before_repartitioned.count()
-        val average_length = sequencesRDD_before_repartitioned.takeSample(false, 50).map(_.events.size).sum / 50
-        val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(sequencesRDD_before_repartitioned.take(1)(0).events.head) * average_length * (average_length / 2)
+//        val average_length = sequencesRDD_before_repartitioned.takeSample(false, 50).map(_.events.size).sum / 50
+//        val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(sequencesRDD_before_repartitioned.take(1)(0).events.head) * average_length * (average_length / 2)
         //        each trace has approximate average_length events (each event has size equal to size estimator)
-        val iterations: Int = if (available_memory / size_estimate_trace > traces) 1 else ((size_estimate_trace * traces) / available_memory).toInt + 1
-
+//        val iterations: Int = if (available_memory / size_estimate_trace > traces) 1 else ((size_estimate_trace * traces) / available_memory).toInt + 1
 
         val ids = sequencesRDD_before_repartitioned.map(_.sequence_id).collect().sortWith((x, y) => x < y).sliding((traces / iterations).toInt, (traces / iterations).toInt).toList
 //        val sequencesRDD: RDD[Structs.Sequence] = sequencesRDD_before_repartitioned
