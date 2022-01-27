@@ -103,7 +103,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
   def writeTableSeq(table: RDD[Structs.Sequence], name: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
 //    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //this needs to be tested
-    table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(), writeConf = writeConf)
+    table.filter(_.events.nonEmpty).saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(),columns = SomeColumns("events","sequence_id"), writeConf = writeConf)
   }
 
   def writeTableSequenceIndex(combinations: RDD[Structs.EventIdTimeLists], name: String): Unit = {
