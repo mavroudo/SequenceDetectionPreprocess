@@ -233,7 +233,6 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
 
 
   private def combinationsToCassandraFormat(line: Structs.EventIdTimeLists): (String, String, List[String]) = {
-    val spark = SparkSession.builder().getOrCreate()
     val newList = line.times
       .map(r => {
         var userString = r.id + "("
