@@ -4,8 +4,8 @@ RUN mkdir /app
 COPY build.docker.sbt /app/build.sbt
 COPY src /app/src
 COPY project /app/project
-COPY .environment /app/.env
-RUN  sh /app/.env
+#COPY .environment /app/.env
+#RUN  sh /app/.env
 
 ENV TZ=Europe/Athens
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -40,7 +40,7 @@ VOLUME /app/input
 RUN mkdir /app/output
 VOLUME /app/output
 
-ENV cassandra_host=cassandra
+ENV cassandra_host=cassandra-001
 ENV cassandra_port=9042
 ENV cassandra_user=cassandra
 ENV cassandra_pass=cassandra
