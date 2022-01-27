@@ -43,7 +43,7 @@ trait CassandraConnectionTrait {
     }
     _configuration = new SparkConf()
       .setAppName("FA Indexing")
-      .setMaster("local[*]")
+//      .setMaster("local[*]")
       .set("spark.cassandra.connection.host", cassandra_host)
       .set("spark.cassandra.auth.username", cassandra_user)
       .set("spark.cassandra.auth.password", cassandra_pass)
