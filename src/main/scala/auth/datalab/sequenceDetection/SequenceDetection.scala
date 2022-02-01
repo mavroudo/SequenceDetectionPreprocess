@@ -85,13 +85,14 @@ object SequenceDetection {
         val average_length = sequencesRDD_before_repartitioned.takeSample(false, 50).map(_.events.size).sum / 50
         val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(sequencesRDD_before_repartitioned.take(1)(0).events.head) * average_length * (average_length / 2)
         //        each trace has approximate average_length events (each trace has size equal to size estimator)
-        val partitionNumber = if (minExecutorMemory / size_estimate_trace > traces) 1 else ((size_estimate_trace * traces) / minExecutorMemory).toInt + 1
-
+        var partitionNumber = if (minExecutorMemory / size_estimate_trace > traces) 1 else ((size_estimate_trace * traces) / minExecutorMemory).toInt + 1
+        partitionNumber=partitionNumber/allExecutors +1
         val ids = sequencesRDD_before_repartitioned.map(_.sequence_id).collect().sortWith((x, y) => x < y).sliding((traces / partitionNumber).toInt, (traces / partitionNumber).toInt).toList
-        val slices=sequencesRDD_before_repartitioned.collect().sliding((traces / partitionNumber).toInt, (traces / partitionNumber).toInt).toList
-        println("Iterations: ", slices.length)
-        for(slice <- slices){
-          val sequencesRDD: RDD[Structs.Sequence] =spark.sparkContext.parallelize(slice,allExecutors)
+        println("Iterations: ", ids.length)
+        for (id <- ids) {
+          val sequencesRDD: RDD[Structs.Sequence] = sequencesRDD_before_repartitioned
+            .filter(x => x.sequence_id >= id(0) && x.sequence_id <= id.last)
+            .repartition(allExecutors)
           val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
             "2018-01-01 00:00:00", 10)
           println("Finding Combinations ...")
