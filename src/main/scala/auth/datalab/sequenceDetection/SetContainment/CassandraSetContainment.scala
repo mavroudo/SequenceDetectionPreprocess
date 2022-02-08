@@ -9,6 +9,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
 class CassandraSetContainment extends Serializable with CassandraConnectionTrait {
+  private case class CassandraSetIndex(event_name: String, sequences: List[String])
 
   def createTable(logName: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
@@ -16,7 +17,7 @@ class CassandraSetContainment extends Serializable with CassandraConnectionTrait
     val table_seq = logName + "_set_seq"
     val tables: Map[String, String] = Map(
       table_seq -> "sequence_id text, events list<text>, PRIMARY KEY (sequence_id)",
-      table_idx -> "event1_name text, event2_name text, sequences list<text>, PRIMARY KEY (event1_name, event2_name)"
+      table_idx -> "event_name text, sequences list<text>, PRIMARY KEY (event_name)"
     )
     try {
       CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
@@ -69,22 +70,21 @@ class CassandraSetContainment extends Serializable with CassandraConnectionTrait
     val table = combinations
       .map(r => {
         val formatted = cassandraFormat(r)
-        Structs.CassandraIndex(formatted._1, formatted._2, formatted._3)
+        CassandraSetIndex(formatted._1, formatted._2)
       })
     //    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
     table.saveToCassandra(
       keyspaceName = this.cassandra_keyspace_name.toLowerCase(),
       tableName = table_idx.toLowerCase,
       columns = SomeColumns(
-        "event1_name",
-        "event2_name",
+        "event_name",
         "sequences" append
       ), writeConf
     )
   }
 
-  def cassandraFormat(line: SetCInverted): (String, String, List[String]) = {
-    (line.event1, line.event2, line.ids.map(x => x.toString))
+  def cassandraFormat(line: SetCInverted): (String, List[String]) = {
+    (line.event, line.ids.map(x => x.toString))
   }
 
 

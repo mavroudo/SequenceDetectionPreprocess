@@ -7,7 +7,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 
 object SetContainment {
-  case class SetCInverted(event1: String, event2: String, ids: List[Long])
+  case class SetCInverted(event: String, ids: List[Long])
   private var cassandraConnection: CassandraSetContainment = null
 
   def main(args: Array[String]): Unit = {
@@ -32,7 +32,16 @@ object SetContainment {
       spark.time({
         val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
         sequencesRDD.persist(StorageLevel.MEMORY_AND_DISK)
-        val inverted_index = createCombinationsRDD(sequencesRDD, type_of_algorithm)
+        val inverted_index = sequencesRDD.flatMap(x=>{
+          val id=x.sequence_id
+          x.events.map(_.event).distinct.map(y=>(y,id))
+        })
+          .distinct
+          .groupBy(_._1)
+          .map(x=>{
+            val sorted = x._2.toList.map(_._2).distinct.sortWith((a,b)=>a<b)
+            SetCInverted(x._1,sorted)
+          })
         cassandraConnection.writeTableSequenceIndex(inverted_index, logName)
         cassandraConnection.writeTableSeq(sequencesRDD, logName)
         inverted_index.unpersist()
@@ -49,28 +58,10 @@ object SetContainment {
     }catch {
       case e: Exception => {
         e.getStackTrace.foreach(println)
-        println(e.getMessage())
+        println(e.getMessage)
         cassandraConnection.closeSpark()
       }
     }
-  }
-
-
-  def createCombinationsRDD(seqRDD: RDD[Structs.Sequence], type_of_algorithm: String): RDD[SetCInverted] = {
-    val combinations = type_of_algorithm match {
-      case "parsing" => Parsing.extract(seqRDD)
-      case "indexing" => Indexing.extract(seqRDD)
-      case "state" => State.extract(seqRDD)
-      case "strict" =>StrictContiguity.extract(seqRDD)
-      case "anymatch" => SkipTillAnyMatch.extract(seqRDD)
-      case _ => throw new Exception("Wrong type of algorithm")
-    }
-    combinations.map(pair=>{
-      val l= pair.times.map(_.id).distinct.sortWith((x,y)=>x<y)
-      SetCInverted(pair.event1,pair.event2,l)
-    })
-      .persist(StorageLevel.MEMORY_AND_DISK)
-
   }
 
 
