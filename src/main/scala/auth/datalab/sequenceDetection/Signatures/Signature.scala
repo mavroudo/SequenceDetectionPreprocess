@@ -6,6 +6,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 object Signature {
@@ -15,7 +16,7 @@ object Signature {
 
   case class Signature(signature: String, sequence_id: Long)
 
-  case class Signatures(signature:String, sequence_ids:List[String])
+  case class Signatures(signature: String, sequence_ids: List[String])
 
   def main(args: Array[String]): Unit = {
     val fileName: String = args(0)
@@ -39,34 +40,30 @@ object Signature {
     spark.time({
       val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
         .persist(StorageLevel.MEMORY_AND_DISK)
+      cassandraConnection.writeTableSeq(sequencesRDD, logName)
 
-      val pairs = sequencesRDD
-        .map(createPairs)
-        .persist(StorageLevel.MEMORY_AND_DISK)
-
-      val topKfreqPairs = pairs.flatMap(x => x.pairs)
+      val topKfreqPairs = sequencesRDD.map(createPairs).flatMap(x => x.pairs)
         .map(x => ((x.eventA, x.eventB), 1))
         .reduceByKey(_ + _)
         .sortBy(_._2, false)
         .take(k)
         .map(_._1)
+        .toList
 
       val events = sequencesRDD.flatMap(_.events).map(_.event).distinct().collect.toList
-      cassandraConnection.writeTableSeq(sequencesRDD, logName)
-      sequencesRDD.unpersist()
 
-      val signatures = pairs.map(x => createSignature(x, events, topKfreqPairs.toList))
+      val signatures = sequencesRDD.map(x => createSignature(x, events, topKfreqPairs))
         .groupBy(_.signature)
         .map(x => Signatures(x._1, x._2.map(_.sequence_id.toString).toList))
-        .persist(StorageLevel.MEMORY_AND_DISK)
-
+      sequencesRDD.unpersist()
+      signatures.persist(StorageLevel.MEMORY_AND_DISK)
+      signatures.take(2).foreach(println)
       cassandraConnection.writeTableSign(signatures, logName)
-      cassandraConnection.writeTableMetadata(events, topKfreqPairs.toList, logName)
-      pairs.unpersist()
+      cassandraConnection.writeTableMetadata(events, topKfreqPairs, logName)
       signatures.unpersist()
     })
     cassandraConnection.closeSpark()
-    val mb = 1024*1024
+    val mb = 1024 * 1024
     val runtime = Runtime.getRuntime
     println("ALL RESULTS IN MB")
     println("** Used Memory:  " + (runtime.totalMemory - runtime.freeMemory) / mb)
@@ -76,7 +73,7 @@ object Signature {
   }
 
   def createPairs(line: Structs.Sequence): PairsInSequence = {
-    val l = new ListBuffer[Pair]()
+    val l = new mutable.HashSet[Pair]()
     for (i <- line.events.indices) {
       for (j <- i until line.events.size) {
         l += Pair(line.events(i).event, line.events(j).event)
@@ -85,15 +82,16 @@ object Signature {
     PairsInSequence(line.sequence_id, l.toList, line)
   }
 
-  def createSignature(sequence: PairsInSequence, events: List[String], topKfreqPairs: List[(String, String)]): Signature = {
+  def createSignature(sequence: Structs.Sequence, events: List[String], topKfreqPairs: List[(String, String)]): Signature = {
     val signature = new StringBuilder()
-    val containedEvents = sequence.sequence.events.map(_.event)
+    val containedEvents = sequence.events.map(_.event).distinct
     for (event <- events) {
       if (containedEvents.contains(event)) signature += '1' else signature += '0'
     }
+    val pairs = createPairs(sequence)
     for (freqPair <- topKfreqPairs) {
-      if (sequence.pairs.map(x => (x.eventA, x.eventB)).contains(freqPair)) signature += '1' else signature += '0'
+      if (pairs.pairs.map(x => (x.eventA, x.eventB)).contains(freqPair)) signature += '1' else signature += '0'
     }
-    Signature(signature.toString(),sequence.sequence_id)
+    Signature(signature.toString(), sequence.sequence_id)
   }
 }
