@@ -6,7 +6,8 @@ import pandas as pd
 plt.rcParams['font.size'] = '12'
 
 data=pd.read_excel('one_pc_cassandra_times.ods',skiprows=1,usecols="B,C,D,E")
-
+data=data.drop([11],axis=0)
+data=data/1000
 
 #Small
 small=data.iloc[[0,1,2,3]]
@@ -48,13 +49,13 @@ plt.tight_layout()
 plt.savefig('preprocess_large.eps',format='eps')
 
 #Real world
-real=data.iloc[[12,13,14]]
+real=data.iloc[[11,12,13]]
 index=["bpi_2017","bpi_2018","bpi_2019"]
 real.index=index
 real.plot.bar(rot=30)
 plt.xlabel('Dataset')
 plt.ylabel('Time (s)')
 plt.grid(axis='y')
-plt.legend(loc='upper center', bbox_to_anchor=(0.38, 1.32),fancybox=True, shadow=True, ncol=2)
+plt.legend(loc='upper center', bbox_to_anchor=(0.38, 1.4),fancybox=True, shadow=True, ncol=2)
 plt.tight_layout()
 plt.savefig('preprocess_real_world.eps',format='eps')
