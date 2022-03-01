@@ -17,7 +17,7 @@ colors=['lightcoral','sandybrown','violet','yellowgreen']
 small=data.iloc[[0,1,2,3]]
 index=["100","1,000","10,000","100,000"]
 small.index=index
-ax=small.plot.bar(rot=30,color=colors)
+ax=small.plot.bar(rot=30,color=colors,align='center')
 for i,t in enumerate(ax.patches):
     t.set(hatch = hatches[i//4], fill=True)
 plt.yscale('log')
