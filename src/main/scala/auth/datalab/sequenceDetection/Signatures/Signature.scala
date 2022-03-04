@@ -24,7 +24,7 @@ object Signature {
     val deleteAll = args(2)
     val join = args(3).toInt
     val deletePrevious = args(4)
-    val k = 10
+    var k = 10
     println(fileName, type_of_algorithm, deleteAll, join)
     //    var logName = fileName.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
     var logName = fileName.split('/').last.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
@@ -40,6 +40,7 @@ object Signature {
     spark.time({
       val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
         .persist(StorageLevel.MEMORY_AND_DISK)
+      k=sequencesRDD.flatMap(x=>x.events).distinct.count().toInt
       cassandraConnection.writeTableSeq(sequencesRDD, logName)
 
       val topKfreqPairs = sequencesRDD.map(createPairs).flatMap(x => x.pairs)

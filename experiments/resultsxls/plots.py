@@ -5,19 +5,19 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib as mpl
 plt.rcParams['font.size'] = '12'
-plt.rcParams['hatch.linewidth'] = 3
+plt.rcParams['hatch.linewidth'] = 1
 
 data=pd.read_excel('one_pc_cassandra_times.ods',skiprows=1,usecols="B,C,D,E")
 data=data.drop([11],axis=0)
 data=data/1000
-hatches=['//','o','\\\\','.']
-colors=['lightcoral','sandybrown','violet','yellowgreen']
+hatches=['','\\\\','////','--']
+colors=['#fde6ee','#fdf5e6','#e6fdf5','#e6eefd']
 
 #Small
 small=data.iloc[[0,1,2,3]]
 index=["100","1,000","10,000","100,000"]
 small.index=index
-ax=small.plot.bar(rot=30,color=colors,align='center')
+ax=small.plot.bar(rot=30,align='center',color=colors,width=0.9,edgecolor='black')
 for i,t in enumerate(ax.patches):
     t.set(hatch = hatches[i//4], fill=True)
 plt.yscale('log')
@@ -32,7 +32,7 @@ plt.savefig('preprocess_small.eps',format='eps')
 medium=data.iloc[[4,5,6,7]]
 index=["100","1,000","10,000","100,000"]
 medium.index=index
-ax=medium.plot.bar(rot=30,color=colors)
+ax=medium.plot.bar(rot=30,color=colors,width=0.9,edgecolor='black')
 for i,t in enumerate(ax.patches):
     t.set(hatch = hatches[i//4], fill=True)
 plt.yscale('log')
@@ -47,7 +47,7 @@ plt.savefig('preprocess_medium.eps',format='eps')
 large=data.iloc[[8,9,10]]
 index=["100","1,000","10,000"]
 large.index=index
-ax=large.plot.bar(rot=30,color=colors)
+ax=large.plot.bar(rot=30,color=colors,width=0.9,edgecolor='black')
 for i,t in enumerate(ax.patches):
     t.set(hatch = hatches[i//3], fill=True)
 plt.yscale('log')
@@ -62,7 +62,7 @@ plt.savefig('preprocess_large.eps',format='eps')
 real=data.iloc[[11,12,13]]
 index=["bpi_2017","bpi_2018","bpi_2019"]
 real.index=index
-ax=real.plot.bar(rot=30,color=colors)
+ax=real.plot.bar(rot=30,color=colors,width=0.9,edgecolor='black')
 for i,t in enumerate(ax.patches):
     t.set(hatch = hatches[i//3], fill=True)
 plt.xlabel('Dataset')
