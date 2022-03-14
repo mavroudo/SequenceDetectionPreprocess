@@ -10,14 +10,14 @@ class CassandraTriplets extends Serializable with CassandraConnectionTrait{
 
   def createTable(logName: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-    val table_temp = logName + "_temp"
-    val table_seq = logName + "_seq"
-    val table_idx = logName + "_idx"
-    val table_count = logName + "_count"
+    val table_temp = logName + "_trip_temp"
+    val table_seq = logName + "_trip_seq"
+    val table_idx = logName + "_trip_idx"
+    val table_count = logName + "_trip_count"
     val tables: Map[String, String] = Map(
       table_idx -> "event1_name text, event2_name text, event3_name text, sequences list<text>, PRIMARY KEY (event1_name, event2_name, event3_name)",
       table_temp -> "event1_name text, event2_name text, event3_name text,  sequences list<text>, PRIMARY KEY (event1_name, event2_name, event3_name)",
-      table_count -> "event1_name text,event2_name, sequences_per_field list<text>, PRIMARY KEY (event1_name,event2_name)",
+      table_count -> "event1_name text, event2_name text, sequences_per_field list<text>, PRIMARY KEY (event1_name,event2_name)",
       table_seq -> "sequence_id text, events list<text>, PRIMARY KEY (sequence_id)"
     )
     try {
@@ -41,10 +41,10 @@ class CassandraTriplets extends Serializable with CassandraConnectionTrait{
 
   def dropTable(logName: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-    val table_temp = logName + "_temp"
-    val table_seq = logName + "_seq"
-    val table_idx = logName + "_idx"
-    val table_count = logName + "_count"
+    val table_temp = logName + "_trip_temp"
+    val table_seq = logName + "_trip_seq"
+    val table_idx = logName + "_trip_idx"
+    val table_count = logName + "_trip_count"
     try {
       CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
         session.execute("DROP TABLE IF EXISTS " + cassandra_keyspace_name + "." + table_temp + ";")
@@ -64,12 +64,12 @@ class CassandraTriplets extends Serializable with CassandraConnectionTrait{
   }
 
   def writeTableSeq(table: RDD[Structs.Sequence], logName: String): Unit ={
-    val table_seq = logName + "_seq"
+    val table_seq = logName + "_trip_seq"
     table.filter(_.events.nonEmpty).saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = table_seq.toLowerCase(),columns = SomeColumns("events","sequence_id"), writeConf = writeConf)
   }
 
   def writeTableSequenceIndex(combinations: RDD[Structs.Triplet], logName: String): Unit = {
-    val table_idx = logName + "_idx"
+    val table_idx = logName + "_trip_idx"
     val spark = SparkSession.builder().getOrCreate()
     val table = combinations
       .map(r => {

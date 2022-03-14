@@ -1,6 +1,7 @@
 package auth.datalab.sequenceDetection
 
 import auth.datalab.sequenceDetection.Signatures.Signature
+import auth.datalab.sequenceDetection.Triplets.ExtractTriplets
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -10,6 +11,8 @@ object Main {
       Signature.main(args)
     } else if (args(5) == "setcontainment") {
       SetContainment.SetContainment.main(args)
+    }else if(args(5)=="triplets"){
+      ExtractTriplets.main(args)
     } else {
       println("not a valid choice")
     }
