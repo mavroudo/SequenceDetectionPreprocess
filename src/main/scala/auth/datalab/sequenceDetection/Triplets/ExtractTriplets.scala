@@ -7,6 +7,7 @@ import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.util.SizeEstimator
 
 import scala.collection.mutable.{HashMap, ListBuffer}
 
@@ -112,14 +113,29 @@ object ExtractTriplets {
     try {
       val spark = SparkSession.builder().getOrCreate()
       spark.time({
-        val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
-        sequencesRDD.persist(StorageLevel.MEMORY_AND_DISK)
-        cassandraConnection.writeTableSeq(sequencesRDD, logName)
-        val combinationsRDD= extract(sequencesRDD)
-        combinationsRDD.persist(StorageLevel.MEMORY_AND_DISK)
-        sequencesRDD.unpersist()
-        cassandraConnection.writeTableSequenceIndex(combinationsRDD,logName)
-        combinationsRDD.unpersist()
+        val sequencesRDD_before_repartitioned: RDD[Structs.Sequence] = Utils.readLog(fileName)
+        val allExecutors = spark.sparkContext.getExecutorMemoryStatus.keys.size
+        val minExecutorMemory = spark.sparkContext.getExecutorMemoryStatus.map(_._2._1).min
+        println(s"Number of executors= $allExecutors, with minimum memory=$minExecutorMemory")
+        val traces = sequencesRDD_before_repartitioned.count()
+        val average_length = sequencesRDD_before_repartitioned.takeSample(false, 50).map(_.events.size).sum / 50
+        val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(sequencesRDD_before_repartitioned.take(1)(0).events.head) * average_length * (average_length*average_length / 3)
+        var partitionNumber = if (minExecutorMemory / size_estimate_trace > traces) 1 else ((size_estimate_trace * traces) / minExecutorMemory).toInt + 1
+        partitionNumber=partitionNumber/allExecutors +1
+        val ids = sequencesRDD_before_repartitioned.map(_.sequence_id).collect().sortWith((x, y) => x < y).sliding((traces / partitionNumber).toInt, (traces / partitionNumber).toInt).toList
+        println("Iterations: ", ids.length)
+        for (id <- ids) {
+          val sequencesRDD: RDD[Structs.Sequence] = sequencesRDD_before_repartitioned
+            .filter(x => x.sequence_id >= id(0) && x.sequence_id <= id.last)
+            .repartition(allExecutors)
+          sequencesRDD.persist(StorageLevel.MEMORY_AND_DISK)
+          cassandraConnection.writeTableSeq(sequencesRDD, logName)
+          val combinationsRDD = extract(sequencesRDD)
+//          combinationsRDD.persist(StorageLevel.MEMORY_AND_DISK)
+          sequencesRDD.unpersist()
+          cassandraConnection.writeTableSequenceIndex(combinationsRDD, logName)
+          combinationsRDD.unpersist()
+        }
       })
     } catch {
       case e: Exception => {
