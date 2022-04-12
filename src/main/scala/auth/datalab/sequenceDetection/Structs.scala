@@ -36,4 +36,8 @@ object Structs {
 
   case class CassandraCount(event1_name: String, sequences_per_field: List[String])
 
+  //for one table
+  case class InvertedOne (event_name:String, times: List[IdTimeList])
+  case class CassandraIndexOne(event_name:String, sequences: List[String])
+
 }

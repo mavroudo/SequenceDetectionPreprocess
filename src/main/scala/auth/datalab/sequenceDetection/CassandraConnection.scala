@@ -102,8 +102,8 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
    */
   def writeTableSeq(table: RDD[Structs.Sequence], name: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-//    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //this needs to be tested
-    table.filter(_.events.nonEmpty).saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(),columns = SomeColumns("events","sequence_id"), writeConf = writeConf)
+    //    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //this needs to be tested
+    table.filter(_.events.nonEmpty).saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(), columns = SomeColumns("events", "sequence_id"), writeConf = writeConf)
   }
 
   def writeTableSequenceIndex(combinations: RDD[Structs.EventIdTimeLists], name: String): Unit = {
@@ -113,7 +113,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
         val formatted = combinationsToCassandraFormat(r)
         Structs.CassandraIndex(formatted._1, formatted._2, formatted._3)
       })
-//    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
+    //    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
     table.saveToCassandra(
       keyspaceName = this.cassandra_keyspace_name.toLowerCase(),
       tableName = name.toLowerCase,
@@ -123,6 +123,21 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
         "sequences" append //Method to append to a list in cassandra
       ), writeConf
     )
+  }
+
+  def writeTableOne(data: RDD[Structs.InvertedOne], name: String): Unit = {
+    val table = data
+      .map(r => {
+        val formatted = invertedOneToCassandraFormat(r)
+        Structs.CassandraIndexOne(formatted._1, formatted._2)
+      })
+    table.saveToCassandra(
+      keyspaceName = this.cassandra_keyspace_name.toLowerCase(),
+      tableName = name.toLowerCase,
+      columns = SomeColumns(
+        "event_name",
+        "sequences" append //Method to append to a list in cassandra
+      ), writeConf)
   }
 
   def writeTableSeqCount(combinations: RDD[Structs.CountList], tableName: String): Unit = {
@@ -178,7 +193,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
         Utils.compareTimes(funnel_date.toString, row._4)
       })
       .toDF("ev1", "ev2", "id", "time")
-//      .persist(StorageLevel.DISK_ONLY)
+    //      .persist(StorageLevel.DISK_ONLY)
     //cache it
     tempTable.count()
     tempTable
@@ -231,6 +246,18 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
     (line.event1, line.event2, newList)
   }
 
+  private def invertedOneToCassandraFormat(line: Structs.InvertedOne): (String, List[String]) = {
+    val newList = line.times
+      .map(r => {
+        var userString = r.id + "("
+        for (i <- r.times.indices) {
+          userString = userString + r.times(i) +  ","
+        }
+        userString = userString.dropRight(1) + ")"
+        userString
+      })
+    (line.event_name, newList)
+  }
 
   private def combinationsToCassandraFormat(line: Structs.EventIdTimeLists): (String, String, List[String]) = {
     val newList = line.times
@@ -262,7 +289,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
     val newEvent = line.event1_name
     val newList = line.times
       .map(r => {
-        val userString = r._1 +DELIMITER + r._2 + DELIMITER + r._3
+        val userString = r._1 + DELIMITER + r._2 + DELIMITER + r._3
         userString
       })
     (newEvent, newList)

@@ -2,6 +2,7 @@ package auth.datalab.sequenceDetection
 
 import java.sql.Timestamp
 import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, SkipTillAnyMatch, State, StrictContiguity, TimeCombinations, ZipCombinations}
+import auth.datalab.sequenceDetection.Structs.InvertedOne
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
@@ -41,12 +42,14 @@ object SequenceDetection {
     var table_seq = table_name + "_seq"
     var table_idx = table_name + "_idx"
     var table_count = table_name + "_count"
+    var table_one = table_name + "_one"
 
     val tables: Map[String, String] = Map(
       table_idx -> "event1_name text, event2_name text, sequences list<text>, PRIMARY KEY (event1_name, event2_name)",
       table_temp -> "event1_name text, event2_name text,  sequences list<text>, PRIMARY KEY (event1_name, event2_name)",
       table_count -> "event1_name text, sequences_per_field list<text>, PRIMARY KEY (event1_name)",
-      table_seq -> "sequence_id text, events list<text>, PRIMARY KEY (sequence_id)"
+      table_seq -> "sequence_id text, events list<text>, PRIMARY KEY (sequence_id)",
+      table_one -> "event_name text, sequences list<text>, PRIMARY KEY (event_name)"
     )
 
     cassandraConnection = new CassandraConnection()
@@ -54,7 +57,7 @@ object SequenceDetection {
 
 
     if (deletePrevious == "1") {
-      cassandraConnection.dropTables(List(table_idx, table_seq, table_temp, table_count))
+      cassandraConnection.dropTables(List(table_idx, table_seq, table_temp, table_count, table_one))
     }
     if (deleteAll == "1") {
       cassandraConnection.dropAlltables()
@@ -86,13 +89,30 @@ object SequenceDetection {
         val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(sequencesRDD_before_repartitioned.take(1)(0).events.head) * average_length * (average_length / 2)
         //        each trace has approximate average_length events (each trace has size equal to size estimator)
         var partitionNumber = if (minExecutorMemory / size_estimate_trace > traces) 1 else ((size_estimate_trace * traces) / minExecutorMemory).toInt + 1
-        partitionNumber=partitionNumber/allExecutors +1
+        partitionNumber = partitionNumber / allExecutors + 1
         val ids = sequencesRDD_before_repartitioned.map(_.sequence_id).collect().sortWith((x, y) => x < y).sliding((traces / partitionNumber).toInt, (traces / partitionNumber).toInt).toList
         println("Iterations: ", ids.length)
         for (id <- ids) {
           val sequencesRDD: RDD[Structs.Sequence] = sequencesRDD_before_repartitioned
             .filter(x => x.sequence_id >= id(0) && x.sequence_id <= id.last)
             .repartition(allExecutors)
+          val invertedOneRDD: RDD[Structs.InvertedOne] = sequencesRDD.flatMap(x => {
+            val id = x.sequence_id
+            x.events.map(x => ((id, x.event), x))
+          })
+            .groupBy(_._1)
+            .map(x => {
+              val events = x._2.toList.map(_._2.timestamp).sortWith((a, b) => Utils.compareTimes(a, b))
+              (x._1._2, Structs.IdTimeList(x._1._1, events))
+            })
+            .groupBy(_._1)
+            .filter(_._2.toList.nonEmpty)
+            .map(m => {
+              InvertedOne(m._1, m._2.toList.map(_._2))
+            })
+          invertedOneRDD.persist(StorageLevel.MEMORY_AND_DISK)
+          cassandraConnection.writeTableOne(invertedOneRDD,table_one)
+          invertedOneRDD.unpersist()
           val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
             "2018-01-01 00:00:00", 10)
           println("Finding Combinations ...")
@@ -113,32 +133,32 @@ object SequenceDetection {
           sequenceCombinedRDD.unpersist()
           sequencesRDD.unpersist()
         }
-//        println("Iterations: ", ids.length)
-//        for (id <- ids) {
-//          val sequencesRDD: RDD[Structs.Sequence] = sequencesRDD_before_repartitioned
-//            .filter(x => x.sequence_id >= id(0) && x.sequence_id <= id.last)
-//            .repartition(allExecutors)
-//          //        val sequenceCombinedRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
-//          val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
-//            "2018-01-01 00:00:00", 10)
-//          println("Finding Combinations ...")
-//          val combinationsRDD = startCombinationsRDD(sequenceCombinedRDD, table_temp, "", join, type_of_algorithm, table_seq,
-//            null, 0)
-//          val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD)
-//          println("Writing combinations RDD to Cassandra ..")
-//          cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)
-//          cassandraConnection.writeTableSeqCount(combinationsCountRDD, table_count)
-//          if (join != 0) {
-//            cassandraConnection.writeTableSeqTemp(combinationsRDD, table_temp)
-//          }
-//          combinationsRDD.unpersist()
-//          combinationsCountRDD.unpersist()
-//
-//
-//          cassandraConnection.writeTableSeq(sequenceCombinedRDD, table_seq)
-//          sequenceCombinedRDD.unpersist()
-//          sequencesRDD.unpersist()
-//        }
+        //        println("Iterations: ", ids.length)
+        //        for (id <- ids) {
+        //          val sequencesRDD: RDD[Structs.Sequence] = sequencesRDD_before_repartitioned
+        //            .filter(x => x.sequence_id >= id(0) && x.sequence_id <= id.last)
+        //            .repartition(allExecutors)
+        //          //        val sequenceCombinedRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
+        //          val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cassandraConnection,
+        //            "2018-01-01 00:00:00", 10)
+        //          println("Finding Combinations ...")
+        //          val combinationsRDD = startCombinationsRDD(sequenceCombinedRDD, table_temp, "", join, type_of_algorithm, table_seq,
+        //            null, 0)
+        //          val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD)
+        //          println("Writing combinations RDD to Cassandra ..")
+        //          cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)
+        //          cassandraConnection.writeTableSeqCount(combinationsCountRDD, table_count)
+        //          if (join != 0) {
+        //            cassandraConnection.writeTableSeqTemp(combinationsRDD, table_temp)
+        //          }
+        //          combinationsRDD.unpersist()
+        //          combinationsCountRDD.unpersist()
+        //
+        //
+        //          cassandraConnection.writeTableSeq(sequenceCombinedRDD, table_seq)
+        //          sequenceCombinedRDD.unpersist()
+        //          sequencesRDD.unpersist()
+        //        }
       })
       cassandraConnection.closeSpark()
       val mb = 1024 * 1024
@@ -157,90 +177,90 @@ object SequenceDetection {
     }
   }
 
-    def createCombinationsRDD(seqRDD: RDD[Structs.Sequence], type_of_algorithm: String): RDD[Structs.EventIdTimeLists] = {
-      type_of_algorithm match {
-        case "parsing" => Parsing.extract(seqRDD)
-        case "indexing" => Indexing.extract(seqRDD)
-        case "state" => State.extract(seqRDD)
-        case "strict" => StrictContiguity.extract(seqRDD)
-        case "anymatch" => SkipTillAnyMatch.extract(seqRDD)
-        case _ => throw new Exception("Wrong type of algorithm")
-      }
-    }
-
-    /**
-     * Method to create the RDD with the sequence of events for sequence identifier by combining
-     * the new data along with the already written ones to cassandra
-     *
-     * @param table_name The table from which we will collect data
-     * @param timestamp  The timestamp to help with the days it needs to look back into
-     * @param look_back  The maximum days (along with the new one) that the sequence must hold
-     * @return An RDD of [Sequence] class with the data ready to be written to cassandra
-     */
-    def combine_sequences(seq_log_RDD: RDD[Structs.Sequence], table_name: String, cassandraConnection: CassandraConnection, timestamp: String, look_back: Int): RDD[Structs.Sequence] = {
-      //need to find them these days before
-      val spark = SparkSession.builder().getOrCreate()
-      import spark.implicits._
-      seq_log_RDD.coalesce(spark.sparkContext.defaultParallelism)
-      val funnel_time = Timestamp.valueOf(timestamp).getTime - (look_back * 24 * 3600 * 1000)
-      val funnel_date = new Timestamp(funnel_time)
-      val cassandraTable = cassandraConnection.readTable(table_name)
-        .map(row => {
-          val events = row
-            .getAs[mutable.WrappedArray[String]](1)
-            .toList
-            .map(line => {
-              val data = line
-                .replace("Event(", "")
-                .replace(")", "")
-                .split(',')
-              Structs.Event(data(0), data(1))
-            })
-            .filter(det => Utils.compareTimes(funnel_date.toString, det.timestamp)) //the events that are after the funnel time
-          Structs.Sequence(events = events, sequence_id = row.getString(0).toLong)
-        })
-        .rdd
-        .persist(StorageLevel.DISK_ONLY)
-      cassandraTable.count()
-      val res = this.mergeSeq(seq_log_RDD, cassandraTable)
-        .coalesce(spark.sparkContext.defaultParallelism)
-      res.count()
-      cassandraTable.unpersist()
-      res
-    }
-
-    /**
-     * Method to merge 2 rdds of sequences
-     *
-     * @param newRdd The new sequence RDD
-     * @param oldRdd The old sequence RDD
-     * @return The merged RDD
-     */
-    def mergeSeq(newRdd: RDD[Structs.Sequence], oldRdd: RDD[Structs.Sequence]): RDD[Structs.Sequence] = {
-      val tmp = oldRdd.union(newRdd)
-      val finalCounts = tmp
-        .keyBy(_.sequence_id)
-        .reduceByKey((p1, p2) => {
-          val newList = List.concat(p1.events, p2.events)
-          Structs.Sequence(newList, p1.sequence_id)
-        })
-        .map(_._2)
-      finalCounts
-
-    }
-
-
-    def startCombinationsRDD(seqRDD: RDD[Structs.Sequence], table_temp: String, time: String, join: Int, type_of_algorithm: String, table_name: String, entities: Broadcast[mutable.HashMap[Integer, Integer]], look_back_hours: Int): RDD[Structs.EventIdTimeLists] = {
-      var res: RDD[Structs.EventIdTimeLists] = null
-      if (join == 0) { // we have no prio knowledge and it will not have next
-        res = createCombinationsRDD(seqRDD, type_of_algorithm)
-        res = TimeCombinations.timeCombinationsRDD(res, time) // we need to eliminate all the pairs completed before the time
-      } else {
-        val funnel_time = Timestamp.valueOf("2000-01-01 00:00:00").getTime - (look_back_hours * 3600 * 1000)
-        val funnel_date = new Timestamp(funnel_time)
-        val tempTable: DataFrame = cassandraConnection.readTemp(table_temp, funnel_date)
-        res = ZipCombinations.zipCombinationsRDD(seqRDD, tempTable, table_name, funnel_date)
-      }
-      res
+  def createCombinationsRDD(seqRDD: RDD[Structs.Sequence], type_of_algorithm: String): RDD[Structs.EventIdTimeLists] = {
+    type_of_algorithm match {
+      case "parsing" => Parsing.extract(seqRDD)
+      case "indexing" => Indexing.extract(seqRDD)
+      case "state" => State.extract(seqRDD)
+      case "strict" => StrictContiguity.extract(seqRDD)
+      case "anymatch" => SkipTillAnyMatch.extract(seqRDD)
+      case _ => throw new Exception("Wrong type of algorithm")
     }
   }
+
+  /**
+   * Method to create the RDD with the sequence of events for sequence identifier by combining
+   * the new data along with the already written ones to cassandra
+   *
+   * @param table_name The table from which we will collect data
+   * @param timestamp  The timestamp to help with the days it needs to look back into
+   * @param look_back  The maximum days (along with the new one) that the sequence must hold
+   * @return An RDD of [Sequence] class with the data ready to be written to cassandra
+   */
+  def combine_sequences(seq_log_RDD: RDD[Structs.Sequence], table_name: String, cassandraConnection: CassandraConnection, timestamp: String, look_back: Int): RDD[Structs.Sequence] = {
+    //need to find them these days before
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.implicits._
+    seq_log_RDD.coalesce(spark.sparkContext.defaultParallelism)
+    val funnel_time = Timestamp.valueOf(timestamp).getTime - (look_back * 24 * 3600 * 1000)
+    val funnel_date = new Timestamp(funnel_time)
+    val cassandraTable = cassandraConnection.readTable(table_name)
+      .map(row => {
+        val events = row
+          .getAs[mutable.WrappedArray[String]](1)
+          .toList
+          .map(line => {
+            val data = line
+              .replace("Event(", "")
+              .replace(")", "")
+              .split(',')
+            Structs.Event(data(0), data(1))
+          })
+          .filter(det => Utils.compareTimes(funnel_date.toString, det.timestamp)) //the events that are after the funnel time
+        Structs.Sequence(events = events, sequence_id = row.getString(0).toLong)
+      })
+      .rdd
+      .persist(StorageLevel.DISK_ONLY)
+    cassandraTable.count()
+    val res = this.mergeSeq(seq_log_RDD, cassandraTable)
+      .coalesce(spark.sparkContext.defaultParallelism)
+    res.count()
+    cassandraTable.unpersist()
+    res
+  }
+
+  /**
+   * Method to merge 2 rdds of sequences
+   *
+   * @param newRdd The new sequence RDD
+   * @param oldRdd The old sequence RDD
+   * @return The merged RDD
+   */
+  def mergeSeq(newRdd: RDD[Structs.Sequence], oldRdd: RDD[Structs.Sequence]): RDD[Structs.Sequence] = {
+    val tmp = oldRdd.union(newRdd)
+    val finalCounts = tmp
+      .keyBy(_.sequence_id)
+      .reduceByKey((p1, p2) => {
+        val newList = List.concat(p1.events, p2.events)
+        Structs.Sequence(newList, p1.sequence_id)
+      })
+      .map(_._2)
+    finalCounts
+
+  }
+
+
+  def startCombinationsRDD(seqRDD: RDD[Structs.Sequence], table_temp: String, time: String, join: Int, type_of_algorithm: String, table_name: String, entities: Broadcast[mutable.HashMap[Integer, Integer]], look_back_hours: Int): RDD[Structs.EventIdTimeLists] = {
+    var res: RDD[Structs.EventIdTimeLists] = null
+    if (join == 0) { // we have no prio knowledge and it will not have next
+      res = createCombinationsRDD(seqRDD, type_of_algorithm)
+      res = TimeCombinations.timeCombinationsRDD(res, time) // we need to eliminate all the pairs completed before the time
+    } else {
+      val funnel_time = Timestamp.valueOf("2000-01-01 00:00:00").getTime - (look_back_hours * 3600 * 1000)
+      val funnel_date = new Timestamp(funnel_time)
+      val tempTable: DataFrame = cassandraConnection.readTemp(table_temp, funnel_date)
+      res = ZipCombinations.zipCombinationsRDD(seqRDD, tempTable, table_name, funnel_date)
+    }
+    res
+  }
+}
