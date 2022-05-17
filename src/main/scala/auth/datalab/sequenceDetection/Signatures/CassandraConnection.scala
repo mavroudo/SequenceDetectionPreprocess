@@ -53,6 +53,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
         session.execute("DROP TABLE IF EXISTS " + cassandra_keyspace_name + "." + table_signatures + ";")
         session.execute("DROP TABLE IF EXISTS " + cassandra_keyspace_name + "." + table_seq + ";")
         session.execute("DROP TABLE IF EXISTS " + cassandra_keyspace_name + "." + table_meta + ";")
+        session.execute("DROP INDEX IF EXISTS " + cassandra_keyspace_name + "." + table_signatures+"_index" + ";")
 
       }
     }

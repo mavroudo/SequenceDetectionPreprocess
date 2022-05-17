@@ -40,7 +40,7 @@ object Signature {
     spark.time({
       val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
         .persist(StorageLevel.MEMORY_AND_DISK)
-      k=sequencesRDD.flatMap(x=>x.events).distinct.count().toInt
+      k=sequencesRDD.flatMap(x=>x.events).map(_.event).distinct.count().toInt
       cassandraConnection.writeTableSeq(sequencesRDD, logName)
 
       val topKfreqPairs = sequencesRDD.map(createPairs).flatMap(x => x.pairs)
