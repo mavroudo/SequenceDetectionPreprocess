@@ -108,7 +108,7 @@ object Utils {
       timeA.toInt < timeB.toInt
     } catch {
       case _: Throwable =>
-        Timestamp.valueOf(timeA).before(Timestamp.valueOf(timeB))
+        !Timestamp.valueOf(timeA).after(Timestamp.valueOf(timeB))
     }
 
   }
