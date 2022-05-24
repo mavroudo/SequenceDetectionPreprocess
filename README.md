@@ -1,4 +1,4 @@
-# Sequence-Detectio
+# Sequence-Detection
 
 Build project
 ```sbt package```

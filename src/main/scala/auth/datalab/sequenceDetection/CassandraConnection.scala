@@ -113,6 +113,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
         val formatted = combinationsToCassandraFormat(r)
         Structs.CassandraIndex(formatted._1, formatted._2, formatted._3)
       })
+    table.persist(StorageLevel.MEMORY_AND_DISK)
     //    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
     table.saveToCassandra(
       keyspaceName = this.cassandra_keyspace_name.toLowerCase(),
@@ -123,6 +124,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
         "sequences" append //Method to append to a list in cassandra
       ), writeConf
     )
+    table.unpersist()
   }
 
   def writeTableOne(data: RDD[Structs.InvertedOne], name: String): Unit = {
@@ -186,10 +188,6 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
         Structs.CountList(x._1,times.toList)
       })
 
-
-
-
-
     val table = tTransofmed
       .map(r => {
         val formatted = combinationsCountToCassandraFormat(r)
@@ -200,7 +198,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
       .saveToCassandra(
         cassandra_keyspace_name.toLowerCase,
         tableName.toLowerCase,
-        SomeColumns("event1_name", "sequences_per_field" append)
+        SomeColumns("event1_name", "sequences_per_field" )
       )
     table.unpersist()
   }

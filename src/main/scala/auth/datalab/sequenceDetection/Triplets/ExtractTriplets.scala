@@ -135,6 +135,30 @@ object ExtractTriplets {
           sequencesRDD.unpersist()
           cassandraConnection.writeTableSequenceIndex(combinationsRDD, logName)
           combinationsRDD.unpersist()
+
+          val countTable = combinationsRDD
+            .map(x=>{
+              var sum = 0L
+              var count = 0
+              x.times.foreach(r => {
+                for (i <- 2 until r.times.length by 3) {
+                  val time1 = r.times(i - 2)
+                  val time2 = r.times(i)
+                  sum += Utils.getDifferenceTime(time1, time2)
+                  count += 1
+                }
+              })
+              Structs.TripleCountList(x.event1,x.event2, List((x.event3, sum, count)))
+            })
+            .keyBy(x=>(x.event1_name,x.event2_name))
+            .reduceByKey((p1,p2)=>{
+              val newList = List.concat(p1.times, p2.times)
+              Structs.TripleCountList(p1.event1_name, p1.event2_name, newList)
+            })
+            .map(_._2)
+          countTable.persist(StorageLevel.MEMORY_AND_DISK)
+          cassandraConnection.writeTableSeqCount(countTable, logName)
+          countTable.unpersist()
         }
       })
     } catch {
