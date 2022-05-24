@@ -15,7 +15,7 @@ object Indexing extends ExtractPairs {
   override def extract(data: RDD[Structs.Sequence]): RDD[Structs.EventIdTimeLists] = {
     val spark = SparkSession.builder().getOrCreate()
     val combinations = data
-      .flatMap(l => this.indexingMethodPairs2(l))
+      .flatMap(l => this.indexingMethodPairs(l))
       .keyBy(l => (l.event1, l.event2))
       .reduceByKey((a, b) => {
         val newList = List.concat(a.times, b.times)

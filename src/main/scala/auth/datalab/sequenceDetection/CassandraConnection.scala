@@ -141,17 +141,68 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
   }
 
   def writeTableSeqCount(combinations: RDD[Structs.CountList], tableName: String): Unit = {
-    val table = combinations
+    val spark = SparkSession.builder().getOrCreate()
+    val table_load = spark
+      .read
+      .format("org.apache.spark.sql.cassandra")
+      .options(Map(
+        "table" -> tableName,
+        "keyspace" -> cassandra_keyspace_name.toLowerCase()
+      ))
+      .load()
+
+    val tlTransofmed = table_load.rdd.flatMap(x=>{
+      val prim_event = x.getAs[String]("event1_name")
+      val array=x.getAs[Seq[String]]("sequences_per_field")
+      array.map(y=>{
+        val values:List[String] = y.split("¦delab¦").toList
+        ((prim_event,values.head),values(1).toLong,values(2).toInt)
+      })
+    })
+      .keyBy(_._1)
+
+    val tTransofmed = combinations.flatMap(x=>{
+      val prim_event=x.event1_name
+      x.times.map(y=>{
+        ((prim_event,y._1),y._2,y._3)
+      })
+    })
+      .keyBy(_._1)
+      .fullOuterJoin(tlTransofmed)
+      .map(x=>{
+        val t1=x._2._1.getOrElse(("",0L,0))._3
+        val t2=x._2._2.getOrElse(("",0L,0))._3
+        val d1=x._2._1.getOrElse(("",0L,0))._2
+        val d2=x._2._2.getOrElse(("",0L,0))._2
+        val average_duration=(d1*t1+d2*t2)/(t1+t2)
+        (x._1._1,x._1._2,average_duration,t1+t2)
+      })
+      .keyBy(_._1)
+      .groupByKey()
+      .map(x=>{
+        val times=x._2.map(y=>{
+          (y._2,y._3,y._4)
+        })
+        Structs.CountList(x._1,times.toList)
+      })
+
+
+
+
+
+    val table = tTransofmed
       .map(r => {
         val formatted = combinationsCountToCassandraFormat(r)
         Structs.CassandraCount(formatted._1, formatted._2)
       })
+    table.persist(StorageLevel.MEMORY_AND_DISK)
     table
       .saveToCassandra(
         cassandra_keyspace_name.toLowerCase,
         tableName.toLowerCase,
         SomeColumns("event1_name", "sequences_per_field" append)
       )
+    table.unpersist()
   }
 
   /**

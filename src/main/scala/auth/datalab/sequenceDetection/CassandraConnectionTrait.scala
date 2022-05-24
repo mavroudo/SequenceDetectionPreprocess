@@ -50,8 +50,8 @@ trait CassandraConnectionTrait {
       .set("spark.cassandra.connection.port", cassandra_port)
       .set("spark.cassandra.output.consistency.level", cassandra_write_consistency_level)
 //      .set("spark.driver.memory","10g")
-//      .set("spark.executor.memory","61440m")
-//      .set("spark.executor.memoryOverhead","61440m")
+//      .set("spark.executor.memory","10G")
+//      .set("spark.executor.cores","4")
 //      .set("spark.driver.memoryOverhead","6g")
 
 
