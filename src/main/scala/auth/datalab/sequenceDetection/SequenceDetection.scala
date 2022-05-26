@@ -80,7 +80,9 @@ object SequenceDetection {
         }
       }
       spark.time({
+
         val spark = SparkSession.builder().getOrCreate()
+        var countRDD = spark.sparkContext.emptyRDD[(String,String,Long,Int)]
         val allExecutors = spark.sparkContext.getExecutorMemoryStatus.keys.size
         val minExecutorMemory = spark.sparkContext.getExecutorMemoryStatus.map(_._2._1).min
         println(s"Number of executors= $allExecutors, with minimum memory=$minExecutorMemory")
@@ -118,21 +120,25 @@ object SequenceDetection {
           println("Finding Combinations ...")
           val combinationsRDD = startCombinationsRDD(sequenceCombinedRDD, table_temp, "", join, type_of_algorithm, table_seq,
             null, 0)
-          val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD)
+//          val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD)
           println("Writing combinations RDD to Cassandra ..")
           cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)
-          cassandraConnection.writeTableSeqCount(combinationsCountRDD, table_count)
+//          cassandraConnection.writeTableSeqCount(combinationsCountRDD, table_count)
+          countRDD=CountPairs.merge(countRDD,CountPairs.createCountPairs(combinationsRDD))
           if (join != 0) {
             cassandraConnection.writeTableSeqTemp(combinationsRDD, table_temp)
           }
           combinationsRDD.unpersist()
-          combinationsCountRDD.unpersist()
+//          combinationsCountRDD.unpersist()
 
 
           cassandraConnection.writeTableSeq(sequenceCombinedRDD, table_seq)
           sequenceCombinedRDD.unpersist()
           sequencesRDD.unpersist()
         }
+        countRDD.persist(StorageLevel.MEMORY_AND_DISK)
+        cassandraConnection.writeTableSeqCount(CountPairs.toCombinationRDD(countRDD), table_count)
+        countRDD.unpersist()
         //        println("Iterations: ", ids.length)
         //        for (id <- ids) {
         //          val sequencesRDD: RDD[Structs.Sequence] = sequencesRDD_before_repartitioned
