@@ -91,7 +91,7 @@ object SequenceDetection {
         val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(sequencesRDD_before_repartitioned.take(1)(0).events.head) * average_length * (average_length / 2)
         //        each trace has approximate average_length events (each trace has size equal to size estimator)
         var partitionNumber = if (minExecutorMemory / size_estimate_trace > traces) 1 else ((size_estimate_trace * traces) / minExecutorMemory).toInt + 1
-        partitionNumber = partitionNumber / allExecutors +1
+        partitionNumber = partitionNumber / allExecutors //+1
         val ids = sequencesRDD_before_repartitioned.map(_.sequence_id).collect().sortWith((x, y) => x < y).sliding((traces / partitionNumber).toInt, (traces / partitionNumber).toInt).toList
         println("Iterations: ", ids.length)
         for (id <- ids) {
