@@ -91,7 +91,7 @@ object SequenceDetection {
         val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(sequencesRDD_before_repartitioned.take(1)(0).events.head) * average_length * (average_length / 2)
         //        each trace has approximate average_length events (each trace has size equal to size estimator)
         var partitionNumber = if (minExecutorMemory / size_estimate_trace > traces) 1 else ((size_estimate_trace * traces) / minExecutorMemory).toInt + 1
-        partitionNumber = partitionNumber / allExecutors //+1
+        partitionNumber = partitionNumber / allExecutors +1
         val ids = sequencesRDD_before_repartitioned.map(_.sequence_id).collect().sortWith((x, y) => x < y).sliding((traces / partitionNumber).toInt, (traces / partitionNumber).toInt).toList
         println("Iterations: ", ids.length)
         for (id <- ids) {
@@ -120,11 +120,12 @@ object SequenceDetection {
           println("Finding Combinations ...")
           val combinationsRDD = startCombinationsRDD(sequenceCombinedRDD, table_temp, "", join, type_of_algorithm, table_seq,
             null, 0)
-//          val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD)
+          val combinationsCountRDD = CountPairs.createCountCombinationsRDD(combinationsRDD)
           println("Writing combinations RDD to Cassandra ..")
           cassandraConnection.writeTableSequenceIndex(combinationsRDD, table_idx)
-//          cassandraConnection.writeTableSeqCount(combinationsCountRDD, table_count)
-          countRDD=CountPairs.merge(countRDD,CountPairs.createCountPairs(combinationsRDD))
+          cassandraConnection.writeTableSeqCount(combinationsCountRDD, table_count)
+//          countRDD=CountPairs.merge(countRDD,CountPairs.createCountPairs(combinationsRDD))
+//          countRDD.persist()
           if (join != 0) {
             cassandraConnection.writeTableSeqTemp(combinationsRDD, table_temp)
           }
@@ -136,9 +137,9 @@ object SequenceDetection {
           sequenceCombinedRDD.unpersist()
           sequencesRDD.unpersist()
         }
-        countRDD.persist(StorageLevel.MEMORY_AND_DISK)
-        cassandraConnection.writeTableSeqCount(CountPairs.toCombinationRDD(countRDD), table_count)
-        countRDD.unpersist()
+//        countRDD.persist(StorageLevel.MEMORY_AND_DISK)
+//        cassandraConnection.writeTableSeqCount(CountPairs.toCombinationRDD(countRDD), table_count)
+//        countRDD.unpersist()
         //        println("Iterations: ", ids.length)
         //        for (id <- ids) {
         //          val sequencesRDD: RDD[Structs.Sequence] = sequencesRDD_before_repartitioned
