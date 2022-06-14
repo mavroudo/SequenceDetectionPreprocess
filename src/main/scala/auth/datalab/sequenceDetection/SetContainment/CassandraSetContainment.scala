@@ -61,7 +61,13 @@ class CassandraSetContainment extends Serializable with CassandraConnectionTrait
 
   def writeTableSeq(table: RDD[Structs.Sequence], logName: String): Unit = {
     val name = logName + "_set_seq"
-    table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(), writeConf = writeConf)
+    table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase,
+      tableName = name.toLowerCase(),
+      columns = SomeColumns(
+        "events",
+        "sequence_id"
+      ),
+      writeConf = writeConf)
   }
 
   def writeTableSequenceIndex(combinations: RDD[SetCInverted], logName: String): Unit = {

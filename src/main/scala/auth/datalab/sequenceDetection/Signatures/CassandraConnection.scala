@@ -3,8 +3,8 @@ package auth.datalab.sequenceDetection.Signatures
 import auth.datalab.sequenceDetection.{CassandraConnectionTrait, Structs}
 import com.datastax.driver.core.{BoundStatement, PreparedStatement}
 import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.toRDDFunctions
-import org.apache.avro.SchemaBuilder.MapBuilder
+import com.datastax.spark.connector.{SomeColumns, toRDDFunctions}
+import com.datastax.spark.connector._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
@@ -81,7 +81,14 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
         }
         withList(x.signature,n,x.sequence_ids)
       })
-    .saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = table_signatures.toLowerCase(), writeConf = writeConf)
+    .saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase,
+      tableName = table_signatures.toLowerCase(),
+      columns = SomeColumns(
+        "id",
+        "signature",
+        "sequence_ids" append
+      ),
+      writeConf = writeConf)
   }
 
   def writeTableMetadata(events: List[String], topKfreqPairs: List[(String, String)], logName: String): Unit = {
