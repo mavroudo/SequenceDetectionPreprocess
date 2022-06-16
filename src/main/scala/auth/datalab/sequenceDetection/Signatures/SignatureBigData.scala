@@ -39,25 +39,31 @@ object SignatureBigData {
       val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(traceGenerator.estimate_size().events.head) * traceGenerator.maxTraceSize
       var partitionNumber = if (minExecutorMemory >= size_estimate_trace * traces) 0 else ((size_estimate_trace * traces) / minExecutorMemory).toInt + 1
       partitionNumber = partitionNumber / allExecutors + 2
-      val ids = (1 to traces).toList.sliding((traces / partitionNumber), (traces / partitionNumber).toInt).toList
+      val ids = (1 to traces).toList.sliding((traces / 50000), (traces / partitionNumber).toInt).toList
       println("Iterations: ", ids.length)
+      var topKfreqPairs:List[(String,String)] = null
+      var events:List[String] = null
       var t = 0L
       for (id <- ids) {
+        println(id)
         val sequencesRDD: RDD[Structs.Sequence] = traceGenerator.produce(id)
           .repartition(allExecutors)
         val start = System.currentTimeMillis()
         k=sequencesRDD.flatMap(x=>x.events).map(_.event).distinct.count().toInt
         cassandraConnection.writeTableSeq(sequencesRDD, logName)
 
-        val topKfreqPairs = sequencesRDD.map(createPairs).flatMap(x => x.pairs)
-          .map(x => ((x.eventA, x.eventB), 1))
-          .reduceByKey(_ + _)
-          .sortBy(_._2, false)
-          .take(k)
-          .map(_._1)
-          .toList
+        if(id.contains(1)){
+          topKfreqPairs = sequencesRDD.map(createPairs).flatMap(x => x.pairs)
+            .map(x => ((x.eventA, x.eventB), 1))
+            .reduceByKey(_ + _)
+            .sortBy(_._2, false)
+            .take(k)
+            .map(_._1)
+            .toList
+          events = sequencesRDD.flatMap(_.events).map(_.event).distinct().collect.toList
+          cassandraConnection.writeTableMetadata(events, topKfreqPairs, logName)
+        }
 
-        val events = sequencesRDD.flatMap(_.events).map(_.event).distinct().collect.toList
 
         val signatures = sequencesRDD.map(x => createSignature(x, events, topKfreqPairs))
           .groupBy(_.signature)
@@ -65,9 +71,6 @@ object SignatureBigData {
         sequencesRDD.unpersist()
         signatures.persist(StorageLevel.MEMORY_AND_DISK)
         cassandraConnection.writeTableSign(signatures, logName)
-        if(id.contains(1)) {
-          cassandraConnection.writeTableMetadata(events, topKfreqPairs, logName)
-        }
         signatures.unpersist()
         t = t + System.currentTimeMillis() - start
 
