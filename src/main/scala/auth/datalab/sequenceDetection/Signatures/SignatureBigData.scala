@@ -39,13 +39,13 @@ object SignatureBigData {
       val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(traceGenerator.estimate_size().events.head) * traceGenerator.maxTraceSize
       var partitionNumber = if (minExecutorMemory >= size_estimate_trace * traces) 0 else ((size_estimate_trace * traces) / minExecutorMemory).toInt + 1
       partitionNumber = partitionNumber / allExecutors + 2
-      val ids = (1 to traces).toList.sliding((50000), (traces / partitionNumber).toInt).toList
+      val ids = (1 to traces).toList.sliding(50000, traces / 50000).toList
       println("Iterations: ", ids.length)
       var topKfreqPairs:List[(String,String)] = null
       var events:List[String] = null
       var t = 0L
       for (id <- ids) {
-        println(id)
+        println(id.head,id.last)
         val sequencesRDD: RDD[Structs.Sequence] = traceGenerator.produce(id)
           .repartition(allExecutors)
         val start = System.currentTimeMillis()
