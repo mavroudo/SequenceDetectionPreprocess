@@ -42,7 +42,7 @@ object SetcontainmentBigData {
       val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(traceGenerator.estimate_size().events.head) * traceGenerator.maxTraceSize
       var partitionNumber = if (minExecutorMemory >= size_estimate_trace * traces) 0 else ((size_estimate_trace * traces) / minExecutorMemory).toInt + 1
       partitionNumber = partitionNumber / allExecutors + 2
-      val ids = (1 to traces).toList.sliding((traces / partitionNumber), (traces / partitionNumber).toInt).toList
+      val ids = (1 to traces).toList.sliding(50000, 50000).toList
       println("Iterations: ", ids.length)
       var k = 0L
       for (id <- ids) {

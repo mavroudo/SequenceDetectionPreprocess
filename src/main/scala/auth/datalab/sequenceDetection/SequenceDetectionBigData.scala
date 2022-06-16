@@ -78,7 +78,8 @@ object SequenceDetectionBigData {
       //        each trace has approximate average_length events (each trace has size equal to size estimator)
       var partitionNumber = if (minExecutorMemory >= size_estimate_trace * traces) 0 else ((size_estimate_trace * traces) / minExecutorMemory).toInt + 1
       partitionNumber = partitionNumber / allExecutors + 1
-      val ids = (1 to traces).toList.sliding((traces / partitionNumber), (traces / partitionNumber).toInt).toList
+//      val ids = (1 to traces).toList.sliding((traces / partitionNumber), (traces / partitionNumber).toInt).toList
+      val ids = (1 to traces).toList.sliding(50000, 50000).toList
       println("Iterations: ", ids.length)
 
       var k = 0L
