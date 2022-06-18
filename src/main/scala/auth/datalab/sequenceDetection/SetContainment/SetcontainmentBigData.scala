@@ -50,6 +50,7 @@ object SetcontainmentBigData {
           .repartition(allExecutors)
 
         val start = System.currentTimeMillis()
+        sequencesRDD.persist(StorageLevel.MEMORY_AND_DISK)
         val inverted_index = sequencesRDD.flatMap(x => {
           val id = x.sequence_id
           x.events.map(_.event).distinct.map(y => (y, id))
@@ -60,6 +61,7 @@ object SetcontainmentBigData {
             val sorted = x._2.toList.map(_._2).distinct.sortWith((a, b) => a < b)
             SetContainment.SetCInverted(x._1, sorted)
           })
+        inverted_index.persist(StorageLevel.MEMORY_AND_DISK)
         cassandraConnection.writeTableSequenceIndex(inverted_index, logName)
         cassandraConnection.writeTableSeq(sequencesRDD, logName)
         inverted_index.unpersist()
