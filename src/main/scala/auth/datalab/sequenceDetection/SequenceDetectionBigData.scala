@@ -68,7 +68,7 @@ object SequenceDetectionBigData {
       val spark = SparkSession.builder().getOrCreate()
 
       val traceGenerator: TraceGenerator = new TraceGenerator(args(6).toInt, args(7).toInt, args(8).toInt, args(9).toInt)
-
+      println(spark.sparkContext.master)
       val allExecutors = spark.sparkContext.getExecutorMemoryStatus.keys.size
       val minExecutorMemory = spark.sparkContext.getExecutorMemoryStatus.map(_._2._1).min
       println(s"Number of executors= $allExecutors, with minimum memory=$minExecutorMemory")
