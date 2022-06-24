@@ -49,6 +49,7 @@ trait CassandraConnectionTrait {
       .set("spark.cassandra.auth.password", cassandra_pass)
       .set("spark.cassandra.connection.port", cassandra_port)
       .set("spark.cassandra.output.consistency.level", cassandra_write_consistency_level)
+      .set("spark.cassandra.output.throughput_mb_per_sec", "10")
 //      .set("spark.driver.memory","10g")
 //      .set("spark.executor.memory","10G")
 //      .set("spark.executor.cores","4")
