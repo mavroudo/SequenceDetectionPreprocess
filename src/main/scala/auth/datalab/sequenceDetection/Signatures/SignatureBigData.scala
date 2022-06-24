@@ -39,32 +39,29 @@ object SignatureBigData {
       val size_estimate_trace: scala.math.BigInt = SizeEstimator.estimate(traceGenerator.estimate_size().events.head) * traceGenerator.maxTraceSize
       var partitionNumber = if (minExecutorMemory >= size_estimate_trace * traces) 0 else ((size_estimate_trace * traces) / minExecutorMemory).toInt + 1
       partitionNumber = partitionNumber / allExecutors + 2
-      val ids = (1 to traces).toList.sliding(10000, 10000).toList
+      val ids = (1 to traces).toList.sliding(50000, 50000).toList
       println("Iterations: ", ids.length)
-      var topKfreqPairs:List[(String,String)] = null
-      var events:List[String] = null
+
+      val startRDD=traceGenerator.produce((1 to 1000).toList)
+      val topKfreqPairs: List[(String, String)] = startRDD.map(createPairs).flatMap(x => x.pairs)
+          .map(x => ((x.eventA, x.eventB), 1))
+          .reduceByKey(_ + _)
+          .sortBy(_._2, false)
+          .take(k)
+          .map(_._1)
+          .toList
+      val events: List[String] = startRDD.flatMap(_.events).map(_.event).distinct().collect.toList
+      cassandraConnection.writeTableMetadata(events, topKfreqPairs, logName)
+      println("Metadata saved ...")
+
       var t = 0L
       for (id <- ids) {
-        println(id.head,id.last)
+        println(id.head, id.last)
         val sequencesRDD: RDD[Structs.Sequence] = traceGenerator.produce(id)
           .repartition(allExecutors)
         val start = System.currentTimeMillis()
-        k=sequencesRDD.flatMap(x=>x.events).map(_.event).distinct.count().toInt
+        k = sequencesRDD.flatMap(x => x.events).map(_.event).distinct.count().toInt
         cassandraConnection.writeTableSeq(sequencesRDD, logName)
-
-        if(id.contains(1)){
-          topKfreqPairs = sequencesRDD.map(createPairs).flatMap(x => x.pairs)
-            .map(x => ((x.eventA, x.eventB), 1))
-            .reduceByKey(_ + _)
-            .sortBy(_._2, false)
-            .take(k)
-            .map(_._1)
-            .toList
-          events = sequencesRDD.flatMap(_.events).map(_.event).distinct().collect.toList
-          cassandraConnection.writeTableMetadata(events, topKfreqPairs, logName)
-        }
-
-
         val signatures = sequencesRDD.map(x => createSignature(x, events, topKfreqPairs))
           .groupBy(_.signature)
           .map(x => Signatures(x._1, x._2.map(_.sequence_id.toString).toList))
