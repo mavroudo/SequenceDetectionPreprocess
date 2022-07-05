@@ -18,7 +18,7 @@ libraryDependencies += "de.uni.freiburg.iig.telematik" % "SEWOL" % "1.0.2"
 libraryDependencies += "org.eu.acolyte" %% "jdbc-scala" % "1.0.46" % "test"
 
 libraryDependencies += "com.madhukaraphatak" %% "java-sizeof" % "0.1"
-
+libraryDependencies += "com.github.scopt" %% "scopt" % "4.1.0"
 val sparkVersion = "2.4.4"
 
 
