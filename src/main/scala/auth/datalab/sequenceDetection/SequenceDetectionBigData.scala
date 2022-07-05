@@ -1,6 +1,7 @@
 package auth.datalab.sequenceDetection
 
 import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, SkipTillAnyMatch, State, StrictContiguity, TimeCombinations, ZipCombinations}
+import auth.datalab.sequenceDetection.SIESTA.CassandraConnection
 import auth.datalab.sequenceDetection.Structs.InvertedOne
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.broadcast.Broadcast

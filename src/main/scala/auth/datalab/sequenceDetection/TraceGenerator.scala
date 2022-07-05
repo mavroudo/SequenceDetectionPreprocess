@@ -38,6 +38,16 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
     })
   }
 
+  def produce(t:Iterable[Long]):RDD[Structs.Sequence]={
+    val traces = List.fill(t.size)(minTraceSize + Random.nextInt( (maxTraceSize - minTraceSize) + 1 ))
+    val spark = SparkSession.builder().getOrCreate()
+    val parallelized = spark.sparkContext.parallelize(traces.zip(t))
+    val bac=spark.sparkContext.broadcast(activities.toList)
+    parallelized.map(x=>{
+      createSequence(bac,x._1,x._2)
+    })
+  }
+
 
 
   def estimate_size(): Structs.Sequence = {

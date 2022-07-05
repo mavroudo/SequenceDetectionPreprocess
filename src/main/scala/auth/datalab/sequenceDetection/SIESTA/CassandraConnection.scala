@@ -1,71 +1,20 @@
-package auth.datalab.sequenceDetection
+package auth.datalab.sequenceDetection.SIESTA
 
-import java.net.InetSocketAddress
-import java.sql.Timestamp
-
-import com.datastax.driver.core.{Cluster, ConsistencyLevel, KeyspaceMetadata, Session, TableMetadata}
-import org.apache.spark.SparkConf
-import org.apache.spark.sql._
-import org.apache.spark.rdd.RDD
+import auth.datalab.sequenceDetection.{CassandraConnectionTrait, Structs, Utils}
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.writer.WriteConf
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql._
 import org.apache.spark.storage.StorageLevel
 
+import java.sql.Timestamp
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 
 class CassandraConnection extends Serializable with CassandraConnectionTrait {
 
-  def dropAlltables() = {
-    val spark = SparkSession.builder().getOrCreate()
-    import spark.implicits._
 
-    try {
-      val cluster = Cluster.builder().addContactPointsWithPorts(new InetSocketAddress(this.cassandra_host, this.cassandra_port.toInt)).withCredentials(this.cassandra_user, this.cassandra_pass).build()
-      val session = cluster.connect(this.cassandra_keyspace_name)
-      var tables_iterator = cluster.getMetadata.getKeyspace(this.cassandra_keyspace_name).getTables.iterator()
-      while (tables_iterator.hasNext) {
-        session.execute("drop table if exists " + this.cassandra_keyspace_name + '.' + tables_iterator.next.getName() + ";")
-      }
-      session.close()
-      cluster.close()
-
-    } catch {
-      case e: Exception =>
-        System.out.println("A problem occurred while reading tables")
-        e.printStackTrace()
-        //Stop Spark
-        spark.close()
-        System.exit(1)
-    }
-  }
-
-
-  /**
-   * Method for dropping tables in cassandra
-   *
-   * @param names A list of all table names to be dropped
-   */
-  def dropTables(names: List[String]): Unit = {
-    val spark = SparkSession.builder().getOrCreate()
-    try {
-      CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
-        for (table <- names) {
-          session.execute("DROP TABLE IF EXISTS " + cassandra_keyspace_name + "." + table + ";")
-        }
-      }
-    }
-    catch {
-      case e: Exception =>
-        System.out.println("A problem occurred dropping the tables")
-        e.printStackTrace()
-        //Stop Spark
-        spark.close()
-        System.exit(1)
-    }
-  }
 
   /**
    * Method for creating tables in cassandra
