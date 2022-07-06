@@ -1,6 +1,5 @@
 package auth.datalab.sequenceDetection
 
-import auth.datalab.sequenceDetection.Signatures.Signature
 import auth.datalab.sequenceDetection.Triplets.ExtractTriplets
 
 object Main2 {

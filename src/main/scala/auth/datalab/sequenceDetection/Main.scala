@@ -1,7 +1,6 @@
 package auth.datalab.sequenceDetection
 
 import auth.datalab.sequenceDetection.CommandLineParser.{Config, ParsingArguments}
-import auth.datalab.sequenceDetection.Signatures.Signature
 import auth.datalab.sequenceDetection.Triplets.ExtractTriplets
 import org.apache.log4j.{Level, Logger}
 import scopt.OParser
