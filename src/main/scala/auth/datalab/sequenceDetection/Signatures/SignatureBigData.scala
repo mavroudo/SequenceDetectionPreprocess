@@ -1,6 +1,6 @@
 package auth.datalab.sequenceDetection.Signatures
 
-import auth.datalab.sequenceDetection.SetContainment.SetcontainmentBigData.cassandraConnection
+
 import auth.datalab.sequenceDetection.{Structs, TraceGenerator}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.broadcast.Broadcast

@@ -1,6 +1,6 @@
 package auth.datalab.sequenceDetection.SetContainment
 
-import auth.datalab.sequenceDetection.SequenceDetectionBigData.cassandraConnection
+
 import auth.datalab.sequenceDetection.SetContainment.SetContainment.SetCInverted
 import auth.datalab.sequenceDetection.{Structs, TraceGenerator, Utils}
 import org.apache.log4j.{Level, Logger}
