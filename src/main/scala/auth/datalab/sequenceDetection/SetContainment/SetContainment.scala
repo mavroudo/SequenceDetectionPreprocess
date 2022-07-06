@@ -1,38 +1,40 @@
 package auth.datalab.sequenceDetection.SetContainment
-import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, SkipTillAnyMatch, State, StrictContiguity}
-import auth.datalab.sequenceDetection.{Structs, Utils}
-import org.apache.log4j.{Level, Logger}
+
+import auth.datalab.sequenceDetection.CommandLineParser.Utilities.Iterations
+import auth.datalab.sequenceDetection.CommandLineParser.{Config, Utilities}
+import auth.datalab.sequenceDetection.Structs
+import auth.datalab.sequenceDetection.Structs.SetCInverted
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.storage.StorageLevel
+
 
 object SetContainment {
-  case class SetCInverted(event: String, ids: List[Long])
-  private var cassandraConnection: CassandraSetContainment = null
 
-  def main(args: Array[String]): Unit = {
-    val fileName: String = args(0)
-    val type_of_algorithm = args(1) //parsing, indexing or state
-    val deleteAll = args(2)
-    val join = args(3).toInt
-    val deletePrevious = args(4)
-    println(fileName, type_of_algorithm, deleteAll, join)
-//    var logName = fileName.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
-    var logName = fileName.split('/').last.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
-    Logger.getLogger("org").setLevel(Level.ERROR)
+  private var cassandraConnection: CassandraSetContainment = _
 
+  def execute(c: Config): Unit = {
+    val logName = c.filename.split('/').last.toLowerCase().split('.')(0).split('$')(0).replace(' ', '_')
     cassandraConnection = new CassandraSetContainment()
     cassandraConnection.startSpark()
-    if (deletePrevious == "1" || deleteAll == "1") {
-      cassandraConnection.dropTable(logName)
+    if (c.delete_previous) {
+      cassandraConnection.dropTables(logName)
     }
-    cassandraConnection.createTable(logName)
+    if (c.delete_all) {
+      cassandraConnection.dropAlltables()
+    }
+    cassandraConnection.createTables(logName)
+
+
     try {
-      val spark = SparkSession.builder().getOrCreate()
-      spark.time({
-        val sequencesRDD: RDD[Structs.Sequence] = Utils.readLog(fileName)
-        sequencesRDD.persist(StorageLevel.MEMORY_AND_DISK)
-        val inverted_index = sequencesRDD.flatMap(x=>{
+      val init = Utilities.getRDD(c, 100)
+      val sequencesRDD_before_repartitioned = init.data
+      val traces: Int = Utilities.getTraces(c, sequencesRDD_before_repartitioned)
+      val iterations: Iterations = Utilities.getIterations(c, sequencesRDD_before_repartitioned, traces)
+      val ids: List[Array[Long]] = Utilities.getIds(c, sequencesRDD_before_repartitioned, traces, iterations.iterations)
+      var k = 0L
+      for (id <- ids) {
+        val start = System.currentTimeMillis()
+        val sequencesRDD: RDD[Structs.Sequence] = Utilities.getNextData(c, sequencesRDD_before_repartitioned, id, init.traceGenerator, iterations.allExecutors)
+        val inverted_index:RDD[SetCInverted] = sequencesRDD.flatMap(x=>{
           val id=x.sequence_id
           x.events.map(_.event).distinct.map(y=>(y,id))
         })
@@ -46,8 +48,12 @@ object SetContainment {
         cassandraConnection.writeTableSeq(sequencesRDD, logName)
         inverted_index.unpersist()
         sequencesRDD.unpersist()
-        cassandraConnection.closeSpark()
-      })
+        k = k + System.currentTimeMillis() - start
+      }
+
+
+      println(s"Time taken: $k ms")
+      cassandraConnection.closeSpark()
       val mb = 1024 * 1024
       val runtime = Runtime.getRuntime
       println("ALL RESULTS IN MB")
@@ -55,14 +61,13 @@ object SetContainment {
       println("** Free Memory:  " + runtime.freeMemory / mb)
       println("** Total Memory: " + runtime.totalMemory / mb)
       println("** Max Memory:   " + runtime.maxMemory / mb)
-    }catch {
-      case e: Exception => {
+
+    } catch {
+      case e: Exception =>
         e.getStackTrace.foreach(println)
         println(e.getMessage)
         cassandraConnection.closeSpark()
-      }
+
     }
   }
-
-
 }

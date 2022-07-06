@@ -1,6 +1,5 @@
 package auth.datalab.sequenceDetection.Triplets
 
-import auth.datalab.sequenceDetection.SetContainment.SetContainment.cassandraConnection
 import auth.datalab.sequenceDetection.Structs.Triplet
 import auth.datalab.sequenceDetection.{Structs, Utils}
 import org.apache.log4j.{Level, Logger}

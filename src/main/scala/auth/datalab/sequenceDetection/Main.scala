@@ -1,9 +1,7 @@
 package auth.datalab.sequenceDetection
 
 import auth.datalab.sequenceDetection.CommandLineParser.{Config, ParsingArguments}
-import auth.datalab.sequenceDetection.Triplets.ExtractTriplets
 import org.apache.log4j.{Level, Logger}
-import scopt.OParser
 
 
 
@@ -24,35 +22,12 @@ object Main {
       SIESTA.SIESTA.execute(config)
     }else if(config.mode=="signature"){
       Signatures.Signatures.execute(config)
+    } else if(config.mode == "setcontainment"){
+      SetContainment.SetContainment.execute(config)
+    } else{
+      println("not a valid choice for mode")
+      System.exit(2)
     }
-
-
-
-
-
-
-
-
-
-
-
-//    if (args(5) == "normal") {
-//      SequenceDetection.main(args)
-//    } else if (args(5) == "big_normal") {
-//      SequenceDetectionBigData.main(args)
-//    } else if (args(5) == "signature") {
-//      Signature.main(args)
-//    } else if (args(5) == "big_signature") {
-//      Signatures.SignatureBigData.main(args)
-//    } else if (args(5) == "setcontainment") {
-//      SetContainment.SetContainment.main(args)
-//    } else if (args(5) == "big_setcontainment") {
-//      SetContainment.SetcontainmentBigData.main(args)
-//    }else if(args(5)=="triplets"){
-//      ExtractTriplets.main(args)
-//    } else {
-//      println("not a valid choice")
-//    }
   }
 
 }

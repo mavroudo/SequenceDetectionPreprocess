@@ -1,7 +1,8 @@
 package auth.datalab.sequenceDetection.SetContainment
 
 
-import auth.datalab.sequenceDetection.SetContainment.SetContainment.SetCInverted
+
+import auth.datalab.sequenceDetection.Structs.SetCInverted
 import auth.datalab.sequenceDetection.{CassandraConnectionTrait, Structs, Utils}
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
@@ -11,7 +12,7 @@ import org.apache.spark.sql.SparkSession
 class CassandraSetContainment extends Serializable with CassandraConnectionTrait {
   private case class CassandraSetIndex(event_name: String, sequences: List[String])
 
-  def createTable(logName: String): Unit = {
+  def createTables(logName: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     val table_idx = logName + "_set_idx"
     val table_seq = logName + "_set_seq"
@@ -38,7 +39,7 @@ class CassandraSetContainment extends Serializable with CassandraConnectionTrait
     }
   }
 
-  def dropTable(logName: String): Unit = {
+  def dropTables(logName: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     val table_idx = logName + "_set_idx"
     val table_seq = logName + "_set_seq"

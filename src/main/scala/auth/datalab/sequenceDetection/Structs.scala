@@ -40,4 +40,7 @@ object Structs {
   case class InvertedOne (event_name:String, times: List[IdTimeList])
   case class CassandraIndexOne(event_name:String, sequences: List[String])
 
+  //for set containment
+  case class SetCInverted(event: String, ids: List[Long])
+
 }
