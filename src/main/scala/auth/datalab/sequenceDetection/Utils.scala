@@ -1,9 +1,10 @@
 package auth.datalab.sequenceDetection
 
+import auth.datalab.sequenceDetection.CommandLineParser.Config
+
 import java.io.{File, FileInputStream}
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
-
 import auth.datalab.sequenceDetection.Structs.Event
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
@@ -139,5 +140,7 @@ object Utils {
     val res = Math.abs(time_new.getTime - time_pr.getTime)
     res
   }
+
+
 
 }
