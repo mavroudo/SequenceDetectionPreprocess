@@ -7,6 +7,7 @@ import org.apache.spark.sql.SparkSession
 
 import java.text.SimpleDateFormat
 import java.util.Date
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util
@@ -26,6 +27,10 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
     parallelized.map(x=>{
       createSequence(bac,x._1,x._2)
     })
+  }
+
+  def getActivities: mutable.Set[String] = {
+    this.activities
   }
 
   def produce(t:List[Int]):RDD[Structs.Sequence]={
@@ -73,7 +78,7 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
     Structs.Sequence(listevents.toList,id)
   }
 
-  private def findActivities()={
+  private def findActivities(): Unit ={
     val length:Int = math.round(math.sqrt(numberOfDifferentActivities)).toInt
     while(activities.size<numberOfDifferentActivities){
       val activity: String = get(length)
@@ -84,6 +89,7 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
   }
 
   private def get(len: Int): String = {
+    @tailrec
     def build(acc: String, s: Stream[Char]): String = {
       if (s.isEmpty) acc
       else build(acc + s.head, s.tail)

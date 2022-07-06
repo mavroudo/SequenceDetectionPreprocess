@@ -13,16 +13,17 @@ object Utilities {
    * generates 50 synthetic data, in order to calculate the iterations in the
    * next step
    * @param c The configuration object
+   * @param rand_data Number of random data produced if synthetic
    * @return The data and the trace generator (if synthetic is used, otherwise is null)
    */
-  def getRDD(c:Config):RDDInit ={
+  def getRDD(c:Config,rand_data:Int):RDDInit ={
     var traceGenerator: TraceGenerator = null
     val sequencesRDD_before_repartitioned: RDD[Structs.Sequence] = {
       if (c.filename != "synthetic") {
         Utils.readLog(c.filename)
       } else {
         traceGenerator = new TraceGenerator(c.traces, c.event_types, c.length_min, c.length_max)
-        traceGenerator.produce((1 to 50).toList)
+        traceGenerator.produce((1 to rand_data).toList)
       }
     }
     RDDInit(traceGenerator,sequencesRDD_before_repartitioned)

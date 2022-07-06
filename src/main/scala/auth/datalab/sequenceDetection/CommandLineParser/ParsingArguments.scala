@@ -1,6 +1,6 @@
 package auth.datalab.sequenceDetection.CommandLineParser
 
-import scopt.OParser
+import scopt.{OParser, OParserBuilder}
 
 import scala.language.postfixOps
 
@@ -16,13 +16,15 @@ case class Config(
                    length_min: Int = 10,
                    length_max: Int = 90,
                    iterations: Int = -1,
-                   n: Int = 2
+                   n: Int = 2,
+                   k:Int = -1
+
                    //                     kwargs: Map[String, String] = Map()
                  )
 
 object ParsingArguments {
-  val builder = OParser.builder[Config]
-  val parser = {
+  val builder: OParserBuilder[Config] = OParser.builder[Config]
+  val parser: OParser[Unit, Config] = {
     import builder._
     OParser.sequence(
       programName("preprocess.jar"),
@@ -58,6 +60,13 @@ object ParsingArguments {
           if(x>0 && x<4) success else failure("Value <n> has to be between 1 and 3")
         })
         .action((x,c)=>c.copy(n=x)),
+      opt[Int]("k")
+        .valueName("<k>")
+        .text("Number of frequent pairs used in Signature")
+        .validate(x=>{
+          if(x>0) success else failure("Value <k> has to be positive")
+        })
+        .action((x,c)=>c.copy(k=x)),
       opt[Int]('i',"iterations")
         .valueName("<i>")
         .text("# iterations, if not set it will be determined by the system")

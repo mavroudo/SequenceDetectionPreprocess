@@ -23,6 +23,8 @@ object Main {
 
     if(config.mode== "siesta"){
       SIESTA.SIESTA.execute(config)
+    }else if(config.mode=="signature"){
+      Signatures.Signatures.execute(config)
     }
 
 

@@ -37,7 +37,7 @@ object SIESTA {
     cassandraConnection.createTables(tables)
 
     try {
-      val init = Utilities.getRDD(c)
+      val init = Utilities.getRDD(c,100)
       val sequencesRDD_before_repartitioned=init.data
       val traces: Int = Utilities.getTraces(c,sequencesRDD_before_repartitioned)
       val iterations:Iterations = Utilities.getIterations(c,sequencesRDD_before_repartitioned,traces)

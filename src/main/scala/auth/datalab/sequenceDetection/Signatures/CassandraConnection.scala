@@ -71,7 +71,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
     table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = table_seq.toLowerCase(), writeConf = writeConf)
   }
 
-  def writeTableSign(table: RDD[Signature.Signatures], logName: String): Unit = {
+  def writeTableSign(table: RDD[Signatures.Signatures], logName: String): Unit = {
     val table_signatures = logName + "_sign_idx"
     table
       .map(x=>{
