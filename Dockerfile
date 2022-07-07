@@ -28,10 +28,10 @@ VOLUME /app/input
 RUN mkdir /app/output
 VOLUME /app/output
 
-ENV cassandra_host=anaconda.csd.auth.gr
-ENV cassandra_port=9042
-ENV cassandra_user=cassandra
-ENV cassandra_pass=cassandra
+ENV cassandra_host=
+ENV cassandra_port=
+ENV cassandra_user=
+ENV cassandra_pass=
 ENV cassandra_keyspace_name=sequenceDetection
 ENV cassandra_keyspace_name_set=setcontainment
 ENV cassandra_replication_class=SimpleStrategy
