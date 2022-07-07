@@ -9,19 +9,19 @@ import org.apache.spark.sql.SparkSession
 import java.net.InetSocketAddress
 
 trait CassandraConnectionTrait {
-  protected var cassandra_host: String = null
-  protected var cassandra_port: String = null
-  protected var cassandra_user: String = null
-  protected var cassandra_pass: String = null
-  protected var cassandra_replication_class: String = null
-  protected var cassandra_replication_rack: String = null
-  protected var cassandra_replication_factor: String = null
-  protected var cassandra_keyspace_name: String = null
-  protected var cassandra_write_consistency_level: String = null
-  protected var cassandra_gc_grace_seconds: String = null
-  protected var _configuration: SparkConf = null
+  protected var cassandra_host: String = _
+  protected var cassandra_port: String = _
+  protected var cassandra_user: String = _
+  protected var cassandra_pass: String = _
+  protected var cassandra_replication_class: String = _
+  protected var cassandra_replication_rack: String = _
+  protected var cassandra_replication_factor: String = _
+  protected var cassandra_keyspace_name: String = _
+  protected var cassandra_write_consistency_level: String = _
+  protected var cassandra_gc_grace_seconds: String = _
+  protected var _configuration: SparkConf = _
   protected val DELIMITER = "¦delab¦"
-  protected val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE, batchSize = 1, throughputMiBPS = 0.5)
+  protected val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE, batchSize = 1, throughputMiBPS = 0.5)
 
   def startSpark(): Unit = {
     try {
@@ -45,7 +45,7 @@ trait CassandraConnectionTrait {
     }
     _configuration = new SparkConf()
       .setAppName("FA Indexing")
-      .setMaster("local[*]")
+//      .setMaster("local[*]")
       .set("spark.cassandra.connection.host", cassandra_host)
       .set("spark.cassandra.auth.username", cassandra_user)
       .set("spark.cassandra.auth.password", cassandra_pass)
@@ -73,7 +73,7 @@ trait CassandraConnectionTrait {
 
   }
 
-  def dropAlltables() = {
+  def dropAlltables(): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._
 
@@ -82,7 +82,7 @@ trait CassandraConnectionTrait {
       val session = cluster.connect(this.cassandra_keyspace_name)
       var tables_iterator = cluster.getMetadata.getKeyspace(this.cassandra_keyspace_name).getTables.iterator()
       while (tables_iterator.hasNext) {
-        session.execute("drop table if exists " + this.cassandra_keyspace_name + '.' + tables_iterator.next.getName() + ";")
+        session.execute("drop table if exists " + this.cassandra_keyspace_name + '.' + tables_iterator.next.getName + ";")
       }
       session.close()
       cluster.close()

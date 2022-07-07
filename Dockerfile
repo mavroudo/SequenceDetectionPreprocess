@@ -4,8 +4,6 @@ RUN mkdir /app
 COPY build.docker.sbt /app/build.sbt
 COPY src /app/src
 COPY project /app/project
-COPY .environment /app/.env
-
 
 ENV TZ=Europe/Athens
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -23,16 +21,6 @@ RUN mv target/scala-2.11/app-assembly-0.1.jar preprocess.jar
 #install spark
 RUN curl -O https://archive.apache.org/dist/spark/spark-2.4.4/spark-2.4.4-bin-hadoop2.7.tgz &&\
 tar xvf spark-2.4.4-bin-hadoop2.7.tgz && mv spark-2.4.4-bin-hadoop2.7/ /opt/spark && rm spark-2.4.4-bin-hadoop2.7.tgz
-#create the execution file
-#RUN touch script.sh && echo "#!/bin/bash" > script.sh &&\
-#echo "echo hello world" >> script.sh && chmod +x script.sh
-
-#install python3, pip, requirements from experiments file
-COPY experiments/requirements.txt r.txt
-RUN apt install -y python3 python3-pip &&\
-pip3 install -r r.txt
-COPY experiments/execution.py execution.py
-RUN chmod +x execution.py
 
 #create directories to mount
 RUN mkdir /app/input
@@ -40,6 +28,18 @@ VOLUME /app/input
 RUN mkdir /app/output
 VOLUME /app/output
 
+ENV cassandra_host=anaconda.csd.auth.gr
+ENV cassandra_port=9042
+ENV cassandra_user=cassandra
+ENV cassandra_pass=cassandra
+ENV cassandra_keyspace_name=sequenceDetection
+ENV cassandra_keyspace_name_set=setcontainment
+ENV cassandra_replication_class=SimpleStrategy
+ENV cassandra_replication_rack=replication_factor
+ENV cassandra_replication_factor=3
+ENV cassandra_write_consistency_level=ONE
+ENV cassandra_gc_grace_seconds=864000
 
-ENTRYPOINT ["python3","/app/execution.py"]
-CMD ["normal"," input/log_100_113.xes","indexing"]
+
+ENTRYPOINT ["/opt/spark/bin/spark-submit","--master","local[*]","--executor-memory","16g","--driver-memory","2g","--conf","spark.executor.memoryOverhead=6g","--conf","spark.driver.memoryOverhead=6g","--conf","spark.cassandra.output.consistency.level=ONE","preprocess.jar"]
+CMD ["-t 200 "]
