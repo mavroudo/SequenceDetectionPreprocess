@@ -1,133 +1,20 @@
-package auth.datalab.sequenceDetection
+package auth.datalab.sequenceDetection.SIESTA
 
-import java.net.InetSocketAddress
-import java.sql.Timestamp
-
-import com.datastax.driver.core.{Cluster, ConsistencyLevel, KeyspaceMetadata, Session, TableMetadata}
-import org.apache.spark.SparkConf
-import org.apache.spark.sql._
-import org.apache.spark.rdd.RDD
+import auth.datalab.sequenceDetection.{CassandraConnectionTrait, Structs, Utils}
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.writer.WriteConf
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql._
 import org.apache.spark.storage.StorageLevel
 
+import java.sql.Timestamp
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 
-class CassandraConnection extends Serializable {
+class CassandraConnection extends Serializable with CassandraConnectionTrait {
 
 
-  private var cassandra_host: String = null
-  private var cassandra_port: String = null
-  private var cassandra_user: String = null
-  private var cassandra_pass: String = null
-  private var cassandra_replication_class: String = null
-  private var cassandra_replication_rack: String = null
-  private var cassandra_replication_factor: String = null
-  private var cassandra_keyspace_name: String = null
-  private var cassandra_write_consistency_level: String = null
-  private var cassandra_gc_grace_seconds: String = null
-  private var _configuration: SparkConf = null
-  private val DELIMITER = "¦delab¦"
-
-
-  def startSpark(): Unit = {
-    try {
-      cassandra_host = Utils.readEnvVariable("cassandra_host")
-      cassandra_port = Utils.readEnvVariable("cassandra_port")
-      cassandra_user = Utils.readEnvVariable("cassandra_user")
-      cassandra_pass = Utils.readEnvVariable("cassandra_pass")
-      cassandra_gc_grace_seconds = Utils.readEnvVariable("cassandra_gc_grace_seconds")
-      cassandra_keyspace_name = Utils.readEnvVariable("cassandra_keyspace_name")
-      cassandra_replication_class = Utils.readEnvVariable("cassandra_replication_class")
-      cassandra_replication_rack = Utils.readEnvVariable("cassandra_replication_rack")
-      cassandra_replication_factor = Utils.readEnvVariable("cassandra_replication_factor")
-      cassandra_write_consistency_level = Utils.readEnvVariable("cassandra_write_consistency_level")
-      println(cassandra_host,cassandra_keyspace_name,cassandra_keyspace_name)
-    } catch {
-      case e: NullPointerException =>
-        e.printStackTrace()
-        System.exit(1)
-    }
-    _configuration = new SparkConf()
-      .setAppName("FA Indexing")
-      .setMaster("local[*]")
-      .set("spark.cassandra.connection.host", cassandra_host)
-      .set("spark.cassandra.auth.username", cassandra_user)
-      .set("spark.cassandra.auth.password", cassandra_pass)
-      .set("spark.cassandra.connection.port", cassandra_port)
-      .set("spark.cassandra.output.consistency.level", cassandra_write_consistency_level)
-
-
-    val spark = SparkSession.builder().config(_configuration).getOrCreate()
-    println(s"Starting Spark version ${spark.version}")
-    try {
-      CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
-        session.execute("create keyspace if not exists " + cassandra_keyspace_name + " WITH replication = "
-          + "{'class':'" + cassandra_replication_class + "', '" + cassandra_replication_rack + "':" + cassandra_replication_factor + "}")
-        session.execute("USE " + cassandra_keyspace_name + ";")
-      }
-    } catch {
-      case e: Exception =>
-        System.out.println("A problem occurred creating the keyspace")
-        print(e.printStackTrace())
-        //Stop Spark
-        spark.close()
-        System.exit(1)
-    }
-
-  }
-
-  def dropAlltables() = {
-    val spark = SparkSession.builder().getOrCreate()
-    import spark.implicits._
-
-    try {
-      val cluster = Cluster.builder().addContactPointsWithPorts(new InetSocketAddress(this.cassandra_host, this.cassandra_port.toInt)).withCredentials(this.cassandra_user, this.cassandra_pass).build()
-      val session = cluster.connect(this.cassandra_keyspace_name)
-      var tables_iterator = cluster.getMetadata.getKeyspace(this.cassandra_keyspace_name).getTables.iterator()
-      while (tables_iterator.hasNext) {
-        session.execute("drop table if exists " + this.cassandra_keyspace_name + '.' + tables_iterator.next.getName() + ";")
-      }
-      session.close()
-      cluster.close()
-
-    } catch {
-      case e: Exception =>
-        System.out.println("A problem occurred while reading tables")
-        e.printStackTrace()
-        //Stop Spark
-        spark.close()
-        System.exit(1)
-    }
-  }
-
-
-  /**
-   * Method for dropping tables in cassandra
-   *
-   * @param names A list of all table names to be dropped
-   */
-  def dropTables(names: List[String]): Unit = {
-    val spark = SparkSession.builder().getOrCreate()
-    try {
-      CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
-        for (table <- names) {
-          session.execute("DROP TABLE IF EXISTS " + cassandra_keyspace_name + "." + table + ";")
-        }
-      }
-    }
-    catch {
-      case e: Exception =>
-        System.out.println("A problem occurred dropping the tables")
-        e.printStackTrace()
-        //Stop Spark
-        spark.close()
-        System.exit(1)
-    }
-  }
 
   /**
    * Method for creating tables in cassandra
@@ -164,8 +51,8 @@ class CassandraConnection extends Serializable {
    */
   def writeTableSeq(table: RDD[Structs.Sequence], name: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //this needs to be tested
-    table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(), writeConf = writeConf)
+    //    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //this needs to be tested
+    table.filter(_.events.nonEmpty).saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(), columns = SomeColumns("events", "sequence_id"), writeConf = writeConf)
   }
 
   def writeTableSequenceIndex(combinations: RDD[Structs.EventIdTimeLists], name: String): Unit = {
@@ -175,7 +62,8 @@ class CassandraConnection extends Serializable {
         val formatted = combinationsToCassandraFormat(r)
         Structs.CassandraIndex(formatted._1, formatted._2, formatted._3)
       })
-    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
+    table.persist(StorageLevel.MEMORY_AND_DISK)
+    //    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
     table.saveToCassandra(
       keyspaceName = this.cassandra_keyspace_name.toLowerCase(),
       tableName = name.toLowerCase,
@@ -185,20 +73,83 @@ class CassandraConnection extends Serializable {
         "sequences" append //Method to append to a list in cassandra
       ), writeConf
     )
+    table.unpersist()
+  }
+
+  def writeTableOne(data: RDD[Structs.InvertedOne], name: String): Unit = {
+    val table = data
+      .map(r => {
+        val formatted = invertedOneToCassandraFormat(r)
+        Structs.CassandraIndexOne(formatted._1, formatted._2)
+      })
+    table.saveToCassandra(
+      keyspaceName = this.cassandra_keyspace_name.toLowerCase(),
+      tableName = name.toLowerCase,
+      columns = SomeColumns(
+        "event_name",
+        "sequences" append //Method to append to a list in cassandra
+      ), writeConf)
   }
 
   def writeTableSeqCount(combinations: RDD[Structs.CountList], tableName: String): Unit = {
-    val table = combinations
+    val spark = SparkSession.builder().getOrCreate()
+    val table_load = spark
+      .read
+      .format("org.apache.spark.sql.cassandra")
+      .options(Map(
+        "table" -> tableName,
+        "keyspace" -> cassandra_keyspace_name.toLowerCase()
+      ))
+      .load()
+
+    val tlTransofmed = table_load.rdd.flatMap(x=>{
+      val prim_event = x.getAs[String]("event1_name")
+      val array=x.getAs[Seq[String]]("sequences_per_field")
+      array.map(y=>{
+        val values:List[String] = y.split("¦delab¦").toList
+        ((prim_event,values.head),values(1).toLong,values(2).toInt)
+      })
+    })
+      .keyBy(_._1)
+
+    val tTransofmed = combinations.flatMap(x=>{
+      val prim_event=x.event1_name
+      x.times.map(y=>{
+        ((prim_event,y._1),y._2,y._3)
+      })
+    })
+      .keyBy(_._1)
+      .fullOuterJoin(tlTransofmed)
+      .map(x=>{
+        val t1=x._2._1.getOrElse(("",0L,0))._3
+        val t2=x._2._2.getOrElse(("",0L,0))._3
+        val d1=x._2._1.getOrElse(("",0L,0))._2
+        val d2=x._2._2.getOrElse(("",0L,0))._2
+        val average_duration=(d1*t1+d2*t2)/(t1+t2)
+        (x._1._1,x._1._2,average_duration,t1+t2)
+      })
+      .keyBy(_._1)
+      .groupByKey()
+      .map(x=>{
+        val times=x._2.map(y=>{
+          (y._2,y._3,y._4)
+        })
+        Structs.CountList(x._1,times.toList)
+      })
+
+    val table = tTransofmed
       .map(r => {
         val formatted = combinationsCountToCassandraFormat(r)
         Structs.CassandraCount(formatted._1, formatted._2)
       })
+    table.persist(StorageLevel.MEMORY_AND_DISK)
     table
       .saveToCassandra(
         cassandra_keyspace_name.toLowerCase,
         tableName.toLowerCase,
-        SomeColumns("event1_name", "sequences_per_field" append)
+        SomeColumns("event1_name", "sequences_per_field" )
       )
+    table.unpersist()
   }
 
   /**
@@ -240,7 +191,7 @@ class CassandraConnection extends Serializable {
         Utils.compareTimes(funnel_date.toString, row._4)
       })
       .toDF("ev1", "ev2", "id", "time")
-//      .persist(StorageLevel.DISK_ONLY)
+    //      .persist(StorageLevel.DISK_ONLY)
     //cache it
     tempTable.count()
     tempTable
@@ -293,9 +244,20 @@ class CassandraConnection extends Serializable {
     (line.event1, line.event2, newList)
   }
 
+  private def invertedOneToCassandraFormat(line: Structs.InvertedOne): (String, List[String]) = {
+    val newList = line.times
+      .map(r => {
+        var userString = r.id + "("
+        for (i <- r.times.indices) {
+          userString = userString + r.times(i) +  ","
+        }
+        userString = userString.dropRight(1) + ")"
+        userString
+      })
+    (line.event_name, newList)
+  }
 
   private def combinationsToCassandraFormat(line: Structs.EventIdTimeLists): (String, String, List[String]) = {
-    val spark = SparkSession.builder().getOrCreate()
     val newList = line.times
       .map(r => {
         var userString = r.id + "("
@@ -325,17 +287,11 @@ class CassandraConnection extends Serializable {
     val newEvent = line.event1_name
     val newList = line.times
       .map(r => {
-        val userString = r._1 +DELIMITER + r._2 + DELIMITER + r._3
+        val userString = r._1 + DELIMITER + r._2 + DELIMITER + r._3
         userString
       })
     (newEvent, newList)
   }
 
-  def closeSpark(): Unit = {
-    val spark = SparkSession.builder().getOrCreate()
-    println("Closing Spark")
-    spark.close()
-
-  }
 }
 

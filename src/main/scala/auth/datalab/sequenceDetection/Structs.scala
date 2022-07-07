@@ -16,6 +16,10 @@ object Structs {
   //general class for event with list of times
   case class EventIdTimeLists(event1: String, event2: String, times: List[IdTimeList])
 
+  case class Triplet(event1: String, event2: String, event3: String, times: List[Structs.IdTimeList])
+  case class CassandraIndexTriplets(event1_name: String, event2_name: String, event3_name: String, sequences: List[String])
+  case class TripleCountList(event1_name: String, event2_name:String, times: List[(String, Long, Int)])
+  case class CassandraCountTriplet(event1_name: String, event2_name: String, sequences_per_field: List[String])
   //general class for id without time
   case class IdTimeList(id: Long, times: List[String])
 
@@ -31,5 +35,12 @@ object Structs {
   case class CountList(event1_name: String, times: List[(String, Long, Int)])
 
   case class CassandraCount(event1_name: String, sequences_per_field: List[String])
+
+  //for one table
+  case class InvertedOne (event_name:String, times: List[IdTimeList])
+  case class CassandraIndexOne(event_name:String, sequences: List[String])
+
+  //for set containment
+  case class SetCInverted(event: String, ids: List[Long])
 
 }

@@ -20,9 +20,10 @@ object Parsing extends ExtractPairs {
       .reduceByKey((a, b) => {
         val newList = List.concat(a.times, b.times)
         Structs.EventIdTimeLists(a.event1, a.event2, newList)
-      }).filter(a=>{
-      a._2.times.nonEmpty
-    })
+      })
+      .filter(a => {
+        a._2.times.nonEmpty
+      })
       .map(_._2)
       .coalesce(spark.sparkContext.defaultParallelism)
     combinations
@@ -36,10 +37,6 @@ object Parsing extends ExtractPairs {
    * @return The list of pairs along with the timestamps of each of their events
    */
   private def extractPairsSkipTillMatch(line: Structs.Sequence): List[Structs.EventIdTimeLists] = {
-    val spark = SparkSession.builder().getOrCreate()
-
-    import spark.implicits._
-
     var index = HashMap[(String, String), List[String]]()
     var checked = mutable.HashSet[String]()
     for (i <- 0 until line.events.size - 1) {
@@ -108,8 +105,6 @@ object Parsing extends ExtractPairs {
     })
     res
   }
-
-
 
 
 }
