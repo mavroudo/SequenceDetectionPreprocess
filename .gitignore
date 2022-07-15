@@ -5,8 +5,11 @@ target/*
 .idea/*
 pythonTesting/env/*
 *.withTimestamp
+
 logfiles/*
 logfilesPre/*
 .environment
-project/target/*
-project/project/*
+
+project/*
+!project/assembly.sbt
+!project/build.properties
