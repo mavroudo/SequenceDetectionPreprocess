@@ -1,11 +1,10 @@
 package auth.datalab.sequenceDetection.ObjectStorage
 
-import org.apache.spark.sql.Row
 
-class Occurrence(val eventA:String,val eventB:String,val trace:Long, val positionA:Long, val positionB:Long) extends Serializable {
+class Occurrence(val eventA:String,val eventB:String,val trace:Long, val pA:Long, val pB:Long, val tA:String, val tB:String) extends Serializable {
 
   def getTuple:(String,String,Long,Long,Long)={
-    (eventA,eventB,trace,positionA,positionB)
+    (eventA,eventB,trace,pA,pB)
   }
 
   def getPair:(String,String)={
