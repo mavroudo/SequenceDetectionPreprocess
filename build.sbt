@@ -21,8 +21,8 @@ libraryDependencies += "com.github.scopt" %% "scopt" % "4.1.0"
 val sparkVersion = "2.4.4"
 
 
-//libraryDependencies += "io.minio" % "spark-select_2.11" % "2.1"
-//libraryDependencies += "io.minio" % "minio" % "3.0.12"
+libraryDependencies += "io.minio" % "spark-select_2.11" % "2.1"
+libraryDependencies += "io.minio" % "minio" % "3.0.12"
 libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.0.3"
 libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.0.3"
 libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.0.3"
