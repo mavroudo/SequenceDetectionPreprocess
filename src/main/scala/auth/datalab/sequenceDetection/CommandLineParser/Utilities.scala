@@ -96,12 +96,16 @@ object Utilities {
    * @return
    */
   def getNextData(c:Config,data:RDD[Structs.Sequence],ids:Array[Long],traceGenerator: TraceGenerator,allExecutors:Int):RDD[Structs.Sequence]={
+    val spark = SparkSession.builder().getOrCreate()
     if (c.filename == "synthetic") {
-      traceGenerator.produce(ids).repartition(allExecutors)
+      traceGenerator.produce(ids)
+        .coalesce(spark.sparkContext.defaultParallelism)
+//        .repartition(allExecutors)
     } else {
       data
         .filter(x => x.sequence_id >= ids(0) && x.sequence_id <= ids.last)
-        .repartition(allExecutors)
+        .coalesce(spark.sparkContext.defaultParallelism)
+//        .repartition(allExecutors)
     }
   }
 

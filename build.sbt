@@ -9,7 +9,6 @@ libraryDependencies += "com.typesafe.scala-logging" % "scala-logging-slf4j_2.10"
 libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "2.4.2"
 libraryDependencies += "org.scalatest" % "scalatest_2.11" % "3.0.4" % "test"
 
-//libraryDependencies += "monetdb" % "monetdb-jdbc-new" % "2.36"
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1"
@@ -22,6 +21,13 @@ libraryDependencies += "com.github.scopt" %% "scopt" % "4.1.0"
 val sparkVersion = "2.4.4"
 
 
+//libraryDependencies += "io.minio" % "spark-select_2.11" % "2.1"
+//libraryDependencies += "io.minio" % "minio" % "3.0.12"
+libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.0.3"
+libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.0.3"
+libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.0.3"
+
+
 //to run the sbt assembly the '% "provided",' section must not be in comments
 //to debug in IDE the '  "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion , //"2.0.0",' section must be in comments
 libraryDependencies ++= Seq(
@@ -29,6 +35,15 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion ,
   "org.apache.spark" %% "spark-mllib" % sparkVersion ,
   "org.apache.spark" %% "spark-sql" % sparkVersion )
+
+
+dependencyOverrides ++= {
+  Seq(
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.6.7.1",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7",
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.6.7"
+  )
+}
 
 assemblyMergeStrategy in assembly := {
   case manifest if manifest.contains("MANIFEST.MF") =>

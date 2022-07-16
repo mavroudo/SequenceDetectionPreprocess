@@ -1,14 +1,12 @@
 package auth.datalab.sequenceDetection.SIESTA
 
 import auth.datalab.sequenceDetection.CommandLineParser.Config
-import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, SkipTillAnyMatch, State, StrictContiguity, TimeCombinations, ZipCombinations}
-import auth.datalab.sequenceDetection.Structs.InvertedOne
+import auth.datalab.sequenceDetection.PairExtraction.{Indexing, Parsing, State, StrictContiguity, TimeCombinations, ZipCombinations}
 import auth.datalab.sequenceDetection.{CountPairs, Structs, Utils}
-
+import auth.datalab.sequenceDetection.Structs.InvertedOne
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.storage.StorageLevel
-
 
 import java.sql.Timestamp
 import java.time.LocalDateTime
@@ -24,25 +22,9 @@ object Preprocess {
     val table_seq = table_name + "_seq"
     val table_idx = table_name + "_idx"
     val table_count = table_name + "_count"
-    val table_one = table_name + "_one"
+    val table_single = table_name + "_one"
     val start = System.currentTimeMillis()
-    val invertedOneRDD: RDD[Structs.InvertedOne] = sequencesRDD.flatMap(x => {
-      val id = x.sequence_id
-      x.events.map(x => ((id, x.event), x))
-    })
-      .groupBy(_._1)
-      .map(x => {
-        val events = x._2.toList.map(_._2.timestamp).sortWith((a, b) => Utils.compareTimes(a, b))
-        (x._1._2, Structs.IdTimeList(x._1._1, events))
-      })
-      .groupBy(_._1)
-      .filter(_._2.toList.nonEmpty)
-      .map(m => {
-        InvertedOne(m._1, m._2.toList.map(_._2))
-      })
-    invertedOneRDD.persist(StorageLevel.MEMORY_AND_DISK)
-    cass.writeTableOne(invertedOneRDD,table_one)
-    invertedOneRDD.unpersist()
+    createSingle(sequencesRDD, table_single, cass)
     val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
     val sequenceCombinedRDD: RDD[Structs.Sequence] = this.combine_sequences(sequencesRDD, table_seq, cass,
       timestamp, 10)
@@ -61,6 +43,26 @@ object Preprocess {
     System.currentTimeMillis() - start
   }
 
+  def createSingle(sequencesRDD:RDD[Structs.Sequence],table_single:String,cass:CassandraConnection):Unit={
+    val invertedOneRDD: RDD[Structs.InvertedOne] = sequencesRDD.flatMap(x => {
+      val id = x.sequence_id
+      x.events.map(x => ((id, x.event), x))
+    })
+      .groupBy(_._1)
+      .map(x => {
+        val events = x._2.toList.map(_._2.timestamp).sortWith((a, b) => Utils.compareTimes(a, b))
+        (x._1._2, Structs.IdTimeList(x._1._1, events))
+      })
+      .groupBy(_._1)
+      .filter(_._2.toList.nonEmpty)
+      .map(m => {
+        InvertedOne(m._1, m._2.toList.map(_._2))
+      })
+    invertedOneRDD.persist(StorageLevel.MEMORY_AND_DISK)
+    cass.writeTableOne(invertedOneRDD,table_single)
+    invertedOneRDD.unpersist()
+  }
+
 
 
 
@@ -70,7 +72,6 @@ object Preprocess {
       case "indexing" => Indexing.extract(seqRDD)
       case "state" => State.extract(seqRDD)
       case "strict" => StrictContiguity.extract(seqRDD)
-      case "anymatch" => SkipTillAnyMatch.extract(seqRDD)
       case _ => throw new Exception("Wrong type of algorithm")
     }
   }

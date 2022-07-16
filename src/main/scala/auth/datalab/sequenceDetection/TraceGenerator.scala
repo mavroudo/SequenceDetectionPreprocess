@@ -10,7 +10,6 @@ import java.util.Date
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import scala.util
 import scala.util.Random
 
 class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:Int, val minTraceSize:Int, val maxTraceSize:Int) extends Serializable {

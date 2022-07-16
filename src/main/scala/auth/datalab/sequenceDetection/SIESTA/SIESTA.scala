@@ -1,8 +1,8 @@
 package auth.datalab.sequenceDetection.SIESTA
 
 import auth.datalab.sequenceDetection.CommandLineParser.Utilities.Iterations
-import auth.datalab.sequenceDetection.{Structs, TraceGenerator, Utils}
 import auth.datalab.sequenceDetection.CommandLineParser.{Config, Utilities}
+import auth.datalab.sequenceDetection.{Structs, TraceGenerator}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.util.SizeEstimator

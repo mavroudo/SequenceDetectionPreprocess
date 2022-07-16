@@ -33,10 +33,10 @@ object ParsingArguments {
         .action((x, c) => c.copy(mode = x))
         .valueName("<mode>")
         .validate(x => {
-          if (x.equals("siesta") || x.equals("signature") || x.equals("setcontainment")) {
+          if (x.equals("siesta") || x.equals("positions") || x.equals("object")) {
             success
           } else {
-            failure("Value <mode> must be either siesta, signature or setcontainment")
+            failure("Value <mode> must be either siesta positions or object")
           }
         })
         .text("Mode is the name of the method used"),

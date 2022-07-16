@@ -1,7 +1,7 @@
 package auth.datalab.sequenceDetection.PairExtraction
 
-import auth.datalab.sequenceDetection.Structs
 import auth.datalab.sequenceDetection.Structs.EventIdTimeLists
+import auth.datalab.sequenceDetection.Structs
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 

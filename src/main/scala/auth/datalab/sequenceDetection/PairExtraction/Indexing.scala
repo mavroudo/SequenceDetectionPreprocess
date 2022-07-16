@@ -1,5 +1,6 @@
 package auth.datalab.sequenceDetection.PairExtraction
 
+
 import java.util.Collections
 import auth.datalab.sequenceDetection.{Structs, Utils}
 import org.apache.spark.rdd.RDD

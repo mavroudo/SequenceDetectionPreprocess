@@ -1,5 +1,6 @@
 package auth.datalab.sequenceDetection.SIESTA
 
+
 import auth.datalab.sequenceDetection.{CassandraConnectionTrait, Structs, Utils}
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
@@ -52,7 +53,9 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
   def writeTableSeq(table: RDD[Structs.Sequence], name: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     //    val writeConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //this needs to be tested
+    table.persist(StorageLevel.MEMORY_AND_DISK)
     table.filter(_.events.nonEmpty).saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = name.toLowerCase(), columns = SomeColumns("events", "sequence_id"), writeConf = writeConf)
+    table.unpersist()
   }
 
   def writeTableSequenceIndex(combinations: RDD[Structs.EventIdTimeLists], name: String): Unit = {
@@ -82,6 +85,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
         val formatted = invertedOneToCassandraFormat(r)
         Structs.CassandraIndexOne(formatted._1, formatted._2)
       })
+    table.persist(StorageLevel.MEMORY_AND_DISK)
     table.saveToCassandra(
       keyspaceName = this.cassandra_keyspace_name.toLowerCase(),
       tableName = name.toLowerCase,
@@ -89,6 +93,7 @@ class CassandraConnection extends Serializable with CassandraConnectionTrait {
         "event_name",
         "sequences" append //Method to append to a list in cassandra
       ), writeConf)
+    table.unpersist()
   }
 
   def writeTableSeqCount(combinations: RDD[Structs.CountList], tableName: String): Unit = {
