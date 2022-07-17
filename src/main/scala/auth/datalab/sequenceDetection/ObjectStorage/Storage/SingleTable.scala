@@ -12,6 +12,7 @@ import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
 object SingleTable {
 
   def writeTable(newSequences: RDD[Sequence], log_name: String, overwrite: Boolean, join: Boolean, split_dataset: Boolean): Unit = {
+    Logger.getLogger("single_table").log(Level.INFO,"Start writing single table...")
     val single_table: String = s"""s3a://siesta/$log_name/single/"""
     val inverted = this.calculateSingle(newSequences)
     val mode = if (overwrite) SaveMode.Overwrite else SaveMode.ErrorIfExists
@@ -51,7 +52,7 @@ object SingleTable {
         .parquet(single_table)
     }catch {
       case _: org.apache.spark.sql.AnalysisException =>
-        Logger.getRootLogger.log(Level.WARN,"Couldn't find table, so simply writing it")
+        Logger.getLogger("single_table").log(Level.WARN,"Couldn't find table, so simply writing it")
         val mode2 = if (mode==SaveMode.Overwrite) SaveMode.ErrorIfExists else SaveMode.Overwrite
         df
           .repartition(col("event_type"))
@@ -76,21 +77,26 @@ object SingleTable {
   private def combineWithPrev(df: DataFrame,single_table: String):DataFrame={
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
-    val dfPrev = spark.read.parquet(single_table)
-    df.withColumnRenamed("occurrences", "newOccurrences")
-      .join(right = dfPrev, usingColumns = Seq("event_type"), joinType = "full")
-      .rdd.map(row=>{
-      val nTimes:Seq[(Long,Seq[String])]=row.getAs[Seq[Row]]("newOccurrences").map(o=>{
-        (o.getLong(0),o.getAs[Seq[String]](1))
-      })
-      val pTimes:Seq[(Long,Seq[String])]=row.getAs[Seq[Row]]("occurrences").map(o=>{
-        (o.getLong(0),o.getAs[Seq[String]](1))
-      })
-      val combined = Seq.concat(nTimes,pTimes).groupBy(_._1).map(x=>{
-        (x._1,x._2.flatMap(_._2))
-      }).toSeq
-      (row.getString(0),combined)
-    }).toDF("event_type", "occurrences")
+    try {
+      val dfPrev = spark.read.parquet(single_table)
+      df.withColumnRenamed("occurrences", "newOccurrences")
+        .join(right = dfPrev, usingColumns = Seq("event_type"), joinType = "full")
+        .rdd.map(row => {
+        val nTimes: Seq[(Long, Seq[String])] = row.getAs[Seq[Row]]("newOccurrences").map(o => {
+          (o.getLong(0), o.getAs[Seq[String]](1))
+        })
+        val pTimes: Seq[(Long, Seq[String])] = row.getAs[Seq[Row]]("occurrences").map(o => {
+          (o.getLong(0), o.getAs[Seq[String]](1))
+        })
+        val combined = Seq.concat(nTimes, pTimes).groupBy(_._1).map(x => {
+          (x._1, x._2.flatMap(_._2))
+        }).toSeq
+        (row.getString(0), combined)
+      }).toDF("event_type", "occurrences")
+    }catch {
+      case _ @ (_:java.lang.NullPointerException | _:org.apache.spark.sql.AnalysisException) =>
+        df
+    }
   }
 
 }
