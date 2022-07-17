@@ -1,7 +1,7 @@
 package auth.datalab.sequenceDetection.ObjectStorage
 
 
-import auth.datalab.sequenceDetection.ObjectStorage.Storage.SingleTable
+import auth.datalab.sequenceDetection.ObjectStorage.Storage.{SequenceTable, SingleTable}
 import auth.datalab.sequenceDetection.Structs.{CountList, Event, Sequence}
 import auth.datalab.sequenceDetection.{Structs, Utils}
 import org.apache.spark.rdd.RDD
@@ -25,10 +25,14 @@ object Preprocess {
     this.overwrite = overwrite
     this.join = join
     this.splitted_dataset = splitted_dataset
-    //    case class PairOccs(eventA: String, eventB: String, l: List[(Long, List[(Long, Long)])])
     val start = System.currentTimeMillis()
 
     SingleTable.writeTable(sequenceRDD,log_name,overwrite,join,splitted_dataset)
+    val seqs = SequenceTable.writeTable(sequenceRDD, log_name, overwrite, join, splitted_dataset)
+
+
+
+
 
 
 

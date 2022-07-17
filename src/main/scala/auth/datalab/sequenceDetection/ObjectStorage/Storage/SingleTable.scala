@@ -41,8 +41,7 @@ object SingleTable {
       }).toDF("event_type", "occurrences")
   }
 
-  def simpleWrite(df: DataFrame, mode: SaveMode, single_table: String): Unit = {
-    val spark = SparkSession.builder().getOrCreate()
+  private def simpleWrite(df: DataFrame, mode: SaveMode, single_table: String): Unit = {
     try {
       df
         .repartition(col("event_type"))
@@ -53,16 +52,17 @@ object SingleTable {
     }catch {
       case _: org.apache.spark.sql.AnalysisException =>
         Logger.getRootLogger.log(Level.WARN,"Couldn't find table, so simply writing it")
+        val mode2 = if (mode==SaveMode.Overwrite) SaveMode.ErrorIfExists else SaveMode.Overwrite
         df
           .repartition(col("event_type"))
           .write
           .partitionBy("event_type")
-          .mode(SaveMode.ErrorIfExists)
+          .mode(mode2)
           .parquet(single_table)
     }
   }
 
-  def combineWrite(df: DataFrame, single_table: String): Unit = {
+  private def combineWrite(df: DataFrame, single_table: String): Unit = {
     try {
       val newdf = this.combineWithPrev(df, single_table)
       this.simpleWrite(newdf,SaveMode.Overwrite,single_table)
@@ -73,7 +73,7 @@ object SingleTable {
 
   }
 
-  def combineWithPrev(df: DataFrame,single_table: String):DataFrame={
+  private def combineWithPrev(df: DataFrame,single_table: String):DataFrame={
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
     val dfPrev = spark.read.parquet(single_table)
