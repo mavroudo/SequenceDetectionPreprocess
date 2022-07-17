@@ -3,15 +3,21 @@ ThisBuild / name := "SequenceDetection"
 ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.11.12"
 ThisBuild / organization := "auth.datalab"
+
 parallelExecution in Test := false
 
 libraryDependencies += "com.typesafe.scala-logging" % "scala-logging-slf4j_2.10" % "2.1.2"
 libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "2.4.2"
-libraryDependencies += "org.scalatest" % "scalatest_2.11" % "3.0.4" % "test"
 
+
+//test
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1"
+libraryDependencies += "org.scalatest" % "scalatest_2.11" % "3.0.4" % "test"
+//libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % "test"
+
+libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.3.6"
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1"
 libraryDependencies += "de.uni.freiburg.iig.telematik" % "SEWOL" % "1.0.2"
 
 libraryDependencies += "org.eu.acolyte" %% "jdbc-scala" % "1.0.46" % "test"
@@ -64,4 +70,6 @@ assemblyMergeStrategy in assembly := {
   }
 }
 
+
 assembly / mainClass := Some("auth.datalab.sequenceDetection.SequenceDetection")
+

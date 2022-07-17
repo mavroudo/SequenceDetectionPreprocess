@@ -46,9 +46,10 @@ object SIESTA2 {
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.connection.ssl.enabled", "true")
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.bucket.create.enabled", "true")
+    spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")
 
 
-    val df = spark.read.parquet(s"""s3a://siesta/log-100-113/seq/""")
+//    val df = spark.read.parquet(s"""s3a://siesta/log-100-113/idx/""")
 
 
 
@@ -63,7 +64,7 @@ object SIESTA2 {
     val table_name = c.filename.split('/').last.toLowerCase().split('.')(0).split('$')(0)
       .replace(' ', '-')
       .replace('_', '-')
-    k += Preprocess.execute(sequencesRDD_before_repartitioned, table_name,c.delete_previous,c.join)
+    k += Preprocess.execute(sequencesRDD_before_repartitioned, table_name,c.delete_previous,c.join,false)
     println(s"Time taken: $k ms")
     spark.close()
 
