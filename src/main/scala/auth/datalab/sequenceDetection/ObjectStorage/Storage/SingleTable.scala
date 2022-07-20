@@ -1,21 +1,31 @@
 package auth.datalab.sequenceDetection.ObjectStorage.Storage
 
 import auth.datalab.sequenceDetection.Structs.{IdTimeList, InvertedOne, Sequence}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.log4j.{Level, Logger, Priority}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
 
+import java.net.URI
+
 
 
 
 object SingleTable {
+  private var firstTime=true
 
   def writeTable(newSequences: RDD[Sequence], log_name: String, overwrite: Boolean, join: Boolean, split_dataset: Boolean): Unit = {
     Logger.getLogger("single_table").log(Level.INFO,"Start writing single table...")
     val single_table: String = s"""s3a://siesta/$log_name/single/"""
+    val spark = SparkSession.builder().getOrCreate()
     val inverted = this.calculateSingle(newSequences)
-    val mode = if (overwrite) SaveMode.Overwrite else SaveMode.ErrorIfExists
+    if (overwrite && firstTime) {
+      val fs =FileSystem.get(new URI("s3a://siesta/"),spark.sparkContext.hadoopConfiguration)
+      fs.delete(new Path(single_table), true)
+      firstTime=false
+    }
+    val mode = SaveMode.ErrorIfExists
     if (!join && !split_dataset) { //simple write based on the mode
       this.simpleWrite(inverted, mode, single_table)
     } else { // combine with previous if exist

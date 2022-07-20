@@ -23,12 +23,8 @@ object Preprocess {
 
     SingleTable.writeTable(sequenceRDD, log_name, overwrite, join, splitted_dataset)
     val seqs = SequenceTable.writeTable(sequenceRDD, log_name, overwrite, join, splitted_dataset)
-//    seqs.persist(StorageLevel.MEMORY_AND_DISK)
     val idx = IndexTable.writeTable(seqs, log_name, overwrite, join, splitted_dataset)
-//    idx.persist(StorageLevel.MEMORY_AND_DISK)
-//    seqs.unpersist()
     CountTable.writeTable(idx, log_name, overwrite, join, splitted_dataset)
-//    idx.unpersist()
     System.currentTimeMillis() - start
 
 

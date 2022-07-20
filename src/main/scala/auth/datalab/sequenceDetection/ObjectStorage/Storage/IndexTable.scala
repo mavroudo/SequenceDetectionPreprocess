@@ -3,11 +3,13 @@ package auth.datalab.sequenceDetection.ObjectStorage.Storage
 import auth.datalab.sequenceDetection.ObjectStorage.Occurrence
 import auth.datalab.sequenceDetection.Structs
 import auth.datalab.sequenceDetection.Structs.Sequence
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
 
+import java.net.{URI, URL}
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
@@ -15,9 +17,11 @@ object IndexTable {
   case class SequenceP(events: List[EventP], trace_id: Long)
 
   case class EventP(event_type: String, position: Long, timestamp: String)
+  private var firstTime:Boolean=true
 
   /**
    * Writes the data to the file and returns the new created pairs
+   *
    * @param sequenceRDD
    * @param log_name
    * @param overwrite
@@ -26,27 +30,33 @@ object IndexTable {
    * @return the newly created pairs
    */
   def writeTable(sequenceRDD: RDD[Sequence], log_name: String, overwrite: Boolean, join: Boolean, splitted_dataset: Boolean): RDD[((String, String), Iterable[Occurrence])] = {
-    Logger.getLogger("idx_table").log(Level.INFO,"Start writing index table...")
+    Logger.getLogger("idx_table").log(Level.INFO, "Start writing index table...")
     val index_table: String = s"""s3a://siesta/$log_name/idx/"""
+    val spark = SparkSession.builder().getOrCreate()
+    if (overwrite && firstTime) {
+      val fs =FileSystem.get(new URI("s3a://siesta/"),spark.sparkContext.hadoopConfiguration)
+      fs.delete(new Path(index_table), true)
+      firstTime=false
+    }
     val index = { //calculate the inverted pairs and in case of join remove any duplicates that are already stored
-      val temp =this.extractOccurrences(sequenceRDD).groupBy(_.getPair)
-      if(join){
+      val temp = this.extractOccurrences(sequenceRDD).groupBy(_.getPair)
+      if (join) {
         this.removeDuplicatePairs(temp)
-      }else{
+      } else {
         temp
       }
     }
     // store the new pairs generated. In case of splitted_dataset or join, merge the pairs with the previous stored
     // remind that for join we have already remove any previous
     val df = {
-      if(splitted_dataset || join){ //combine with the previous values
-          this.combine(this.transformToDF(index), index_table)
-      }else{
+      if (splitted_dataset || join) { //combine with the previous values
+        this.combine(this.transformToDF(index), index_table)
+      } else {
         this.transformToDF(index)
       }
     }
-    val mode = if(!splitted_dataset && !join && !overwrite) SaveMode.ErrorIfExists else SaveMode.Overwrite
-    this.simpleWrite(df,mode, index_table)
+    val mode = if (!splitted_dataset && !join) SaveMode.ErrorIfExists else SaveMode.Overwrite
+    this.simpleWrite(df, mode, index_table)
     // return the index cal
     index
 
@@ -66,13 +76,15 @@ object IndexTable {
       .toDF("eventA", "eventB", "occurrences")
   }
 
-  private def combine(df:DataFrame,index_table:String):DataFrame={
+  private def combine(df: DataFrame, index_table: String): DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
     try {
       val dfPrev = spark.read.parquet(index_table)
-      df.withColumnRenamed("occurrences", "newOccurrences")
-        .join(right = dfPrev, usingColumns = Seq("eventA", "eventB"), joinType = "full")
+      val combined =
+        df.withColumnRenamed("occurrences", "newOccurrences")
+          .join(right = dfPrev, usingColumns = Seq("eventA", "eventB"), joinType = "full")
+      combined
         .rdd.map(x => {
         val nOccs: Seq[(Long, Seq[(Long, Long)])] = x.getAs[Seq[Row]]("newOccurrences").map(y => {
           (y.getLong(0), y.getAs[Seq[Row]](1).map(z => (z.getLong(0), z.getLong(1))))
@@ -80,15 +92,18 @@ object IndexTable {
         val pOccs: Seq[(Long, Seq[(Long, Long)])] = x.getAs[Seq[Row]]("occurrences").map(y => {
           (y.getLong(0), y.getAs[Seq[Row]](1).map(z => (z.getLong(0), z.getLong(1))))
         })
-        (x.getAs[String]("eventA"), x.getAs[String]("eventB"), Seq.concat(pOccs, nOccs))
+        (x.getAs[String]("eventA"), x.getAs[String]("eventB"), pOccs ++ nOccs)
       }).toDF("eventA", "eventB", "occurrences")
-    }catch {
-      case _ @ (_:java.lang.NullPointerException | _:org.apache.spark.sql.AnalysisException) =>
+    } catch {
+      case e: org.apache.spark.sql.AnalysisException =>
+        df
+      case t: java.lang.NullPointerException =>
+        t.printStackTrace()
         df
     }
   }
 
-  private def simpleWrite(df:DataFrame,mode:SaveMode,index_table:String):Unit={
+  private def simpleWrite(df: DataFrame, mode: SaveMode, index_table: String): Unit = {
     try {
       df
         .repartition(col("eventA"))
@@ -96,10 +111,10 @@ object IndexTable {
         .partitionBy("eventA")
         .mode(mode)
         .parquet(index_table)
-    }catch {
+    } catch {
       case _: org.apache.spark.sql.AnalysisException =>
-        Logger.getLogger("idx_table").log(Level.WARN,"Couldn't find table, so simply writing it")
-        val mode2 = if (mode==SaveMode.Overwrite) SaveMode.ErrorIfExists else SaveMode.Overwrite
+        Logger.getLogger("idx_table").log(Level.WARN, "Couldn't find table, so simply writing it")
+        val mode2 = if (mode == SaveMode.Overwrite) SaveMode.ErrorIfExists else SaveMode.Overwrite
         df
           .repartition(col("eventA"))
           .write
@@ -167,11 +182,10 @@ object IndexTable {
     response.toList
   }
 
-  private def removeDuplicatePairs(index:RDD[((String, String), Iterable[Occurrence])]):RDD[((String, String), Iterable[Occurrence])]={
+  private def removeDuplicatePairs(index: RDD[((String, String), Iterable[Occurrence])]): RDD[((String, String), Iterable[Occurrence])] = {
     //TODO: when implement join implement also this one to remove any duplicate pairs
     index
   }
-
 
 
 }
