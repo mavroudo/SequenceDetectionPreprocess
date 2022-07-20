@@ -1,18 +1,27 @@
 package auth.datalab.sequenceDetection.ObjectStorage.Storage
 
 import auth.datalab.sequenceDetection.Structs.{Event, Sequence}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
 
-object SequenceTable {
+import java.net.URI
 
+object SequenceTable {
+  private var firstTime= true
   def writeTable(sequenceRDD: RDD[Sequence], log_name: String, overwrite: Boolean, join: Boolean, splitted_dataset: Boolean): RDD[Sequence] = {
     Logger.getLogger("seq_table").log(Level.INFO,"Start writing seq table...")
     val seq_table: String = s"""s3a://siesta/$log_name/seq/"""
+    val spark = SparkSession.builder().getOrCreate()
+    if (overwrite && firstTime) {
+      val fs =FileSystem.get(new URI("s3a://siesta/"),spark.sparkContext.hadoopConfiguration)
+      fs.delete(new Path(seq_table), true)
+      firstTime=false
+    }
     val df: DataFrame = this.getDataFrame(sequenceRDD, seq_table, join) //will combine if needed
     val mode = {
-      if (overwrite || join) SaveMode.Overwrite
+      if (join) SaveMode.Overwrite
       else if (splitted_dataset) SaveMode.Append
       else SaveMode.ErrorIfExists
     }
