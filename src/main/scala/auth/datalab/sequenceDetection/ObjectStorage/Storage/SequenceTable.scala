@@ -9,15 +9,16 @@ import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
 import java.net.URI
 
 object SequenceTable {
-  private var firstTime= true
+  private var firstTime = true
+
   def writeTable(sequenceRDD: RDD[Sequence], log_name: String, overwrite: Boolean, join: Boolean, splitted_dataset: Boolean): RDD[Sequence] = {
-    Logger.getLogger("seq_table").log(Level.INFO,"Start writing seq table...")
+    Logger.getLogger("seq_table").log(Level.INFO, "Start writing seq table...")
     val seq_table: String = s"""s3a://siesta/$log_name/seq/"""
     val spark = SparkSession.builder().getOrCreate()
     if (overwrite && firstTime) {
-      val fs =FileSystem.get(new URI("s3a://siesta/"),spark.sparkContext.hadoopConfiguration)
+      val fs = FileSystem.get(new URI("s3a://siesta/"), spark.sparkContext.hadoopConfiguration)
       fs.delete(new Path(seq_table), true)
-      firstTime=false
+      firstTime = false
     }
     val df: DataFrame = this.getDataFrame(sequenceRDD, seq_table, join) //will combine if needed
     val mode = {
@@ -92,12 +93,26 @@ object SequenceTable {
       df.withColumnRenamed("events", "newEvents")
         .join(dfPrev, "trace_id")
         .rdd.map(x => {
-        val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1)))
-        val nEvents = x.getAs[Seq[Row]]("newEvents").map(y => (y.getString(0), y.getString(1)))
+        val pEvents = {
+          try {
+            x.getAs[Seq[(String,String)]]("events")
+          } catch {
+            case e: java.lang.NullPointerException =>
+              Seq.empty[(String, String)]
+          }
+        }
+        val nEvents = {
+          try {
+            x.getAs[Seq[(String,String)]]("newEvents")
+          } catch {
+            case e: java.lang.NullPointerException =>
+              Seq.empty[(String, String)]
+          }
+        }
         (x.getAs[Long]("trace_id"), Seq.concat(pEvents, nEvents))
       }).toDF("trace_id", "events")
-    }catch {
-      case _ @ (_:java.lang.NullPointerException | _:org.apache.spark.sql.AnalysisException) =>
+    } catch {
+      case _@(_: java.lang.NullPointerException | _: org.apache.spark.sql.AnalysisException) =>
         df
     }
   }

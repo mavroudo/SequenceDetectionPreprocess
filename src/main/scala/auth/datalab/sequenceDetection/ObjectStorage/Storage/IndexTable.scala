@@ -86,12 +86,21 @@ object IndexTable {
           .join(right = dfPrev, usingColumns = Seq("eventA", "eventB"), joinType = "full")
       combined
         .rdd.map(x => {
-        val nOccs: Seq[(Long, Seq[(Long, Long)])] = x.getAs[Seq[Row]]("newOccurrences").map(y => {
-          (y.getLong(0), y.getAs[Seq[Row]](1).map(z => (z.getLong(0), z.getLong(1))))
-        })
-        val pOccs: Seq[(Long, Seq[(Long, Long)])] = x.getAs[Seq[Row]]("occurrences").map(y => {
-          (y.getLong(0), y.getAs[Seq[Row]](1).map(z => (z.getLong(0), z.getLong(1))))
-        })
+        val nOccs: Seq[(Long, Seq[(Long, Long)])] = try{
+          x.getAs[Seq[Row]]("newOccurrences").map(y => {
+            (y.getLong(0), y.getAs[Seq[Row]](1).map(z => (z.getLong(0), z.getLong(1))))})
+        }catch{
+          case _ : java.lang.NullPointerException =>
+            Seq.empty[(Long,Seq[(Long,Long)])]
+
+        }
+        val pOccs: Seq[(Long, Seq[(Long, Long)])] = try{
+          x.getAs[Seq[Row]]("occurrences").map(y => {
+            (y.getLong(0), y.getAs[Seq[Row]](1).map(z => (z.getLong(0), z.getLong(1))))})
+        }catch{
+          case _ : java.lang.NullPointerException =>
+            Seq.empty[(Long,Seq[(Long,Long)])]
+        }
         (x.getAs[String]("eventA"), x.getAs[String]("eventB"), pOccs ++ nOccs)
       }).toDF("eventA", "eventB", "occurrences")
     } catch {
