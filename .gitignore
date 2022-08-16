@@ -13,3 +13,4 @@ logfilesPre/*
 project/*
 !project/assembly.sbt
 !project/build.properties
+!experiments/input/test_small.withTimestamp
