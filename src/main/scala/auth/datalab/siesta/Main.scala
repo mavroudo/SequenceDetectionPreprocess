@@ -1,6 +1,7 @@
 package auth.datalab.siesta
 
 import auth.datalab.siesta.CommandLineParser.{Config, ParsingArguments}
+import auth.datalab.siesta.Pipeline.SiestaPipeline
 import org.apache.log4j.{Level, Logger}
 
 
@@ -18,19 +19,7 @@ object Main {
       config = conf.get
     }
 
-
-    println("Hello World")
-
-//    if (config.mode == "siesta") {
-//      SIESTA.SIESTA.execute(config)
-//    } else if (config.mode == "positions") {
-//      IndexWithPositions.NoTimestamps.execute(config)
-//    } else if (config.mode == "object") {
-//      ObjectStorage.SIESTA2.execute(config)
-//    } else {
-//      println("not a valid choice for mode")
-//      System.exit(2)
-//    }
+    SiestaPipeline.execute(config)
   }
 
 }

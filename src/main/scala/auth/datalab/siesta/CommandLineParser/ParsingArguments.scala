@@ -8,6 +8,7 @@ case class Config(
                    database: String = "s3",
                    mode: String = "siesta",
                    filename: String = "synthetic",
+                   log_name: String = "synthetic",
                    delete_all: Boolean = false,
                    delete_previous: Boolean = false,
                    join: Boolean = false,
@@ -58,6 +59,10 @@ object ParsingArguments {
         .action((x, c) => c.copy(filename = x))
         .valueName("<file>")
         .text("If not set will generate artificially data"),
+      opt[String]("logname")
+        .action((x, c) => c.copy(log_name = x))
+        .valueName("<logname>")
+        .text("Specify the name of the index to be created. This is used in case of incremental preprocessing"),
       opt[Unit]("delete_all")
         .action((_, c) => c.copy(delete_all = true))
         .text("cleans all tables in the keyspace"),
