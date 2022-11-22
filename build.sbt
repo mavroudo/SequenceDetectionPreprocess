@@ -6,7 +6,7 @@ ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.11.12"
 ThisBuild / organization := "auth.datalab"
 ThisBuild / parallelExecution in Test := false
-assembly / mainClass := Some("auth.datalab.sequenceDetection.SequenceDetection")
+assembly / mainClass := Some("auth.datalab.siesta.Main")
 
 lazy val root = (project in file("."))
   .settings(
