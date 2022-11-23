@@ -15,7 +15,7 @@ trait DBConnector {
   /**
    * Create the appropriate tables, remove previous ones
    */
-  def initialize_db(metaData: MetaData):Unit
+  def initialize_db(config: Config):Unit
 
   /**
    * This method constructs the appropriate metadata based on the already stored in the database and the

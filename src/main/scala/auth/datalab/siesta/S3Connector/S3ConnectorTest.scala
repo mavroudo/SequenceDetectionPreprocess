@@ -6,12 +6,18 @@ import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
+import org.apache.spark.sql.catalyst.ScalaReflection
+import org.apache.spark.sql.types.StructType
 
 import java.net.URI
 
 class S3ConnectorTest extends DBConnector {
+
   var seq_table: String = _
+  var meta_table: String = _
+  var single_table: String = _
+
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
@@ -45,17 +51,21 @@ class S3ConnectorTest extends DBConnector {
   /**
    * Create the appropriate tables, remove previous ones
    */
-  override def initialize_db(metaData: MetaData): Unit = {
+  override def initialize_db(config: Config): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     val fs = FileSystem.get(new URI("s3a://siesta/"), spark.sparkContext.hadoopConfiguration)
 
     //define name tables
-    seq_table = s"""s3a://siesta/${metaData.log_name}/seq/"""
+    seq_table = s"""s3a://siesta/${config.log_name}/seq/"""
+    meta_table = s"""s3a://siesta/${config.log_name}/meta/"""
+    single_table = s"""s3a://siesta/${config.log_name}/single/"""
 
-    // determine if have previous stored values
-    metaData.has_previous_stored=fs.exists(new Path(seq_table))
+    //delete previous stored values
+    if (config.delete_previous) fs.delete(new Path(s"""s3a://siesta/${config.log_name}/"""), true)
 
-    //TODO:  delete previous stored tables if delete prev is set to true
+    //delete all stored indices in this db
+    if (config.delete_all) fs.delete(new Path(s"""s3a://siesta/"""), true)
+
 
   }
 
@@ -66,7 +76,40 @@ class S3ConnectorTest extends DBConnector {
    * @param config contains the configuration passed during execution
    * @return the metadata
    */
-  override def get_metadata(config: Config): MetaData = ???
+  override def get_metadata(config: Config): MetaData = {
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.implicits._
+    //get previous values if exists
+    val schema = ScalaReflection.schemaFor[MetaData].dataType.asInstanceOf[StructType]
+    val metaDataObj = try {
+      spark.read.schema(schema).json(meta_table)
+    } catch {
+      case _: org.apache.spark.sql.AnalysisException => null
+    }
+    //calculate new object
+    val metaData = if (metaDataObj==null) {
+      MetaData(traces = 0, indexed_tuples = 0, n=config.n, lookback = config.lookback_days,
+      split_every_days = config.split_every_days, last_interval = null, has_previous_stored = false,
+      filename = config.filename, log_name = config.log_name)
+    }else{
+      metaDataObj.collect().map(x=>{
+        MetaData(traces = x.getAs("traces"),
+          indexed_tuples = x.getAs("indexed_tuples"), n = x.getAs("n"),
+          lookback = x.getAs("lookback"), split_every_days = x.getAs("split_every_days"),
+          last_interval = x.getAs("last_interval"), has_previous_stored = true,
+          filename = x.getAs("filename"), log_name = x.getAs("log_name"))
+      }).head
+    }
+
+
+
+    //persist this version back
+    val rdd = spark.sparkContext.parallelize(Seq(metaData))
+    val df = rdd.toDF()
+    df.write.mode(SaveMode.Overwrite).json(meta_table)
+
+    metaData
+  }
 
   /**
    * Read data as an rdd from the SeqTable
