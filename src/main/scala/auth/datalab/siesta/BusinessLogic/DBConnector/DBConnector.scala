@@ -45,6 +45,14 @@ trait DBConnector {
   def write_sequence_table(sequenceRDD:RDD[Structs.Sequence],metaData: MetaData): RDD[Structs.Sequence]
 
   /**
+   * This method is responsible to combine results with the previous stored, in order to support incremental indexing
+   * @param newSequences The new sequences to be indexed
+   * @param previousSequences The previous sequences that are already indexed
+   * @return a combined rdd
+   */
+  def combine_sequence_table(newSequences:RDD[Structs.Sequence],previousSequences:RDD[Structs.Sequence]):RDD[Structs.Sequence]
+
+  /**
    * This method writes traces to the auxiliary SingleTable. The rdd that comes to this method is not persisted.
    * Database should persist it before store it and not persist it at the end.
    * This method should combine the results with previous ones and return the results to the main pipeline

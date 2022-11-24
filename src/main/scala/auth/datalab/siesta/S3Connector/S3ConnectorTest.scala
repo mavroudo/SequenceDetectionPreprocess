@@ -1,6 +1,7 @@
 package auth.datalab.siesta.S3Connector
 
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
+import auth.datalab.siesta.BusinessLogic.ExtractSequence.ExtractSequence
 import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
@@ -32,7 +33,7 @@ class S3ConnectorTest extends DBConnector {
     val s3accessKeyAws = "minioadmin"
     val s3secretKeyAws = "minioadmin"
     val connectionTimeOut = "600000"
-    val s3endPointLoc: String = "http://127.0.0.1:9000"
+    val s3endPointLoc: String = "http://rabbit.csd.auth.gr:9000"
 
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.endpoint", s3endPointLoc)
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", s3accessKeyAws)
@@ -117,7 +118,15 @@ class S3ConnectorTest extends DBConnector {
    * @param metaData Containing all the necessary information for the storing
    * @return In RDD the stored data
    */
-  override def read_sequence_table(metaData: MetaData): RDD[Structs.Sequence] = ???
+  override def read_sequence_table(metaData: MetaData): RDD[Structs.Sequence] = {
+    val spark = SparkSession.builder().getOrCreate()
+    try{
+      val df = spark.read.parquet(seq_table)
+      S3Transformations.transformSeqToRDD(df)
+    }catch {
+      case _: org.apache.spark.sql.AnalysisException => null
+    }
+  }
 
   /**
    * This method writes traces to the auxiliary SeqTable. Since RDD will be used as intermediate results it is already persisted
@@ -129,7 +138,26 @@ class S3ConnectorTest extends DBConnector {
    * @param sequenceRDD RDD containing the traces
    * @param metaData    Containing all the necessary information for the storing
    */
-  override def write_sequence_table(sequenceRDD: RDD[Structs.Sequence], metaData: MetaData): RDD[Structs.Sequence] = ???
+  override def write_sequence_table(sequenceRDD: RDD[Structs.Sequence], metaData: MetaData): RDD[Structs.Sequence] = {
+    val previousSequences = this.read_sequence_table(metaData) //get previous
+    val combined = this.combine_sequence_table(sequenceRDD,previousSequences) //combine them
+    val df = S3Transformations.transformSeqToDF(combined) //write them back
+    metaData.traces = df.count()
+    df.write.mode(SaveMode.Overwrite).parquet(seq_table)
+    combined
+  }
+
+  override def combine_sequence_table(newSequences: RDD[Structs.Sequence], previousSequences: RDD[Structs.Sequence]): RDD[Structs.Sequence] = {
+    if(previousSequences==null) return newSequences
+    previousSequences.keyBy(_.sequence_id)
+      .fullOuterJoin(previousSequences.keyBy(_.sequence_id))
+      .map(x=>{
+        val prevEvents = x._2._1.getOrElse(Structs.Sequence(List(),-1)).events
+        val newEvents = x._2._1.getOrElse(Structs.Sequence(List(),-1)).events
+        Structs.Sequence(ExtractSequence.combineSequences(prevEvents,newEvents),x._1)
+      })
+  }
+
 
   /**
    * This method writes traces to the auxiliary SingleTable. The rdd that comes to this method is not persisted.
