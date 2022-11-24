@@ -67,7 +67,15 @@ trait DBConnector {
    * @param metaData Containing all the necessary information for the storing
    * @return In RDD the stored data
    */
-  def read_single_table(metaData: MetaData):RDD[Structs.InvertedSingle]
+  def read_single_table(metaData: MetaData):RDD[Structs.InvertedSingleFull]
+
+  /**
+   * Combine new and previous entries in the Single table
+   * @param newSingle New events in single table
+   * @param previousSingle Previous events stored in single table
+   * @return the combined lists
+   */
+  def combine_single_table(newSingle:RDD[Structs.InvertedSingleFull],previousSingle:RDD[Structs.InvertedSingleFull]):RDD[Structs.InvertedSingleFull]
 
 
 

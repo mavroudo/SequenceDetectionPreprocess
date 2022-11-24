@@ -2,6 +2,7 @@ package auth.datalab.siesta.S3Connector
 
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
 import auth.datalab.siesta.BusinessLogic.ExtractSequence.ExtractSequence
+import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
@@ -9,6 +10,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
 import org.apache.spark.sql.catalyst.ScalaReflection
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.StructType
 
 import java.net.URI
@@ -89,12 +91,13 @@ class S3ConnectorTest extends DBConnector {
     }
     //calculate new object
     val metaData = if (metaDataObj==null) {
-      MetaData(traces = 0, indexed_tuples = 0, n=config.n, lookback = config.lookback_days,
+      MetaData(traces = 0, events=0, indexed_tuples = 0, n=config.n, lookback = config.lookback_days,
       split_every_days = config.split_every_days, last_interval = null, has_previous_stored = false,
       filename = config.filename, log_name = config.log_name)
     }else{
       metaDataObj.collect().map(x=>{
         MetaData(traces = x.getAs("traces"),
+          events = x.getAs("events"),
           indexed_tuples = x.getAs("indexed_tuples"), n = x.getAs("n"),
           lookback = x.getAs("lookback"), split_every_days = x.getAs("split_every_days"),
           last_interval = x.getAs("last_interval"), has_previous_stored = true,
@@ -153,7 +156,7 @@ class S3ConnectorTest extends DBConnector {
       .fullOuterJoin(previousSequences.keyBy(_.sequence_id))
       .map(x=>{
         val prevEvents = x._2._1.getOrElse(Structs.Sequence(List(),-1)).events
-        val newEvents = x._2._1.getOrElse(Structs.Sequence(List(),-1)).events
+        val newEvents = x._2._2.getOrElse(Structs.Sequence(List(),-1)).events
         Structs.Sequence(ExtractSequence.combineSequences(prevEvents,newEvents),x._1)
       })
   }
@@ -168,7 +171,17 @@ class S3ConnectorTest extends DBConnector {
    * @param singleRDD Contains the single inverted index
    * @param metaData  Containing all the necessary information for the storing
    */
-  override def write_single_table(singleRDD: RDD[Structs.InvertedSingleFull], metaData: MetaData): RDD[Structs.InvertedSingleFull] = ???
+  override def write_single_table(singleRDD: RDD[Structs.InvertedSingleFull], metaData: MetaData): RDD[Structs.InvertedSingleFull] = {
+    val newEvents = singleRDD.map(x=>x.times.size).reduce((x,y)=>x+y)
+    val previousSingle = read_single_table(metaData) //TODO: read only the ones that are required (similar event type)
+    val combined = combine_single_table(singleRDD,previousSingle)
+    val df = S3Transformations.transformSingleToDF(combined)//transform
+    metaData.events+=newEvents//count and update metadata
+    df.repartition(col("event_type"))
+      .write.partitionBy("event_type")
+      .mode(SaveMode.Overwrite).parquet(single_table) //store to s3
+    combined
+  }
 
   /**
    * Read data as an rdd from the SingleTable
@@ -176,5 +189,24 @@ class S3ConnectorTest extends DBConnector {
    * @param metaData Containing all the necessary information for the storing
    * @return In RDD the stored data
    */
-  override def read_single_table(metaData: MetaData): RDD[Structs.InvertedSingle] = ???
+  override def read_single_table(metaData: MetaData): RDD[Structs.InvertedSingleFull] = {
+    val spark = SparkSession.builder().getOrCreate()
+    try {
+      val df = spark.read.parquet(single_table)
+      S3Transformations.transformSingleToRDD(df)
+    } catch {
+      case _: org.apache.spark.sql.AnalysisException => null
+    }
+  }
+
+  override def combine_single_table(newSingle: RDD[Structs.InvertedSingleFull], previousSingle: RDD[Structs.InvertedSingleFull]): RDD[Structs.InvertedSingleFull] = {
+    if (previousSingle == null) return newSingle
+    previousSingle.keyBy(x=>(x.id,x.event_name))
+      .fullOuterJoin(newSingle.keyBy(x=>(x.id,x.event_name)))
+      .map(x=>{
+        val prevTimes = x._2._1.getOrElse(Structs.InvertedSingleFull(-1,"",List())).times
+        val newTimes = x._2._2.getOrElse(Structs.InvertedSingleFull(-1,"",List())).times
+        Structs.InvertedSingleFull(x._1._1,x._1._2,ExtractSingle.combineTimes(prevTimes,newTimes))
+      })
+  }
 }
