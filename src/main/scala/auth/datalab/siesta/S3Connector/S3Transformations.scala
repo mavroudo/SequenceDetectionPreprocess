@@ -1,6 +1,7 @@
 package auth.datalab.siesta.S3Connector
 
 import auth.datalab.siesta.BusinessLogic.Model.Structs
+import auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
@@ -40,6 +41,27 @@ object S3Transformations {
         Structs.InvertedSingle(y._1,y._2.map(x=>Structs.IdTimeList(x.id,x.times)).toList)
       }).toDF("event_type", "occurrences")
   }
+
+  def transformLastCheckedToRDD(df: DataFrame):RDD[LastChecked]={
+    df.rdd.flatMap(x=>{
+      val events = x.getAs[Seq[String]]("key_events").toList
+      x.getAs[Seq[Row]]("occurrences").map(oc=>{
+        LastChecked(events.head,events,oc.getLong(0),oc.getString(1))
+      })
+    })
+  }
+
+  def transformLastCheckedToDF(lastchecked:RDD[LastChecked]):DataFrame={
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.sqlContext.implicits._
+    lastchecked.groupBy(x=>x.events)
+      .map(x=>{
+        val occurrences = x._2.map(y=>Structs.IdTime(y.id,y.timestamp))
+        Structs.LastCheckedDF(x._1.head,x._1,occurrences.toList)
+      }).toDF("first_event","key_events","occurrences")
+  }
+
+
 
 
 

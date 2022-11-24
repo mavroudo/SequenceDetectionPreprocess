@@ -21,7 +21,7 @@ class S3ConnectorTest extends DBConnector {
   var seq_table: String = _
   var meta_table: String = _
   var single_table: String = _
-
+  var last_checked_table:String = _
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
@@ -63,6 +63,7 @@ class S3ConnectorTest extends DBConnector {
     seq_table = s"""s3a://siesta/${config.log_name}/seq/"""
     meta_table = s"""s3a://siesta/${config.log_name}/meta/"""
     single_table = s"""s3a://siesta/${config.log_name}/single/"""
+    last_checked_table = s"""s3a://siesta/${config.log_name}/last_checked/"""
 
     //delete previous stored values
     if (config.delete_previous) fs.delete(new Path(s"""s3a://siesta/${config.log_name}/"""), true)
@@ -109,15 +110,16 @@ class S3ConnectorTest extends DBConnector {
           filename = x.getAs("filename"), log_name = x.getAs("log_name"))
       }).head
     }
+    this.write_metadata(metaData)//persist this version back
+    metaData
+  }
 
-
-
-    //persist this version back
+  override def write_metadata(metaData: MetaData): Unit = {
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.implicits._
     val rdd = spark.sparkContext.parallelize(Seq(metaData))
     val df = rdd.toDF()
     df.write.mode(SaveMode.Overwrite).json(meta_table)
-
-    metaData
   }
 
   /**
@@ -217,12 +219,54 @@ class S3ConnectorTest extends DBConnector {
   override def combine_single_table(newSingle: RDD[Structs.InvertedSingleFull], previousSingle: RDD[Structs.InvertedSingleFull]): RDD[Structs.InvertedSingleFull] = {
     if (previousSingle == null) return newSingle
     val combined = previousSingle.keyBy(x=>(x.id,x.event_name))
-      .fullOuterJoin(newSingle.keyBy(x=>(x.id,x.event_name)))
+      .rightOuterJoin(newSingle.keyBy(x=>(x.id,x.event_name)))
       .map(x=>{
         val prevTimes = x._2._1.getOrElse(Structs.InvertedSingleFull(-1,"",List())).times
-        val newTimes = x._2._2.getOrElse(Structs.InvertedSingleFull(-1,"",List())).times
+        val newTimes = x._2._2.times
         Structs.InvertedSingleFull(x._1._1,x._1._2,ExtractSingle.combineTimes(prevTimes,newTimes))
       })
     combined
   }
+
+  override def read_last_checked_table(metaData: MetaData): RDD[Structs.LastChecked] = {
+    val spark = SparkSession.builder().getOrCreate()
+    try {
+      val df = spark.read.parquet(last_checked_table)
+      S3Transformations.transformLastCheckedToRDD(df)
+    } catch {
+      case _: org.apache.spark.sql.AnalysisException => null
+    }
+  }
+
+  override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData): RDD[Structs.LastChecked] = {
+    Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"Start writing LastChecked table")
+    val start = System.currentTimeMillis()
+    val previousLastChecked = this.read_last_checked_table(metaData)
+    val combined = this.combine_last_checked_table(lastChecked,previousLastChecked)
+    val df = S3Transformations.transformLastCheckedToDF(combined)
+    df.repartition(col("first_event"))
+      .write.partitionBy("first_event")
+      .mode(SaveMode.Overwrite).parquet(last_checked_table)
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+    combined
+  }
+
+  override def combine_last_checked_table(newLastChecked: RDD[Structs.LastChecked], previousLastChecked: RDD[Structs.LastChecked]): RDD[Structs.LastChecked] = {
+    if (previousLastChecked == null) return newLastChecked
+    val combined = previousLastChecked.keyBy(x=>(x.id,x.events))
+      .fullOuterJoin(newLastChecked.keyBy(x=>(x.id,x.events)))
+      .map(x=>{
+        val prevLC = x._2._1.getOrElse(Structs.LastChecked("",List(),-1,""))
+        val newLC = x._2._2.getOrElse(Structs.LastChecked("",List(),-1,""))
+        val time = if(newLC.timestamp=="") prevLC.timestamp else newLC.timestamp
+        val events = if(newLC.events.isEmpty) prevLC.events else newLC.events
+        val id = if(newLC.id == -1) prevLC.id else newLC.id
+        Structs.LastChecked(events.head,events,id,time)
+      })
+    combined
+
+  }
+
+
 }

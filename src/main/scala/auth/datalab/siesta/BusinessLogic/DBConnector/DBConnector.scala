@@ -2,7 +2,7 @@ package auth.datalab.siesta.BusinessLogic.DBConnector
 
 import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
 import auth.datalab.siesta.BusinessLogic.Model.Structs
-import auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull
+import auth.datalab.siesta.BusinessLogic.Model.Structs.{InvertedSingleFull, LastChecked}
 import auth.datalab.siesta.CommandLineParser.Config
 import org.apache.spark.rdd.RDD
 
@@ -24,6 +24,12 @@ trait DBConnector {
    * @return the metadata
    */
   def get_metadata(config:Config): MetaData
+
+  /**
+   * Persists metadata
+   * @param metaData metadata of the execution and the database
+   */
+  def write_metadata(metaData: MetaData):Unit
 
 
   /**
@@ -78,6 +84,28 @@ trait DBConnector {
    * @return the combined lists
    */
   def combine_single_table(newSingle:RDD[Structs.InvertedSingleFull],previousSingle:RDD[Structs.InvertedSingleFull]):RDD[Structs.InvertedSingleFull]
+
+  /**
+   * Returns data from LastChecked Table
+   * @param metaData Containing all the necessary information for the storing
+   * @return LastChecked records
+   */
+  def read_last_checked_table(metaData: MetaData):RDD[LastChecked]
+
+  /**
+   * Writes new records for last checked back in the database and return the combined records with the
+   * @param lastChecked records containing the timestamp of last completion for each different n-tuple
+   * @param metaData
+   * @return
+   */
+  def write_last_checked_table(lastChecked: RDD[LastChecked], metaData: MetaData):RDD[Structs.LastChecked]
+
+  /**
+   * Combines the new with the previous stored last checked
+   * @param newLastChecked new records for the last checked
+   * @param previousLastChecked already stored records for the last checked values
+   */
+  def combine_last_checked_table(newLastChecked:RDD[LastChecked], previousLastChecked:RDD[LastChecked]):RDD[LastChecked]
 
 
 
