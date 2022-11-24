@@ -11,4 +11,6 @@ object Structs {
   case class InvertedSingle(event_name: String, times: List[IdTimeList])
   case class InvertedSingleFull(id: Long, event_name: String, times:List[String])
 
+  //For last_checked
+
 }
