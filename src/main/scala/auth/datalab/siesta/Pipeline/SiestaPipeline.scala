@@ -21,6 +21,8 @@ object SiestaPipeline {
     dbConnector.initialize_db(config = c)
     val metadata = dbConnector.get_metadata(c)
 
+
+
     //Main pipeline starts here:
     val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
     sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)

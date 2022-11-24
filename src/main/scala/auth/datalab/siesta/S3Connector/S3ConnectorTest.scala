@@ -98,7 +98,7 @@ class S3ConnectorTest extends DBConnector {
     //calculate new object
     val metaData = if (metaDataObj==null) {
       MetaData(traces = 0, events=0, indexed_tuples = 0, n=config.n, lookback = config.lookback_days,
-      split_every_days = config.split_every_days, last_interval = null, has_previous_stored = false,
+      split_every_days = config.split_every_days, last_interval = "", has_previous_stored = false,
       filename = config.filename, log_name = config.log_name)
     }else{
       metaDataObj.collect().map(x=>{

@@ -1,5 +1,7 @@
 package auth.datalab.siesta.BusinessLogic.Model
 
+import java.util.Date
+
 object Structs {
 
   //General Model
@@ -15,5 +17,10 @@ object Structs {
   //For last_checked
   case class LastChecked (eventA:String,events:List[String], id: Long, timestamp:String)
   case class LastCheckedDF (eventA:String, events:List[String],occurrences: List[IdTime])
+
+  //Extract Pairs
+
+  //Intervals
+  case class Interval(start:Date,end:Date)
 
 }
