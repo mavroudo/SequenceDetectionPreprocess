@@ -70,6 +70,15 @@ trait DBConnector {
   def read_single_table(metaData: MetaData):RDD[Structs.InvertedSingleFull]
 
   /**
+   * Read data as an rdd from the SingleTable. It will only read the tables that have the same event type as the
+   * new events
+   * @param metaData Containing all the necessary information for the storing
+   * @return In RDD the stored data
+   */
+  def read_single_table(metaData: MetaData, event_names: List[String]): RDD[Structs.InvertedSingleFull]
+
+
+  /**
    * Combine new and previous entries in the Single table
    * @param newSingle New events in single table
    * @param previousSingle Previous events stored in single table
