@@ -7,6 +7,7 @@ import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
 import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
 import org.apache.spark.sql.catalyst.ScalaReflection
@@ -80,6 +81,8 @@ class S3ConnectorTest extends DBConnector {
    * @return the metadata
    */
   override def get_metadata(config: Config): MetaData = {
+    Logger.getLogger("Metadata").log(Level.INFO, s"Getting metadata")
+    val start = System.currentTimeMillis()
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._
     //get previous values if exists
@@ -89,6 +92,8 @@ class S3ConnectorTest extends DBConnector {
     } catch {
       case _: org.apache.spark.sql.AnalysisException => null
     }
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("Metadata").log(Level.INFO, s"finished in ${total / 1000} seconds")
     //calculate new object
     val metaData = if (metaDataObj==null) {
       MetaData(traces = 0, events=0, indexed_tuples = 0, n=config.n, lookback = config.lookback_days,
@@ -142,23 +147,28 @@ class S3ConnectorTest extends DBConnector {
    * @param metaData    Containing all the necessary information for the storing
    */
   override def write_sequence_table(sequenceRDD: RDD[Structs.Sequence], metaData: MetaData): RDD[Structs.Sequence] = {
+    Logger.getLogger("Sequence Table Write").log(Level.INFO,s"Start writing sequence table")
+    val start = System.currentTimeMillis()
     val previousSequences = this.read_sequence_table(metaData) //get previous
     val combined = this.combine_sequence_table(sequenceRDD,previousSequences) //combine them
     val df = S3Transformations.transformSeqToDF(combined) //write them back
     metaData.traces = df.count()
     df.write.mode(SaveMode.Overwrite).parquet(seq_table)
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("Sequence Table Write").log(Level.INFO,s"finished in ${total/1000} seconds")
     combined
   }
 
   override def combine_sequence_table(newSequences: RDD[Structs.Sequence], previousSequences: RDD[Structs.Sequence]): RDD[Structs.Sequence] = {
     if(previousSequences==null) return newSequences
-    previousSequences.keyBy(_.sequence_id)
+    val combined = previousSequences.keyBy(_.sequence_id)
       .fullOuterJoin(previousSequences.keyBy(_.sequence_id))
       .map(x=>{
         val prevEvents = x._2._1.getOrElse(Structs.Sequence(List(),-1)).events
         val newEvents = x._2._2.getOrElse(Structs.Sequence(List(),-1)).events
         Structs.Sequence(ExtractSequence.combineSequences(prevEvents,newEvents),x._1)
       })
+    combined
   }
 
 
@@ -172,15 +182,18 @@ class S3ConnectorTest extends DBConnector {
    * @param metaData  Containing all the necessary information for the storing
    */
   override def write_single_table(singleRDD: RDD[Structs.InvertedSingleFull], metaData: MetaData): RDD[Structs.InvertedSingleFull] = {
+    Logger.getLogger("Single Table Write").log(Level.INFO, s"Start writing single table")
+    val start = System.currentTimeMillis()
     val newEvents = singleRDD.map(x=>x.times.size).reduce((x,y)=>x+y)
-    val newEventTypes=singleRDD.map(_.event_name).distinct().collect().toList
-    val previousSingle = read_single_table(metaData,newEventTypes)
+    val previousSingle = read_single_table(metaData)
     val combined = combine_single_table(singleRDD,previousSingle)
     val df = S3Transformations.transformSingleToDF(combined)//transform
     metaData.events+=newEvents//count and update metadata
     df.repartition(col("event_type"))
       .write.partitionBy("event_type")
       .mode(SaveMode.Overwrite).parquet(single_table) //store to s3
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("Single Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
     combined
   }
 
@@ -200,24 +213,16 @@ class S3ConnectorTest extends DBConnector {
     }
   }
 
-  def read_single_table(metaData: MetaData, event_names: List[String]): RDD[Structs.InvertedSingleFull] = {
-    val spark = SparkSession.builder().getOrCreate()
-    try {
-      val df = spark.read.parquet(S3Utilities.extractSingleTables(single_table, event_names): _*)
-      S3Transformations.transformSingleToRDD(df)
-    } catch {
-      case _: org.apache.spark.sql.AnalysisException => null
-    }
-  }
 
   override def combine_single_table(newSingle: RDD[Structs.InvertedSingleFull], previousSingle: RDD[Structs.InvertedSingleFull]): RDD[Structs.InvertedSingleFull] = {
     if (previousSingle == null) return newSingle
-    previousSingle.keyBy(x=>(x.id,x.event_name))
+    val combined = previousSingle.keyBy(x=>(x.id,x.event_name))
       .fullOuterJoin(newSingle.keyBy(x=>(x.id,x.event_name)))
       .map(x=>{
         val prevTimes = x._2._1.getOrElse(Structs.InvertedSingleFull(-1,"",List())).times
         val newTimes = x._2._2.getOrElse(Structs.InvertedSingleFull(-1,"",List())).times
         Structs.InvertedSingleFull(x._1._1,x._1._2,ExtractSingle.combineTimes(prevTimes,newTimes))
       })
+    combined
   }
 }
