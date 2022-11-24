@@ -173,7 +173,8 @@ class S3ConnectorTest extends DBConnector {
    */
   override def write_single_table(singleRDD: RDD[Structs.InvertedSingleFull], metaData: MetaData): RDD[Structs.InvertedSingleFull] = {
     val newEvents = singleRDD.map(x=>x.times.size).reduce((x,y)=>x+y)
-    val previousSingle = read_single_table(metaData) //TODO: read only the ones that are required (similar event type)
+    val newEventTypes=singleRDD.map(_.event_name).distinct().collect().toList
+    val previousSingle = read_single_table(metaData,newEventTypes) //TODO: read only the ones that are required (similar event type)
     val combined = combine_single_table(singleRDD,previousSingle)
     val df = S3Transformations.transformSingleToDF(combined)//transform
     metaData.events+=newEvents//count and update metadata
@@ -193,6 +194,16 @@ class S3ConnectorTest extends DBConnector {
     val spark = SparkSession.builder().getOrCreate()
     try {
       val df = spark.read.parquet(single_table)
+      S3Transformations.transformSingleToRDD(df)
+    } catch {
+      case _: org.apache.spark.sql.AnalysisException => null
+    }
+  }
+
+  def read_single_table(metaData: MetaData,event_names:List[String]) = {
+    val spark = SparkSession.builder().getOrCreate()
+    try {
+      val df = spark.read.parquet(S3Utilities.extractSingleTables(single_table,event_names): _*)
       S3Transformations.transformSingleToRDD(df)
     } catch {
       case _: org.apache.spark.sql.AnalysisException => null
