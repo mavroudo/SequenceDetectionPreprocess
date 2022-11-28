@@ -1,21 +1,20 @@
-package auth.datalab.sequenceDetection.ObjectStorage
-
-import auth.datalab.sequenceDetection.ObjectStorage.Storage.SingleTable
-import auth.datalab.sequenceDetection.Structs.{Event, Sequence}
+import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
+import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{Row, SaveMode, SparkSession}
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FunSuite}
+import auth.datalab.siesta.BusinessLogic.Model.Structs
+import auth.datalab.siesta.BusinessLogic.Model.Structs.{Event, Sequence}
+import org.apache.spark.sql.SparkSession
 
+class TestExtractPairs extends FunSuite with BeforeAndAfterAll{
+  @transient var sc:SparkContext = null
 
-class TestSingleTable extends FunSuite with BeforeAndAfterAll{
-  @transient var sc:SparkContext=null
-
-  def createRDD:RDD[Sequence]={
+  def createRDD:RDD[Structs.Sequence]={
     val spark =SparkSession.builder().getOrCreate()
     val events:List[Event]=List(Event("2020-08-15 12:56:42","a"),
       Event("2020-08-15 13:49:53","b"),Event("2020-08-15 14:21:02","a"),
-      Event("2020-08-15 14:27:30","c"),Event("2020-08-15 15:27:23","b"))
+      Event("2020-08-15 14:27:30","c"),Event("2020-08-20 15:27:23","b"))
     val events2:List[Event]=List(Event("2020-08-15 12:11:54","a"),
       Event("2020-08-15 12:39:50","b"),Event("2020-08-15 12:45:22","d"))
     val events3:List[Event]=List(Event("2020-08-15 12:31:04","a"),
@@ -29,7 +28,6 @@ class TestSingleTable extends FunSuite with BeforeAndAfterAll{
       .appName("Object Storage Test")
       .master("local[*]")
       .getOrCreate()
-    //TODO: pass through environment vars
     val s3accessKeyAws = "minioadmin"
     val s3secretKeyAws = "minioadmin"
     val connectionTimeOut = "600000"
@@ -49,37 +47,20 @@ class TestSingleTable extends FunSuite with BeforeAndAfterAll{
 
   }
 
-
-
-
-  test("Read data from a file that doesn't exist"){
+  test("Create single table and extract pairs"){
     val spark=SparkSession.builder().getOrCreate()
-    try {
-      val df = spark.read.parquet("s3a://siesta/log-123-123/idx")
-    }catch {
-      case e: org.apache.spark.sql.AnalysisException =>
-        assert(true)
-    }
-  }
-
-
-  test("Create Single inverted"){
-    val spark=SparkSession.builder().getOrCreate()
+    val n =2
     val data = this.createRDD
-    val inverted = SingleTable.calculateSingle(newSequences = data)
-    assert(inverted.schema.size==2)
-    assert(inverted.schema.head.name=="event_type")
-    assert(inverted.schema(1).name=="occurrences")
-    val occs = inverted.select("occurrences").rdd.flatMap(x=>{
-      x.getAs[Seq[Row]]("occurrences").flatMap(y=>{
-        y.getAs[Seq[String]](1).map(t=>(y.getLong(0),t))
-      })
-    }).collect()
-    assert(occs.length==11)
+    val invertedSingleFull = ExtractSingle.extractFull(data)
+    val intervals =  Intervals.intervals(data,"",2)
+
+    val all_events = invertedSingleFull.map(_.event_name).distinct().collect()
+    val lists = (1 to n).map(_ => all_events).toArray
+    val pairs = ExtractPairs.extract(invertedSingleFull,null,intervals,2)
+    print("end of test")
   }
 
 
-  override protected def afterAll(): Unit = {
-    sc.stop()
-  }
+
+
 }

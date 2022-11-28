@@ -20,7 +20,7 @@ case class Config(
                    length_min: Int = 10,
                    length_max: Int = 90,
                    iterations: Int = -1,
-                   n: Int = 2,
+//                   n: Int = 2, Has been removed after proved to be the most efficient
                    k: Int = -1
 
                    //                     kwargs: Map[String, String] = Map()
@@ -85,13 +85,13 @@ object ParsingArguments {
         .validate(x => {
           if (x > 0) success else failure("Value <s> has to be a positive number")
         }),
-      opt[Int]("n")
-        .valueName("<n>")
-        .text("Key size (n-tuples)")
-        .validate(x => {
-          if (x > 0 && x < 4) success else failure("Value <n> has to be between 1 and 3")
-        })
-        .action((x, c) => c.copy(n = x)),
+//      opt[Int]("n")
+//        .valueName("<n>")
+//        .text("Key size (n-tuples)")
+//        .validate(x => {
+//          if (x > 0 && x < 4) success else failure("Value <n> has to be between 1 and 3")
+//        })
+//        .action((x, c) => c.copy(n = x)),
       opt[Int]('i', "iterations")
         .valueName("<i>")
         .text("# iterations, if not set it will be determined by the system")

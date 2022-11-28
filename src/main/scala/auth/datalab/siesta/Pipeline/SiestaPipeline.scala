@@ -1,12 +1,13 @@
 package auth.datalab.siesta.Pipeline
 
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
-import auth.datalab.siesta.BusinessLogic.ExtractPairs.Intervals
+import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3ConnectorTest
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 
@@ -28,7 +29,7 @@ object SiestaPipeline {
     val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
     sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)
     dbConnector.write_sequence_table(sequenceRDD,metadata) //writes traces to sequence table and ignore the output
-    val intervals =  Intervals.intervals(sequenceRDD,metadata)
+    val intervals =  Intervals.intervals(sequenceRDD,metadata.last_interval,metadata.split_every_days)
 
     val invertedSingleFull = ExtractSingle.extractFull(sequenceRDD) //calculates inverted single
     sequenceRDD.unpersist()
@@ -37,7 +38,15 @@ object SiestaPipeline {
 
     //Up until now there should be no problem with the memory, or time-outs during writing. However creating n-tuples
     //creates large amount of data.
+    val lastChecked = dbConnector.read_last_checked_table(metadata)
 
+
+
+    Logger.getLogger("Calculate pairs").log(Level.INFO, s"Calculate pairs")
+    val start = System.currentTimeMillis()
+    val pairs = ExtractPairs.extract(combinedInvertedFull,null,intervals,metadata.lookback)
+    pairs.collect().foreach(println)
+    Logger.getLogger("Calculate pairs").log(Level.INFO, s"finished in ${(System.currentTimeMillis() - start) / 1000} seconds")
     println("Done with this shit")
 
 

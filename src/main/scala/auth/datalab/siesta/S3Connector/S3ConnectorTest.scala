@@ -98,14 +98,14 @@ class S3ConnectorTest extends DBConnector {
     Logger.getLogger("Metadata").log(Level.INFO, s"finished in ${total / 1000} seconds")
     //calculate new object
     val metaData = if (metaDataObj==null) {
-      MetaData(traces = 0, events=0, indexed_tuples = 0, n=config.n, lookback = config.lookback_days,
+      MetaData(traces = 0, events=0, indexed_tuples = 0, lookback = config.lookback_days,
       split_every_days = config.split_every_days, last_interval = "", has_previous_stored = false,
       filename = config.filename, log_name = config.log_name)
     }else{
       metaDataObj.collect().map(x=>{
         MetaData(traces = x.getAs("traces"),
           events = x.getAs("events"),
-          indexed_tuples = x.getAs("indexed_tuples"), n = x.getAs("n"),
+          indexed_tuples = x.getAs("indexed_tuples"),
           lookback = x.getAs("lookback"), split_every_days = x.getAs("split_every_days"),
           last_interval = x.getAs("last_interval"), has_previous_stored = true,
           filename = x.getAs("filename"), log_name = x.getAs("log_name"))
@@ -260,15 +260,15 @@ class S3ConnectorTest extends DBConnector {
 
   override def combine_last_checked_table(newLastChecked: RDD[Structs.LastChecked], previousLastChecked: RDD[Structs.LastChecked]): RDD[Structs.LastChecked] = {
     if (previousLastChecked == null) return newLastChecked
-    val combined = previousLastChecked.keyBy(x=>(x.id,x.events))
-      .fullOuterJoin(newLastChecked.keyBy(x=>(x.id,x.events)))
+    val combined = previousLastChecked.keyBy(x=>(x.id,x.eventA,x.eventB))
+      .fullOuterJoin(newLastChecked.keyBy(x=>(x.id,x.eventA,x.eventB)))
       .map(x=>{
-        val prevLC = x._2._1.getOrElse(Structs.LastChecked("",List(),-1,""))
-        val newLC = x._2._2.getOrElse(Structs.LastChecked("",List(),-1,""))
+        val prevLC = x._2._1.getOrElse(Structs.LastChecked("","",-1,""))
+        val newLC = x._2._2.getOrElse(Structs.LastChecked("","",-1,""))
         val time = if(newLC.timestamp=="") prevLC.timestamp else newLC.timestamp
-        val events = if(newLC.events.isEmpty) prevLC.events else newLC.events
+        val events = if(newLC.eventA=="") (prevLC.eventA,prevLC.eventB) else (newLC.eventA,newLC.eventB)
         val id = if(newLC.id == -1) prevLC.id else newLC.id
-        Structs.LastChecked(events.head,events,id,time)
+        Structs.LastChecked(events._1,events._2,id,time)
       })
     combined
 

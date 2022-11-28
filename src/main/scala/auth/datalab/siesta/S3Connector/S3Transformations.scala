@@ -45,9 +45,10 @@ object S3Transformations {
 
   def transformLastCheckedToRDD(df: DataFrame):RDD[LastChecked]={
     df.rdd.flatMap(x=>{
-      val events = x.getAs[Seq[String]]("key_events").toList
+      val eventA=x.getString(0)
+      val eventB=x.getString(1)
       x.getAs[Seq[Row]]("occurrences").map(oc=>{
-        LastChecked(events.head,events,oc.getLong(0),oc.getString(1))
+        LastChecked(eventA,eventB,oc.getLong(0),oc.getString(1))
       })
     })
   }
@@ -55,11 +56,11 @@ object S3Transformations {
   def transformLastCheckedToDF(lastchecked:RDD[LastChecked]):DataFrame={
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
-    lastchecked.groupBy(x=>x.events)
+    lastchecked.groupBy(x=>(x.eventA,x.eventB))
       .map(x=>{
         val occurrences = x._2.map(y=>Structs.IdTime(y.id,y.timestamp))
-        Structs.LastCheckedDF(x._1.head,x._1,occurrences.toList)
-      }).toDF("first_event","key_events","occurrences")
+        Structs.LastCheckedDF(x._1._1,x._1._2,occurrences.toList)
+      }).toDF("eventA","eventB","occurrences")
   }
 
 

@@ -13,10 +13,10 @@ import scala.collection.mutable.ListBuffer
 
 object Intervals {
 
-  private def calculateIntervals(metaData: MetaData, minTimestamp: Date, maxTimestamp: Date): List[Structs.Interval] = {
+  private def calculateIntervals(last_interval:String,split_every_days:Int, minTimestamp: Date, maxTimestamp: Date): List[Structs.Interval] = {
     val buffer:ListBuffer[Structs.Interval] = new ListBuffer[Structs.Interval]()
-    val days = metaData.split_every_days
-    if(metaData.last_interval==""){
+    val days = split_every_days
+    if(last_interval==""){
       var nTime=minTimestamp.toInstant.plus(days,ChronoUnit.DAYS)
       var pTime=minTimestamp.toInstant
       buffer+=Structs.Interval(Date.from(pTime),Date.from(nTime))
@@ -26,7 +26,7 @@ object Intervals {
         buffer+=Structs.Interval(Date.from(pTime),Date.from(nTime))
       }
     }else{ //we only calculate forward (there should not be any value that belongs to previous interval)
-      val timestamps = metaData.last_interval.split("_")
+      val timestamps = last_interval.split("_")
       var start = Instant.parse(timestamps.head)
       var end = Instant.parse(timestamps.last)
       if(minTimestamp.toInstant.isBefore(start)){
@@ -44,7 +44,7 @@ object Intervals {
     buffer.toList
   }
 
-  def intervals(sequenceRDD:RDD[Structs.Sequence],metaData: MetaData):List[Structs.Interval]={
+  def intervals(sequenceRDD:RDD[Structs.Sequence],last_interval:String,split_every_days:Int):List[Structs.Interval]={
     implicit def ordered:Ordering[Timestamp] = new Ordering[Timestamp] {
       override def compare(x: Timestamp, y: Timestamp): Int = {
         x compareTo y
@@ -52,7 +52,7 @@ object Intervals {
     }
     val min = sequenceRDD.map(x=>Timestamp.valueOf(x.events.head.timestamp)).min()
     val max = sequenceRDD.map(x=>Timestamp.valueOf(x.events.last.timestamp)).max()
-    this.calculateIntervals(metaData,min,max)
+    this.calculateIntervals(last_interval,split_every_days,min,max)
   }
 
 
