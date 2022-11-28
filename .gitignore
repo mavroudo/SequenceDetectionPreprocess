@@ -1,7 +1,9 @@
+*/target/*
 target/*
 *.xes
 *.class
 *.log
+*/.idea/*
 .idea/*
 pythonTesting/env/*
 *.withTimestamp

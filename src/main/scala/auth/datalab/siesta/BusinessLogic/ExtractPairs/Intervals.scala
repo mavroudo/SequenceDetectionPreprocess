@@ -39,8 +39,9 @@ object Intervals {
         buffer+=Structs.Interval(Date.from(start),Date.from(end))
       }
     }
-    buffer.toList
+
     Logger.getLogger("Calculate Intervals").log(Level.INFO,s"found ${buffer.size} intervals.")
+    buffer.toList
   }
 
   def intervals(sequenceRDD:RDD[Structs.Sequence],metaData: MetaData):List[Structs.Interval]={
