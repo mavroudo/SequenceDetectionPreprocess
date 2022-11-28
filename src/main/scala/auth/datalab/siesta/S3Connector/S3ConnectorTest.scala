@@ -13,6 +13,7 @@ import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
 import org.apache.spark.sql.catalyst.ScalaReflection
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.StructType
+import org.apache.spark.storage.StorageLevel
 
 import java.net.URI
 
@@ -36,7 +37,7 @@ class S3ConnectorTest extends DBConnector {
     val s3accessKeyAws = "minioadmin"
     val s3secretKeyAws = "minioadmin"
     val connectionTimeOut = "600000"
-    val s3endPointLoc: String = "http://rabbit.csd.auth.gr:9000"
+    val s3endPointLoc: String = "http://localhost:9000"
 
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.endpoint", s3endPointLoc)
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", s3accessKeyAws)
@@ -191,10 +192,13 @@ class S3ConnectorTest extends DBConnector {
     val combined = combine_single_table(singleRDD,previousSingle)
     val df = S3Transformations.transformSingleToDF(combined)//transform
     metaData.events+=newEvents//count and update metadata
-    df.repartition(col("event_type"))
+    df.persist(StorageLevel.MEMORY_AND_DISK)
+    df
+      .repartition(col("event_type"))
       .write.partitionBy("event_type")
       .mode(SaveMode.Overwrite).parquet(single_table) //store to s3
     val total = System.currentTimeMillis() - start
+    df.unpersist()
     Logger.getLogger("Single Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
     combined
   }
@@ -221,9 +225,11 @@ class S3ConnectorTest extends DBConnector {
     val combined = previousSingle.keyBy(x=>(x.id,x.event_name))
       .rightOuterJoin(newSingle.keyBy(x=>(x.id,x.event_name)))
       .map(x=>{
-        val prevTimes = x._2._1.getOrElse(Structs.InvertedSingleFull(-1,"",List())).times
-        val newTimes = x._2._2.times
-        Structs.InvertedSingleFull(x._1._1,x._1._2,ExtractSingle.combineTimes(prevTimes,newTimes))
+        val previous = x._2._1.getOrElse(Structs.InvertedSingleFull(-1,"",List(),List()))
+        val prevOc = previous.times.zip(previous.positions)
+        val newOc = x._2._2.times.zip(x._2._2.positions)
+        val combine = ExtractSingle.combineTimes(prevOc,newOc)
+        Structs.InvertedSingleFull(x._1._1,x._1._2,combine.map(_._1),combine.map(_._2))
       })
     combined
   }

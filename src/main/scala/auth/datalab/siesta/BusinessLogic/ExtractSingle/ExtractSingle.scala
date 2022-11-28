@@ -13,34 +13,39 @@ object ExtractSingle {
       invertedSingleFull
         .groupBy(_.event_name)
         .map(x=>{
-          val times = x._2.map(y=>Structs.IdTimeList(y.id,y.times))
-          Structs.InvertedSingle(x._1,times.toList)
+          val occurrences = x._2.map(y=>Structs.IdTimePositionList(y.id,y.times,y.positions))
+          Structs.InvertedSingle(x._1,occurrences.toList)
         })
     }
 
   def extractFull(sequences: RDD[Structs.Sequence]): RDD[Structs.InvertedSingleFull] = {
     sequences.flatMap(x => {
-      x.events.map(event => {
-        ((event.event, x.sequence_id), event.timestamp)
+      x.events.zipWithIndex.map(e=>{
+        val event = e._1
+        val position = e._2
+        ((event.event,x.sequence_id),event.timestamp,position)
       })
     })
       .groupBy(_._1)
-      .map(y => {
+      .map(y=>{
         val times = y._2.map(_._2)
-        Structs.InvertedSingleFull(y._1._2, y._1._1, times.toList)
+        val positions = y._2.map(_._3)
+        Structs.InvertedSingleFull(y._1._2,y._1._1,times = times.toList, positions = positions.toList)
       })
   }
 
-  def combineTimes(x: List[String], y: List[String]):List[String]= {
+  def combineTimes(x: List[(String,Int)], y: List[(String,Int)]):List[(String,Int)]= {
     (x, y) match {
       case (Nil, Nil) => Nil
       case (_ :: _, Nil) => x
       case (Nil, _ :: _) => y
       case (i :: _, j :: _) =>
-        if (Utilities.compareTimes(i, j))
+//        if (Utilities.compareTimes(i, j))
+        if(i._2 < j._2)
           i :: combineTimes(x.tail, y)
         else
           j :: combineTimes(x, y.tail)
     }
   }
+
 }

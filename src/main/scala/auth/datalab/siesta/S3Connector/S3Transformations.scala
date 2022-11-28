@@ -26,9 +26,9 @@ object S3Transformations {
   def transformSingleToRDD(df:DataFrame):RDD[Structs.InvertedSingleFull]={
     df.rdd.flatMap(x=>{
       val event_name = x.getAs[String]("event_type")
-      val occurrences = x.getAs[Seq[Row]]("occurrences").map(y=>(y.getLong(0),y.getAs[Seq[String]](1)))
+      val occurrences = x.getAs[Seq[Row]]("occurrences").map(y=>(y.getLong(0),y.getAs[Seq[String]](1),y.getAs[Seq[Int]](2)))
       occurrences.map(o=>{
-        Structs.InvertedSingleFull(o._1,event_name,o._2.toList)
+        Structs.InvertedSingleFull(o._1,event_name,o._2.toList,o._3.toList)
       })
     })
   }
@@ -38,7 +38,8 @@ object S3Transformations {
     import spark.sqlContext.implicits._
     singleRDD.groupBy(_.event_name)
       .map(y=>{
-        Structs.InvertedSingle(y._1,y._2.map(x=>Structs.IdTimeList(x.id,x.times)).toList)
+        Structs.InvertedSingle(y._1,y._2.map(x=>Structs.IdTimePositionList(x.id,x.times,x.positions)).toList)
+
       }).toDF("event_type", "occurrences")
   }
 
