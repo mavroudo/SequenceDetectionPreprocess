@@ -1,6 +1,7 @@
 package auth.datalab.siesta.Pipeline
 
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
+import auth.datalab.siesta.BusinessLogic.ExtractPairs.Intervals
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs
@@ -27,6 +28,7 @@ object SiestaPipeline {
     val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
     sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)
     dbConnector.write_sequence_table(sequenceRDD,metadata) //writes traces to sequence table and ignore the output
+    val intervals =  Intervals.intervals(sequenceRDD,metadata)
 
     val invertedSingleFull = ExtractSingle.extractFull(sequenceRDD) //calculates inverted single
     sequenceRDD.unpersist()

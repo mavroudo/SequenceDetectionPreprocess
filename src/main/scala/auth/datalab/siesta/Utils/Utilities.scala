@@ -41,6 +41,7 @@ object Utilities {
     time1.before(time2)
   }
 
+
   /**
    * Method to return the difference in milliseconds between timestamps
    *
