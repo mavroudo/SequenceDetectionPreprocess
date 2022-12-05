@@ -283,8 +283,7 @@ class S3ConnectorTest extends DBConnector {
       parqDF.createOrReplaceTempView("IndexTable")
       val interval_min = intervals.map(_.start).distinct.sortWith((x,y)=>x.before(y)).head
       val interval_max = intervals.map(_.end).distinct.sortWith((x,y)=>x.before(y)).head
-      spark.sql(s"""select * from IndexTable where interval.start >= $interval_min and interval.end<= $interval_max""").explain()
-      val parkSQL = spark.sql(s"""select * from IndexTable where interval.start >= $interval_min and interval.end<= $interval_max""")
+      val parkSQL = spark.sql(s"""select * from IndexTable where (start>=to_timestamp('$interval_min') and end<=to_timestamp('$interval_max'))""")
       S3Transformations.transformIndexToRDD(parkSQL,metaData)
     } catch {
       case _: org.apache.spark.sql.AnalysisException => null

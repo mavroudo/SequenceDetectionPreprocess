@@ -6,6 +6,8 @@ import auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
+import java.sql.Timestamp
+
 object S3Transformations {
 
   def transformSeqToDF(sequenceRDD: RDD[Structs.Sequence]): DataFrame = {
@@ -46,8 +48,8 @@ object S3Transformations {
 
   def transformLastCheckedToRDD(df: DataFrame): RDD[LastChecked] = {
     df.rdd.flatMap(x => {
-      val eventA = x.getString(0)
-      val eventB = x.getString(1)
+      val eventA = x.getAs[String]("eventA")
+      val eventB = x.getAs[String]("eventB")
       x.getAs[Seq[Row]]("occurrences").map(oc => {
         LastChecked(eventA, eventB, oc.getLong(0), oc.getString(1))
       })
@@ -67,20 +69,30 @@ object S3Transformations {
   def transformIndexToRDD(df: DataFrame, metaData: MetaData): RDD[Structs.PairFull] = {
     if (metaData.mode == "positions") {
       df.rdd.flatMap(row => {
-        val interval = row.getAs[Structs.Interval](0)
-        val eventA = row.getString(1)
-        val eventB = row.getString(2)
-        row.getAs[Seq[Row]]("occurrences").map(oc => {
-          Structs.PairFull(eventA, eventB, oc.getLong(0), null, null, oc.getInt(1), oc.getInt(2), interval)
+        val start = row.getAs[Timestamp]("start")
+        val end = row.getAs[Timestamp]("end")
+        val eventA = row.getAs[String]("eventA")
+        val eventB = row.getAs[String]("eventB")
+        row.getAs[Seq[Row]]("occurrences").flatMap(oc => {
+          val id = oc.getLong(0)
+          oc.getAs[Seq[Row]](1).map(o=>{
+            Structs.PairFull(eventA, eventB, id, null, null, o.getInt(0), o.getInt(1), Structs.Interval(start,end))
+          })
+
         })
       })
     } else {
       df.rdd.flatMap(row => {
-        val interval = row.getAs[Structs.Interval](0)
-        val eventA = row.getString(1)
-        val eventB = row.getString(2)
-        row.getAs[Seq[Row]]("occurrences").map(oc => {
-          Structs.PairFull(eventA, eventB, oc.getLong(0), oc.getTimestamp(1), oc.getTimestamp(2), -1, -1, interval)
+        val start = row.getAs[Timestamp]("start")
+        val end = row.getAs[Timestamp]("end")
+        val eventA = row.getAs[String]("eventA")
+        val eventB = row.getAs[String]("eventB")
+        row.getAs[Seq[Row]]("occurrences").flatMap(oc => {
+          val id = oc.getLong(0)
+          oc.getAs[Seq[Row]](1).map(o => {
+            Structs.PairFull(eventA, eventB, id, o.getTimestamp(0), o.getTimestamp(1),-1,-1, Structs.Interval(start, end))
+          })
+
         })
       })
     }
