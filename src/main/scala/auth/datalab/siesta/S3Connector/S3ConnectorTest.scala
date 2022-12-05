@@ -9,7 +9,7 @@ import auth.datalab.siesta.CommandLineParser.Config
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
+import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.apache.spark.sql.catalyst.ScalaReflection
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.StructType
@@ -23,6 +23,7 @@ class S3ConnectorTest extends DBConnector {
   var meta_table: String = _
   var single_table: String = _
   var last_checked_table:String = _
+  var index_table:String = _
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
@@ -37,7 +38,7 @@ class S3ConnectorTest extends DBConnector {
     val s3accessKeyAws = "minioadmin"
     val s3secretKeyAws = "minioadmin"
     val connectionTimeOut = "600000"
-    val s3endPointLoc: String = "http://localhost:9000"
+    val s3endPointLoc: String = "http://rabbit.csd.auth.gr:9000"
 
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.endpoint", s3endPointLoc)
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", s3accessKeyAws)
@@ -61,10 +62,11 @@ class S3ConnectorTest extends DBConnector {
     val fs = FileSystem.get(new URI("s3a://siesta/"), spark.sparkContext.hadoopConfiguration)
 
     //define name tables
-    seq_table = s"""s3a://siesta/${config.log_name}/seq/"""
-    meta_table = s"""s3a://siesta/${config.log_name}/meta/"""
-    single_table = s"""s3a://siesta/${config.log_name}/single/"""
-    last_checked_table = s"""s3a://siesta/${config.log_name}/last_checked/"""
+    seq_table = s"""s3a://siesta/${config.log_name}/seq.parquet/"""
+    meta_table = s"""s3a://siesta/${config.log_name}/meta.parquet/"""
+    single_table = s"""s3a://siesta/${config.log_name}/single.parquet/"""
+    last_checked_table = s"""s3a://siesta/${config.log_name}/last_checked.parquet/"""
+    index_table = s"""s3a://siesta/${config.log_name}/index.parquet/"""
 
     //delete previous stored values
     if (config.delete_previous) fs.delete(new Path(s"""s3a://siesta/${config.log_name}/"""), true)
@@ -100,7 +102,7 @@ class S3ConnectorTest extends DBConnector {
     val metaData = if (metaDataObj==null) {
       MetaData(traces = 0, events=0, indexed_tuples = 0, lookback = config.lookback_days,
       split_every_days = config.split_every_days, last_interval = "", has_previous_stored = false,
-      filename = config.filename, log_name = config.log_name)
+      filename = config.filename, log_name = config.log_name, mode = config.mode)
     }else{
       metaDataObj.collect().map(x=>{
         MetaData(traces = x.getAs("traces"),
@@ -108,7 +110,7 @@ class S3ConnectorTest extends DBConnector {
           indexed_tuples = x.getAs("indexed_tuples"),
           lookback = x.getAs("lookback"), split_every_days = x.getAs("split_every_days"),
           last_interval = x.getAs("last_interval"), has_previous_stored = true,
-          filename = x.getAs("filename"), log_name = x.getAs("log_name"))
+          filename = x.getAs("filename"), log_name = x.getAs("log_name"), mode = x.getAs("mode"))
       }).head
     }
     this.write_metadata(metaData)//persist this version back
@@ -250,8 +252,8 @@ class S3ConnectorTest extends DBConnector {
     val previousLastChecked = this.read_last_checked_table(metaData)
     val combined = this.combine_last_checked_table(lastChecked,previousLastChecked)
     val df = S3Transformations.transformLastCheckedToDF(combined)
-    df.repartition(col("first_event"))
-      .write.partitionBy("first_event")
+    df.repartition(col("eventA"))
+      .write.partitionBy("eventA")
       .mode(SaveMode.Overwrite).parquet(last_checked_table)
     val total = System.currentTimeMillis() - start
     Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
@@ -271,6 +273,41 @@ class S3ConnectorTest extends DBConnector {
         Structs.LastChecked(events._1,events._2,id,time)
       })
     combined
+
+  }
+
+  override def read_index_table(metaData: MetaData, intervals: List[Structs.Interval]): RDD[Structs.PairFull] = {
+    val spark = SparkSession.builder().getOrCreate()
+    try {
+      val parqDF = spark.read.parquet(this.index_table)
+      parqDF.createOrReplaceTempView("IndexTable")
+      val interval_min = intervals.map(_.start).distinct.sortWith((x,y)=>x.before(y)).head
+      val interval_max = intervals.map(_.end).distinct.sortWith((x,y)=>x.before(y)).head
+      spark.sql(s"""select * from IndexTable where interval.start >= $interval_min and interval.end<= $interval_max""").explain()
+      val parkSQL = spark.sql(s"""select * from IndexTable where interval.start >= $interval_min and interval.end<= $interval_max""")
+      S3Transformations.transformIndexToRDD(parkSQL,metaData)
+    } catch {
+      case _: org.apache.spark.sql.AnalysisException => null
+    }
+  }
+
+  override def combine_index_table(newPairs: RDD[Structs.PairFull], prevPairs: RDD[Structs.PairFull], metaData: MetaData, intervals: List[Structs.Interval]): RDD[Structs.PairFull] = {
+    if (prevPairs == null) return newPairs
+    newPairs.union(prevPairs)
+  }
+
+  override def write_index_table(newPairs: RDD[Structs.PairFull], metaData: MetaData, intervals: List[Structs.Interval]): Unit = {
+    Logger.getLogger("Index Table Write").log(Level.INFO, s"Start writing Index table")
+    val start = System.currentTimeMillis()
+    val previousIndexed = this.read_index_table(metaData, intervals)
+    val combined = this.combine_index_table(newPairs,previousIndexed,metaData, intervals)
+    val df = S3Transformations.transformIndexToDF(combined,metaData)
+    df.repartition(col("interval"))
+      .select("interval.start","interval.end","eventA","eventB","occurrences")
+          .write.partitionBy("start","end","eventA")
+      .mode(SaveMode.Overwrite).parquet(this.index_table)
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("Index Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
 
   }
 

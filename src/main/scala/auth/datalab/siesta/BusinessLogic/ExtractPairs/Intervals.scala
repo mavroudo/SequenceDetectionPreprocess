@@ -19,11 +19,11 @@ object Intervals {
     if(last_interval==""){
       var nTime=minTimestamp.toInstant.plus(days,ChronoUnit.DAYS)
       var pTime=minTimestamp.toInstant
-      buffer+=Structs.Interval(Date.from(pTime),Date.from(nTime))
+      buffer+=Structs.Interval(Timestamp.from(pTime),Timestamp.from(nTime))
       while(nTime.isBefore(maxTimestamp.toInstant)){
         pTime=nTime.plus(1,ChronoUnit.DAYS)
         nTime=nTime.plus(days+1,ChronoUnit.DAYS)
-        buffer+=Structs.Interval(Date.from(pTime),Date.from(nTime))
+        buffer+=Structs.Interval(Timestamp.from(pTime),Timestamp.from(nTime))
       }
     }else{ //we only calculate forward (there should not be any value that belongs to previous interval)
       val timestamps = last_interval.split("_")
@@ -36,7 +36,7 @@ object Intervals {
       while(end.isBefore(maxTimestamp.toInstant)){
         start=end.plus(1,ChronoUnit.DAYS)
         end=end.plus(days+1,ChronoUnit.DAYS)
-        buffer+=Structs.Interval(Date.from(start),Date.from(end))
+        buffer+=Structs.Interval(Timestamp.from(start),Timestamp.from(end))
       }
     }
 

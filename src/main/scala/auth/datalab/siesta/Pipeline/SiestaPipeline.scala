@@ -39,14 +39,14 @@ object SiestaPipeline {
     //Up until now there should be no problem with the memory, or time-outs during writing. However creating n-tuples
     //creates large amount of data.
     val lastChecked = dbConnector.read_last_checked_table(metadata)
-
-
-
-    Logger.getLogger("Calculate pairs").log(Level.INFO, s"Calculate pairs")
-    val start = System.currentTimeMillis()
-    val pairs = ExtractPairs.extract(combinedInvertedFull,null,intervals,metadata.lookback)
-    pairs.collect().foreach(println)
-    Logger.getLogger("Calculate pairs").log(Level.INFO, s"finished in ${(System.currentTimeMillis() - start) / 1000} seconds")
+    val x = ExtractPairs.extract(combinedInvertedFull,null,intervals,metadata.lookback)
+    combinedInvertedFull.unpersist()
+    x._2.persist(StorageLevel.MEMORY_AND_DISK)
+    dbConnector.write_last_checked_table(x._2,metadata)
+    x._2.unpersist()
+    x._1.persist(StorageLevel.MEMORY_AND_DISK)
+    dbConnector.write_index_table(x._1,metadata,intervals)
+    x._1.unpersist()
     println("Done with this shit")
 
 

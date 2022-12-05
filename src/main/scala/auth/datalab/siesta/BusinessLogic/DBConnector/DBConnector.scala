@@ -107,6 +107,32 @@ trait DBConnector {
    */
   def combine_last_checked_table(newLastChecked:RDD[LastChecked], previousLastChecked:RDD[LastChecked]):RDD[LastChecked]
 
+  /**
+   * Read data previously stored data that correspond to the intervals, in order to be merged
+   * @param metaData
+   * @param intervals
+   * @return
+   */
+  def read_index_table(metaData: MetaData, intervals:List[Structs.Interval]):RDD[Structs.PairFull]
+
+  /**
+   * Combine the two rdds with the pairs
+   * @param newPairs
+   * @param prevPairs
+   * @param metaData
+   * @param intervals
+   * @return
+   */
+  def combine_index_table(newPairs:RDD[Structs.PairFull],prevPairs:RDD[Structs.PairFull],metaData: MetaData, intervals:List[Structs.Interval]):RDD[Structs.PairFull]
+
+  /**
+   * Write the combined pairs back to the S3, grouped by the interval and the first event
+   * @param combinedPairs
+   * @param metaData
+   * @param intervals
+   */
+  def write_index_table(newPairs:RDD[Structs.PairFull],metaData: MetaData, intervals:List[Structs.Interval]):Unit
+
 
 
 }

@@ -14,28 +14,31 @@ object ExtractPairs {
 
 
   def extract(singleRDD: RDD[Structs.InvertedSingleFull], last_checked: RDD[Structs.LastChecked],
-              intervals: List[Structs.Interval], lookback: Int):RDD[Structs.PairFull] = { //TODO: implement last checked
+              intervals: List[Structs.Interval], lookback: Int):(RDD[Structs.PairFull],RDD[Structs.LastChecked]) = { //TODO: implement last checked
 
     val spark = SparkSession.builder().getOrCreate()
     val bintervals = spark.sparkContext.broadcast(intervals)
     if (last_checked == null) {
-      singleRDD.groupBy(_.id)
-        .flatMap(x => {
+      val full = singleRDD.groupBy(_.id)
+        .map(x => {
           this.calculate_ntuples_stnm(x._2, null, lookback, bintervals)
         })
+      (full.flatMap(_._1),full.flatMap(_._2))
     } else {
-      singleRDD.groupBy(_.id).join(last_checked.groupBy(_.id))
-        .flatMap(x => {
+      val full =singleRDD.groupBy(_.id).join(last_checked.groupBy(_.id))
+        .map(x => {
           this.calculate_ntuples_stnm(x._2._1, x._2._2, lookback, bintervals)
         })
+      (full.flatMap(_._1),full.flatMap(_._2))
     }
 
 
   }
 
   def calculate_ntuples_stnm(single: Iterable[Structs.InvertedSingleFull], last: Iterable[Structs.LastChecked],
-                             lookback: Int, intervals: Broadcast[List[Structs.Interval]]):List[Structs.PairFull] = {
+                             lookback: Int, intervals: Broadcast[List[Structs.Interval]]):(List[Structs.PairFull],List[Structs.LastChecked]) = {
     val singleMap = single.groupBy(_.event_name)
+    val newLastChecked = new ListBuffer[Structs.PairFull]()
     val lastMap = if (last != null) last.groupBy(x => (x.eventA, x.eventB)) else null
     val all_events = single.map(_.event_name).toList.distinct
     val combinations = this.findCombinations(all_events, all_events)
@@ -48,9 +51,16 @@ object ExtractPairs {
       } catch {
         case _: Exception => null
       }
-      results ++= this.createTuples(List(key._1, key._2), List(ts1, ts2), intervals, lookback, last_checked,single.head.id)
+      val nres = this.createTuples(List(key._1, key._2), List(ts1, ts2), intervals, lookback, last_checked,single.head.id)
+      if (nres.nonEmpty) {
+        newLastChecked += nres.last
+        results ++= nres
+      }
     })
-    results.toList
+    val l = newLastChecked.map(x=>{
+      Structs.LastChecked(x.eventA,x.eventB,x.id,timestamp = x.timeB.toString)
+    })
+    (results.toList, l.toList)
 
   }
 

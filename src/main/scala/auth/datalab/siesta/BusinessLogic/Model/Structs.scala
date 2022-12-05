@@ -26,6 +26,6 @@ object Structs {
   //Extract Pairs
   case class PairFull(eventA:String,eventB:String,id:Long,timeA:Timestamp,timeB:Timestamp,positionA:Int,positionB:Int,interval:Interval)
   //Intervals
-  case class Interval(start:Date,end:Date)
+  case class Interval(start:Timestamp,end:Timestamp) extends Serializable
 
 }

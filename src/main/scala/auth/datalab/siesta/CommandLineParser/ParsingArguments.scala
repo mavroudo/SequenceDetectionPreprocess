@@ -6,7 +6,7 @@ import scala.language.postfixOps
 
 case class Config(
                    database: String = "s3",
-                   mode: String = "siesta",
+                   mode: String = "positions",
                    filename: String = "synthetic",
                    log_name: String = "synthetic",
                    delete_all: Boolean = false,
