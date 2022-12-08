@@ -19,13 +19,14 @@ class TestExtractPairs extends FunSuite with BeforeAndAfterAll{
 
 
   override def beforeAll(): Unit = {
-    dbConnector.initialize_spark()
+    config = Config(delete_previous = true, log_name = "test")
+    dbConnector.initialize_spark(config)
 
   }
 
   test("Creating pairs - lookback 5d (1)"){
     val spark = SparkSession.builder().getOrCreate()
-    config = Config(delete_previous = true, log_name = "test")
+
     this.dbConnector.initialize_db(config)
     this.metaData = dbConnector.get_metadata(config)
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
@@ -41,7 +42,6 @@ class TestExtractPairs extends FunSuite with BeforeAndAfterAll{
 
   test("Creating pairs - lookback 2d (1)") {
     val spark = SparkSession.builder().getOrCreate()
-    config = Config(delete_previous = true, log_name = "test")
     this.dbConnector.initialize_db(config)
     this.metaData = dbConnector.get_metadata(config)
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)

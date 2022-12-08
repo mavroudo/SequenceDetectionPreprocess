@@ -3,7 +3,7 @@ package auth.datalab.siesta
 import auth.datalab.siesta.CommandLineParser.{Config, ParsingArguments}
 import auth.datalab.siesta.Pipeline.SiestaPipeline
 import org.apache.log4j.{Level, Logger}
-
+import org.apache.hadoop.io.compress.ZStandardCodec
 
 object Main {
 

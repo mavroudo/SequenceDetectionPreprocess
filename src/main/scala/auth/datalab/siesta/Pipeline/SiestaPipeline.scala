@@ -20,7 +20,7 @@ object SiestaPipeline {
   def execute(c: Config): Unit = {
     
     val dbConnector = new S3ConnectorTest()
-    dbConnector.initialize_spark()
+    dbConnector.initialize_spark(c)
     dbConnector.initialize_db(config = c)
     val metadata = dbConnector.get_metadata(c)
 
@@ -52,6 +52,7 @@ object SiestaPipeline {
     dbConnector.write_count_table(counts,metadata)
     counts.unpersist()
     x._1.unpersist()
+    dbConnector.write_metadata(metadata)
     println("Done with this shit")
 
 

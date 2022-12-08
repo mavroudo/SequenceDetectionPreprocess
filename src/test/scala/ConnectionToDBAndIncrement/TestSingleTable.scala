@@ -14,8 +14,9 @@ class TestSingleTable extends FunSuite with BeforeAndAfterAll {
   @transient var config:Config = null
 
   override def beforeAll(): Unit = {
-    dbConnector.initialize_spark()
+
     config = Config(delete_previous = true, log_name = "test")
+    dbConnector.initialize_spark(config)
     this.dbConnector.initialize_db(config)
     this.metaData=dbConnector.get_metadata(config)
   }

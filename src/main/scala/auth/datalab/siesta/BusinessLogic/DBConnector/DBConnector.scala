@@ -11,7 +11,7 @@ trait DBConnector {
   /**
    * Depending on the different database, each connector has to initialize the spark context
    */
-  def initialize_spark(): Unit
+  def initialize_spark(config:Config): Unit
 
   /**
    * Create the appropriate tables, remove previous ones

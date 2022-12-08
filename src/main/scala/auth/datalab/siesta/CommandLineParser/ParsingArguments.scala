@@ -9,6 +9,7 @@ case class Config(
                    mode: String = "positions",
                    filename: String = "synthetic",
                    log_name: String = "synthetic",
+                   compression: String = "snappy",
                    delete_all: Boolean = false,
                    delete_previous: Boolean = false,
                    join: Boolean = false,
@@ -54,7 +55,18 @@ object ParsingArguments {
             failure("Value <mode> must be either positions or timestamps")
           }
         })
-        .text("Mode is the name of the method used"),
+        .text("Mode will determine if we use the timestamps or positions in indexing"),
+      opt[String]('c', "compression")
+        .action((x, c) => c.copy(compression = x))
+        .valueName("<compression>")
+        .validate(x => {
+          if (x.equals("snappy") || x.equals("uncompressed")|| x.equals("lz4") || x.equals("zstd") || x.equals("gzip")) {
+            success
+          } else {
+            failure("Value <compression> must be one of the [snappy, lz4, gzip, zstd, uncompressed]")
+          }
+        })
+        .text("Compression determined the algorithm that will be used to compress the indexes"),
       opt[String]('f', "file")
         .action((x, c) => c.copy(filename = x))
         .valueName("<file>")

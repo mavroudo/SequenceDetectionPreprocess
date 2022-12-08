@@ -3,7 +3,7 @@ package auth.datalab.siesta.S3Connector
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
 import auth.datalab.siesta.BusinessLogic.ExtractSequence.ExtractSequence
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
-import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
+import auth.datalab.siesta.BusinessLogic.Metadata.{MetaData, SetMetadata}
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -29,7 +29,7 @@ class S3ConnectorTest extends DBConnector {
   /**
    * Depending on the different database, each connector has to initialize the spark context
    */
-  override def initialize_spark(): Unit = {
+  override def initialize_spark(config:Config): Unit = {
     lazy val spark = SparkSession.builder()
       .appName("Object Storage Test")
       .master("local[*]")
@@ -51,6 +51,8 @@ class S3ConnectorTest extends DBConnector {
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.connection.ssl.enabled", "true")
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.bucket.create.enabled", "true")
     spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")
+    spark.conf.set("spark.sql.parquet.compression.codec",config.compression)
+    spark.conf.set("spark.sql.parquet.filterPushdown","true")
 
 
   }
@@ -102,24 +104,16 @@ class S3ConnectorTest extends DBConnector {
     Logger.getLogger("Metadata").log(Level.INFO, s"finished in ${total / 1000} seconds")
     //calculate new object
     val metaData = if (metaDataObj==null) {
-      MetaData(traces = 0, events=0, indexed_tuples = 0, lookback = config.lookback_days,
-      split_every_days = config.split_every_days, last_interval = "", has_previous_stored = false,
-      filename = config.filename, log_name = config.log_name, mode = config.mode)
+      SetMetadata.initialize_metadata(config)
     }else{
-      metaDataObj.collect().map(x=>{
-        MetaData(traces = x.getAs("traces"),
-          events = x.getAs("events"),
-          indexed_tuples = x.getAs("indexed_tuples"),
-          lookback = x.getAs("lookback"), split_every_days = x.getAs("split_every_days"),
-          last_interval = x.getAs("last_interval"), has_previous_stored = true,
-          filename = x.getAs("filename"), log_name = x.getAs("log_name"), mode = x.getAs("mode"))
-      }).head
+      SetMetadata.load_metadata(metaDataObj)
     }
     this.write_metadata(metaData)//persist this version back
     metaData
   }
 
   override def write_metadata(metaData: MetaData): Unit = {
+    metaData.has_previous_stored=true
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._
     val rdd = spark.sparkContext.parallelize(Seq(metaData))
@@ -302,6 +296,7 @@ class S3ConnectorTest extends DBConnector {
     val start = System.currentTimeMillis()
     val previousIndexed = this.read_index_table(metaData, intervals)
     val combined = this.combine_index_table(newPairs,previousIndexed,metaData, intervals)
+    metaData.pairs+=combined.count()
     val df = S3Transformations.transformIndexToDF(combined,metaData)
     df.repartition(col("interval"))
       .select("interval.start","interval.end","eventA","eventB","occurrences")
@@ -324,7 +319,7 @@ class S3ConnectorTest extends DBConnector {
   }
 
   override def write_count_table(counts: RDD[Structs.Count], metaData: MetaData): Unit = {
-    Logger.getLogger("Count Table Write").log(Level.INFO, s"Count writing Index table")
+    Logger.getLogger("Count Table Write").log(Level.INFO, s" writing Count table")
     val start = System.currentTimeMillis()
     val previousIndexed = this.read_count_table(metaData)
     val combined = this.combine_count_table(counts,previousIndexed,metaData)
