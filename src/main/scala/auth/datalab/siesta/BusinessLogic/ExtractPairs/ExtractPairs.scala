@@ -14,7 +14,7 @@ object ExtractPairs {
 
 
   def extract(singleRDD: RDD[Structs.InvertedSingleFull], last_checked: RDD[Structs.LastChecked],
-              intervals: List[Structs.Interval], lookback: Int):(RDD[Structs.PairFull],RDD[Structs.LastChecked]) = { //TODO: implement last checked
+              intervals: List[Structs.Interval], lookback: Int):(RDD[Structs.PairFull],RDD[Structs.LastChecked]) = {
 
     val spark = SparkSession.builder().getOrCreate()
     val bintervals = spark.sparkContext.broadcast(intervals)

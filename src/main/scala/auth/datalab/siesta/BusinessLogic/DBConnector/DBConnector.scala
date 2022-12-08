@@ -5,6 +5,7 @@ import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.BusinessLogic.Model.Structs.{InvertedSingleFull, LastChecked}
 import auth.datalab.siesta.CommandLineParser.Config
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 
 trait DBConnector {
   /**
@@ -30,6 +31,10 @@ trait DBConnector {
    * @param metaData metadata of the execution and the database
    */
   def write_metadata(metaData: MetaData):Unit
+
+  def closeSpark():Unit={
+    SparkSession.builder().getOrCreate().close()
+  }
 
 
   /**
