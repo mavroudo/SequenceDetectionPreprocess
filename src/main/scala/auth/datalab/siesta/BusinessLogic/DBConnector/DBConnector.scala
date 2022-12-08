@@ -120,6 +120,8 @@ trait DBConnector {
    */
   def read_index_table(metaData: MetaData, intervals:List[Structs.Interval]):RDD[Structs.PairFull]
 
+  def read_index_table(metaData: MetaData):RDD[Structs.PairFull]
+
   /**
    * Combine the two rdds with the pairs
    * @param newPairs

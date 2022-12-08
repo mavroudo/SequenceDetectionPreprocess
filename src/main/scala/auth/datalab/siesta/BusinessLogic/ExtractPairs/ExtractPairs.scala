@@ -105,6 +105,9 @@ object ExtractPairs {
 
   private def getNextEvent(event: String, ts: List[(String, Int)], start: Int, timestamp: Timestamp): (Int, Structs.EventWithPosition) = {
     var i = start
+    if(i>=ts.size){
+      return (i,null)
+    }
     if(timestamp==null){
       return (start+1,Structs.EventWithPosition(event, Timestamp.valueOf(ts(i)._1), ts(i)._2))
     }
@@ -128,11 +131,11 @@ object ExtractPairs {
     }
     else {
       var p1 = 0
-      while (Timestamp.valueOf(ts1(p1)._1).before(Timestamp.valueOf(lastChecked.timestamp))) {
+      while (p1 < ts1.size && !Timestamp.valueOf(ts1(p1)._1).after(Timestamp.valueOf(lastChecked.timestamp))) {
         p1 += 1
       }
       var p2 = 0
-      while (Timestamp.valueOf(ts2(p2)._1).before(Timestamp.valueOf(lastChecked.timestamp))) {
+      while (p2<ts2.size && !Timestamp.valueOf(ts2(p2)._1).after(Timestamp.valueOf(lastChecked.timestamp))) {
         p2 += 1
       }
       k+=p1

@@ -163,7 +163,7 @@ class S3ConnectorTest extends DBConnector {
   override def combine_sequence_table(newSequences: RDD[Structs.Sequence], previousSequences: RDD[Structs.Sequence]): RDD[Structs.Sequence] = {
     if(previousSequences==null) return newSequences
     val combined = previousSequences.keyBy(_.sequence_id)
-      .fullOuterJoin(previousSequences.keyBy(_.sequence_id))
+      .fullOuterJoin(newSequences.keyBy(_.sequence_id))
       .map(x=>{
         val prevEvents = x._2._1.getOrElse(Structs.Sequence(List(),-1)).events
         val newEvents = x._2._2.getOrElse(Structs.Sequence(List(),-1)).events
@@ -226,7 +226,7 @@ class S3ConnectorTest extends DBConnector {
         val previous = x._2._1.getOrElse(Structs.InvertedSingleFull(-1,"",List(),List()))
         val prevOc = previous.times.zip(previous.positions)
         val newOc = x._2._2.times.zip(x._2._2.positions)
-        val combine = ExtractSingle.combineTimes(prevOc,newOc)
+        val combine = ExtractSingle.combineTimes(prevOc,newOc).distinct
         Structs.InvertedSingleFull(x._1._1,x._1._2,combine.map(_._1),combine.map(_._2))
       })
     combined
@@ -278,12 +278,23 @@ class S3ConnectorTest extends DBConnector {
       val parqDF = spark.read.parquet(this.index_table)
       parqDF.createOrReplaceTempView("IndexTable")
       val interval_min = intervals.map(_.start).distinct.sortWith((x,y)=>x.before(y)).head
-      val interval_max = intervals.map(_.end).distinct.sortWith((x,y)=>x.before(y)).head
+      val interval_max = intervals.map(_.end).distinct.sortWith((x,y)=>x.before(y)).last
       val parkSQL = spark.sql(s"""select * from IndexTable where (start>=to_timestamp('$interval_min') and end<=to_timestamp('$interval_max'))""")
       S3Transformations.transformIndexToRDD(parkSQL,metaData)
     } catch {
       case _: org.apache.spark.sql.AnalysisException => null
     }
+  }
+
+  override def read_index_table(metaData: MetaData): RDD[Structs.PairFull] = {
+    val spark = SparkSession.builder().getOrCreate()
+    try {
+      val parqDF = spark.read.parquet(this.index_table)
+      S3Transformations.transformIndexToRDD(parqDF, metaData)
+    } catch {
+      case _: org.apache.spark.sql.AnalysisException => null
+    }
+
   }
 
   override def combine_index_table(newPairs: RDD[Structs.PairFull], prevPairs: RDD[Structs.PairFull], metaData: MetaData, intervals: List[Structs.Interval]): RDD[Structs.PairFull] = {

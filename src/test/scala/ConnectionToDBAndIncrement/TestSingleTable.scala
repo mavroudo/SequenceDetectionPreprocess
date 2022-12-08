@@ -46,6 +46,21 @@ class TestSingleTable extends FunSuite with BeforeAndAfterAll {
     assert(c.count(_.positions.size == 1) == 5)
   }
 
+  test("Write single inverted and read it back (2)") {
+    val spark = SparkSession.builder().getOrCreate()
+    val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
+    val invertedSingleFull = ExtractSingle.extractFull(data)
+    dbConnector.write_single_table(invertedSingleFull, metaData)
+    dbConnector.write_sequence_table(data,metaData)
+
+    val data2 = spark.sparkContext.parallelize(CreateRDD.createRDD_2)
+    val combined = dbConnector.write_sequence_table(data2,metaData)
+    val invertedSingleFull2 = ExtractSingle.extractFull(combined)
+    val collected = dbConnector.write_single_table(invertedSingleFull2, metaData).collect()
+    assert(collected.length==7)
+    assert(collected.filter(x=>x.id==0 && x.event_name=="b").head.positions.size==3)
+  }
+
   override def afterAll(): Unit ={
     this.dbConnector.closeSpark()
   }

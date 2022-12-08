@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 
 object Intervals {
 
-  private def calculateIntervals(last_interval:String,split_every_days:Int, minTimestamp: Date, maxTimestamp: Date): List[Structs.Interval] = {
+  private def calculateIntervals(last_interval:String,split_every_days:Int, minTimestamp: Timestamp, maxTimestamp: Timestamp): List[Structs.Interval] = {
     val buffer:ListBuffer[Structs.Interval] = new ListBuffer[Structs.Interval]()
     val days = split_every_days
     if(last_interval==""){
@@ -27,9 +27,10 @@ object Intervals {
       }
     }else{ //we only calculate forward (there should not be any value that belongs to previous interval)
       val timestamps = last_interval.split("_")
-      var start = Instant.parse(timestamps.head)
-      var end = Instant.parse(timestamps.last)
-      if(minTimestamp.toInstant.isBefore(start)){
+      var start = Timestamp.valueOf(timestamps.head).toInstant
+      var end = Timestamp.valueOf(timestamps.last).toInstant
+//      if(minTimestamp.before(Timestamp.valueOf(start.toString))){
+      if(start.isAfter(minTimestamp.toInstant)) {
         Logger.getLogger("Calculating intervals").log(Level.ERROR,s"There is an event that has timestamp before the last interval")
         System.exit(12)
       }
