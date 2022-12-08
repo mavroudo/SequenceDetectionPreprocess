@@ -23,7 +23,7 @@ class TestIndexTable extends FunSuite with BeforeAndAfterAll{
 
   }
 
-  test("Write and Read Index Table") {
+  test("Write and Read Index Table - positions (1)") {
     val spark = SparkSession.builder().getOrCreate()
     config = Config(delete_previous = true, log_name = "test")
     this.dbConnector.initialize_db(config)
@@ -35,8 +35,29 @@ class TestIndexTable extends FunSuite with BeforeAndAfterAll{
     dbConnector.write_index_table(x._1,metaData,intervals)
     val collected = dbConnector.read_index_table(metaData, intervals).collect()
     assert(collected.length == 9)
+    assert(collected.count(_.timeA==null)==9)
+    assert(collected.count(_.timeB==null)==9)
+    assert(collected.count(_.positionA!= -1)==9)
+    assert(collected.count(_.positionB!= -1)==9)
   }
 
+  test("Write and Read Index Table - timestamps (1)") {
+    val spark = SparkSession.builder().getOrCreate()
+    config = Config(delete_previous = true, log_name = "test", mode = "timestamps")
+    this.dbConnector.initialize_db(config)
+    this.metaData = dbConnector.get_metadata(config)
+    val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
+    val intervals = Intervals.intervals(data, "", 30)
+    val invertedSingleFull = ExtractSingle.extractFull(data)
+    val x = ExtractPairs.extract(invertedSingleFull, null, intervals, 10)
+    dbConnector.write_index_table(x._1, metaData, intervals)
+    val collected = dbConnector.read_index_table(metaData, intervals).collect()
+    assert(collected.length == 9)
+    assert(collected.count(_.positionA == -1) == 9)
+    assert(collected.count(_.positionB == -1) == 9)
+    assert(collected.count(_.timeA != null) == 9)
+    assert(collected.count(_.timeB != null) == 9)
+  }
 
   override def afterAll(): Unit = {
     this.dbConnector.closeSpark()

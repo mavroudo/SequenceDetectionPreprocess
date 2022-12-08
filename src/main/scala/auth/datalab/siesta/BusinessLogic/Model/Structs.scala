@@ -28,4 +28,8 @@ object Structs {
   //Intervals
   case class Interval(start:Timestamp,end:Timestamp) extends Serializable
 
+  //Count
+  case class CountList(eventA:String,counts:List[(String,Long,Int)])
+  case class Count(eventA:String,eventB:String,id:Long,count:Int)
+
 }

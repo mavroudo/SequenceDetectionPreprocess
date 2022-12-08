@@ -1,6 +1,7 @@
 package auth.datalab.siesta.Pipeline
 
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
+import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
 import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
@@ -46,6 +47,10 @@ object SiestaPipeline {
     x._2.unpersist()
     x._1.persist(StorageLevel.MEMORY_AND_DISK)
     dbConnector.write_index_table(x._1,metadata,intervals)
+    val counts = ExtractCounts.extract(x._1)
+    counts.persist(StorageLevel.MEMORY_AND_DISK)
+    dbConnector.write_count_table(counts,metadata)
+    counts.unpersist()
     x._1.unpersist()
     println("Done with this shit")
 

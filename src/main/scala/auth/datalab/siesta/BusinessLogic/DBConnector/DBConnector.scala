@@ -138,6 +138,27 @@ trait DBConnector {
    */
   def write_index_table(newPairs:RDD[Structs.PairFull],metaData: MetaData, intervals:List[Structs.Interval]):Unit
 
+  /**
+   * Read previously stored data from database
+   * @param metaData
+   * @return
+   */
+  def read_count_table(metaData: MetaData):RDD[Structs.Count]
 
+  /**
+   * Write count to countTable
+   * @param counts
+   * @param metaData
+   */
+  def write_count_table(counts:RDD[Structs.Count],metaData: MetaData):Unit
+
+
+  def combine_count_table(newCounts:RDD[Structs.Count],prevCounts:RDD[Structs.Count],metaData: MetaData):RDD[Structs.Count]={
+    if(prevCounts==null) return newCounts
+    newCounts.union(prevCounts)
+      .map(x=>((x.eventA,x.eventB,x.id),x.count))
+      .reduceByKey((x,y)=>x+y)
+      .map(y=>Structs.Count(y._1._1,y._1._2,y._1._3,y._2))
+  }
 
 }

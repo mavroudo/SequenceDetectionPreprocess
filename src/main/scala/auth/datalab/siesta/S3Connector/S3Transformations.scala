@@ -90,7 +90,7 @@ object S3Transformations {
         row.getAs[Seq[Row]]("occurrences").flatMap(oc => {
           val id = oc.getLong(0)
           oc.getAs[Seq[Row]](1).map(o => {
-            Structs.PairFull(eventA, eventB, id, o.getTimestamp(0), o.getTimestamp(1),-1,-1, Structs.Interval(start, end))
+            Structs.PairFull(eventA, eventB, id, Timestamp.valueOf(o.getString(0)), Timestamp.valueOf(o.getString(1)),-1,-1, Structs.Interval(start, end))
           })
 
         })
@@ -122,6 +122,26 @@ object S3Transformations {
         })
         .toDF("interval", "eventA", "eventB", "occurrences")
     }
+  }
+
+  def transformCountToDF(counts:RDD[Structs.Count]):DataFrame={
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.sqlContext.implicits._
+    counts.groupBy(_.eventA)
+      .map(x=>{
+        val counts = x._2.map(y=>(y.eventB,y.id,y.count))
+        Structs.CountList(x._1,counts.toList)
+      })
+      .toDF("eventA","times")
+  }
+
+  def transformCountToRDD(df:DataFrame):RDD[Structs.Count]={
+    df.rdd.flatMap(row=>{
+      val eventA=row.getAs[String]("eventA")
+      row.getAs[Seq[Row]]("times").map(t=>{
+        Structs.Count(eventA,t.getString(0),t.getLong(1),t.getInt(2))
+      })
+    })
   }
 
 

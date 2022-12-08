@@ -24,6 +24,7 @@ class S3ConnectorTest extends DBConnector {
   var single_table: String = _
   var last_checked_table:String = _
   var index_table:String = _
+  var count_table:String = _
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
@@ -67,6 +68,7 @@ class S3ConnectorTest extends DBConnector {
     single_table = s"""s3a://siesta/${config.log_name}/single.parquet/"""
     last_checked_table = s"""s3a://siesta/${config.log_name}/last_checked.parquet/"""
     index_table = s"""s3a://siesta/${config.log_name}/index.parquet/"""
+    count_table = s"""s3a://siesta/${config.log_name}/count.parquet/"""
 
     //delete previous stored values
     if (config.delete_previous) fs.delete(new Path(s"""s3a://siesta/${config.log_name}/"""), true)
@@ -307,6 +309,31 @@ class S3ConnectorTest extends DBConnector {
       .mode(SaveMode.Overwrite).parquet(this.index_table)
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Index Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+
+  }
+
+  override def read_count_table(metaData: MetaData): RDD[Structs.Count] = {
+    val spark = SparkSession.builder().getOrCreate()
+    try {
+      val df = spark.read.parquet(this.count_table)
+      S3Transformations.transformCountToRDD(df)
+    } catch {
+      case _: org.apache.spark.sql.AnalysisException => null
+    }
+
+  }
+
+  override def write_count_table(counts: RDD[Structs.Count], metaData: MetaData): Unit = {
+    Logger.getLogger("Count Table Write").log(Level.INFO, s"Count writing Index table")
+    val start = System.currentTimeMillis()
+    val previousIndexed = this.read_count_table(metaData)
+    val combined = this.combine_count_table(counts,previousIndexed,metaData)
+    val df = S3Transformations.transformCountToDF(combined)
+    df.repartition(col("eventA"))
+      .write.partitionBy( "eventA")
+      .mode(SaveMode.Overwrite).parquet(this.count_table)
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("Count Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
 
   }
 
