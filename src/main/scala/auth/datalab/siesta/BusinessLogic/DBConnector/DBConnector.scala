@@ -1,5 +1,7 @@
 package auth.datalab.siesta.BusinessLogic.DBConnector
 
+import auth.datalab.siesta.BusinessLogic.ExtractSequence.ExtractSequence
+import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.BusinessLogic.Model.Structs.{InvertedSingleFull, LastChecked}
@@ -61,7 +63,17 @@ trait DBConnector {
    * @param previousSequences The previous sequences that are already indexed
    * @return a combined rdd
    */
-  def combine_sequence_table(newSequences:RDD[Structs.Sequence],previousSequences:RDD[Structs.Sequence]):RDD[Structs.Sequence]
+  def combine_sequence_table(newSequences:RDD[Structs.Sequence],previousSequences:RDD[Structs.Sequence]):RDD[Structs.Sequence]= {
+    if (previousSequences == null) return newSequences
+    val combined = previousSequences.keyBy(_.sequence_id)
+      .fullOuterJoin(newSequences.keyBy(_.sequence_id))
+      .map(x => {
+        val prevEvents = x._2._1.getOrElse(Structs.Sequence(List(), -1)).events
+        val newEvents = x._2._2.getOrElse(Structs.Sequence(List(), -1)).events
+        Structs.Sequence(ExtractSequence.combineSequences(prevEvents, newEvents), x._1)
+      })
+    combined
+  }
 
   /**
    * This method writes traces to the auxiliary SingleTable. The rdd that comes to this method is not persisted.
@@ -88,7 +100,19 @@ trait DBConnector {
    * @param previousSingle Previous events stored in single table
    * @return the combined lists
    */
-  def combine_single_table(newSingle:RDD[Structs.InvertedSingleFull],previousSingle:RDD[Structs.InvertedSingleFull]):RDD[Structs.InvertedSingleFull]
+  def combine_single_table(newSingle:RDD[Structs.InvertedSingleFull],previousSingle:RDD[Structs.InvertedSingleFull]):RDD[Structs.InvertedSingleFull]= {
+    if (previousSingle == null) return newSingle
+    val combined = previousSingle.keyBy(x => (x.id, x.event_name))
+      .rightOuterJoin(newSingle.keyBy(x => (x.id, x.event_name)))
+      .map(x => {
+        val previous = x._2._1.getOrElse(Structs.InvertedSingleFull(-1, "", List(), List()))
+        val prevOc = previous.times.zip(previous.positions)
+        val newOc = x._2._2.times.zip(x._2._2.positions)
+        val combine = ExtractSingle.combineTimes(prevOc, newOc).distinct
+        Structs.InvertedSingleFull(x._1._1, x._1._2, combine.map(_._1), combine.map(_._2))
+      })
+    combined
+  }
 
   /**
    * Returns data from LastChecked Table
@@ -100,8 +124,8 @@ trait DBConnector {
   /**
    * Writes new records for last checked back in the database and return the combined records with the
    * @param lastChecked records containing the timestamp of last completion for each different n-tuple
-   * @param metaData
-   * @return
+   * @param metaData Containing all the necessary information for the storing
+   * @return The combined last checked records
    */
   def write_last_checked_table(lastChecked: RDD[LastChecked], metaData: MetaData):RDD[Structs.LastChecked]
 
@@ -110,51 +134,82 @@ trait DBConnector {
    * @param newLastChecked new records for the last checked
    * @param previousLastChecked already stored records for the last checked values
    */
-  def combine_last_checked_table(newLastChecked:RDD[LastChecked], previousLastChecked:RDD[LastChecked]):RDD[LastChecked]
+  def combine_last_checked_table(newLastChecked:RDD[LastChecked], previousLastChecked:RDD[LastChecked]):RDD[LastChecked]= {
+    if (previousLastChecked == null) return newLastChecked
+    val combined = previousLastChecked.keyBy(x => (x.id, x.eventA, x.eventB))
+      .fullOuterJoin(newLastChecked.keyBy(x => (x.id, x.eventA, x.eventB)))
+      .map(x => {
+        val prevLC = x._2._1.getOrElse(Structs.LastChecked("", "", -1, ""))
+        val newLC = x._2._2.getOrElse(Structs.LastChecked("", "", -1, ""))
+        val time = if (newLC.timestamp == "") prevLC.timestamp else newLC.timestamp
+        val events = if (newLC.eventA == "") (prevLC.eventA, prevLC.eventB) else (newLC.eventA, newLC.eventB)
+        val id = if (newLC.id == -1) prevLC.id else newLC.id
+        Structs.LastChecked(events._1, events._2, id, time)
+      })
+    combined
+
+  }
 
   /**
    * Read data previously stored data that correspond to the intervals, in order to be merged
-   * @param metaData
-   * @param intervals
-   * @return
+   * @param metaData Containing all the necessary information for the storing
+   * @param intervals The period of times that the pairs will be splitted (thus require to combine with previous pairs,
+   *                  if there are any in these periods)
+   * @return combined record of pairs during the interval periods
    */
   def read_index_table(metaData: MetaData, intervals:List[Structs.Interval]):RDD[Structs.PairFull]
 
+  /**
+   * Reads the all the indexed pairs (mainly for testing reasons) advice to use the above method
+   * @param metaData Containing all the necessary information for the storing
+   * @return All the indexed pairs
+   */
   def read_index_table(metaData: MetaData):RDD[Structs.PairFull]
 
   /**
    * Combine the two rdds with the pairs
-   * @param newPairs
-   * @param prevPairs
-   * @param metaData
-   * @param intervals
-   * @return
+   *
+   * @param newPairs The newly generated tuples
+   * @param prevPairs The previously stored tuples, during the corresponding intervals
+   * @param metaData Containing all the necessary information for the storing
+   * @param intervals The period of times that the pairs will be splitted
+   * @return the combined pairs
    */
-  def combine_index_table(newPairs:RDD[Structs.PairFull],prevPairs:RDD[Structs.PairFull],metaData: MetaData, intervals:List[Structs.Interval]):RDD[Structs.PairFull]
+  def combine_index_table(newPairs:RDD[Structs.PairFull],prevPairs:RDD[Structs.PairFull],metaData: MetaData, intervals:List[Structs.Interval]):RDD[Structs.PairFull]= {
+    if (prevPairs == null) return newPairs
+    newPairs.union(prevPairs)
+  }
 
   /**
    * Write the combined pairs back to the S3, grouped by the interval and the first event
-   * @param combinedPairs
-   * @param metaData
-   * @param intervals
+   * @param newPairs The newly generated pairs
+   * @param metaData Containing all the necessary information for the storing
+   * @param intervals The period of times that the pairs will be splitted
    */
   def write_index_table(newPairs:RDD[Structs.PairFull],metaData: MetaData, intervals:List[Structs.Interval]):Unit
 
   /**
-   * Read previously stored data from database
-   * @param metaData
-   * @return
+   * Read previously stored data in the count table
+   * @param metaData Containing all the necessary information for the storing
+   * @return The count data stored in the count table
    */
   def read_count_table(metaData: MetaData):RDD[Structs.Count]
 
   /**
    * Write count to countTable
-   * @param counts
-   * @param metaData
+   * @param counts Calculated basic statistics in order to be stored in the count table
+   * @param metaData Containing all the necessary information for the storing
    */
   def write_count_table(counts:RDD[Structs.Count],metaData: MetaData):Unit
 
 
+  /**
+   * Combine the newly generated count records with the previous stored in the database
+   * @param newCounts Newly generated count records
+   * @param prevCounts Count records stored in the databse
+   * @param metaData Containing all the necessary information for the storing
+   * @return The combined count records
+   */
   def combine_count_table(newCounts:RDD[Structs.Count],prevCounts:RDD[Structs.Count],metaData: MetaData):RDD[Structs.Count]={
     if(prevCounts==null) return newCounts
     newCounts.union(prevCounts)

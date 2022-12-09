@@ -7,7 +7,7 @@ import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
-import auth.datalab.siesta.S3Connector.S3ConnectorTest
+import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
@@ -19,7 +19,7 @@ object SiestaPipeline {
 
   def execute(c: Config): Unit = {
     
-    val dbConnector = new S3ConnectorTest()
+    val dbConnector = new S3Connector()
     dbConnector.initialize_spark(c)
     dbConnector.initialize_db(config = c)
     val metadata = dbConnector.get_metadata(c)

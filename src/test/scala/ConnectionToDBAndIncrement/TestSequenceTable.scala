@@ -3,13 +3,13 @@ package ConnectionToDBAndIncrement
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
 import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
 import auth.datalab.siesta.CommandLineParser.Config
-import auth.datalab.siesta.S3Connector.S3ConnectorTest
+import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.sql.SparkSession
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 
 class TestSequenceTable extends FunSuite with BeforeAndAfterAll{
-  @transient var dbConnector: DBConnector = new S3ConnectorTest()
+  @transient var dbConnector: DBConnector = new S3Connector()
   @transient var metaData: MetaData = null
   @transient var config: Config = null
 

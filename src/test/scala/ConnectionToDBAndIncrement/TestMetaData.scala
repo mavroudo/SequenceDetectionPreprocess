@@ -6,14 +6,14 @@ import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
-import auth.datalab.siesta.S3Connector.S3ConnectorTest
+import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 class TestMetaData extends FunSuite with BeforeAndAfterAll {
-  @transient var dbConnector = new S3ConnectorTest()
+  @transient var dbConnector = new S3Connector()
 
   test("Test get metadata first time") {
     val c = Config(delete_previous = true, log_name = "test")
