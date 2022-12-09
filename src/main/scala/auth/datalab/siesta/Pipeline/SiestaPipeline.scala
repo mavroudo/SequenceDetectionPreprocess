@@ -54,6 +54,7 @@ object SiestaPipeline {
     dbConnector.write_count_table(counts,metadata)
     counts.unpersist()
     x._1.unpersist()
+    metadata.has_previous_stored=true
     dbConnector.write_metadata(metadata)
     println("Done with this shit")
 

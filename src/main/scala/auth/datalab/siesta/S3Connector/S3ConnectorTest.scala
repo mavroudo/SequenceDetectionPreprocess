@@ -113,7 +113,6 @@ class S3ConnectorTest extends DBConnector {
   }
 
   override def write_metadata(metaData: MetaData): Unit = {
-    metaData.has_previous_stored=true
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._
     val rdd = spark.sparkContext.parallelize(Seq(metaData))
