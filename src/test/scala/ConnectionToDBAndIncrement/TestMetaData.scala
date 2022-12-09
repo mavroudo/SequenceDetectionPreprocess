@@ -3,8 +3,8 @@ package ConnectionToDBAndIncrement
 import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
 import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
-import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs
+import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.rdd.RDD
@@ -14,6 +14,7 @@ import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 class TestMetaData extends FunSuite with BeforeAndAfterAll {
   @transient var dbConnector = new S3Connector()
+//  @transient var dbConnector = new ApacheCassandraConnector()
 
   test("Test get metadata first time") {
     val c = Config(delete_previous = true, log_name = "test")
