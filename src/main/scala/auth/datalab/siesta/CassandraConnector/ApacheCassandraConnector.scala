@@ -6,14 +6,15 @@ import auth.datalab.siesta.BusinessLogic.Metadata.{MetaData, SetMetadata}
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
 import com.datastax.driver.core.{Cluster, ConsistencyLevel}
-import com.datastax.spark.connector.{SomeColumns, toRDDFunctions}
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
+import com.datastax.spark.connector.{SomeColumns, toRDDFunctions}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, Dataset, SaveMode, SparkSession}
 import org.apache.spark.sql.cassandra.DataFrameReaderWrapper
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.storage.StorageLevel
 
 import java.net.InetSocketAddress
 
@@ -28,7 +29,7 @@ class ApacheCassandraConnector extends DBConnector {
   var cassandra_keyspace_name: String = _
   var cassandra_write_consistency_level: String = _
   var cassandra_gc_grace_seconds: String = _
-  var tables:Map[String,String] = Map[String,String]()
+  var tables: Map[String, String] = Map[String, String]()
   var _configuration: SparkConf = _
   val DELIMITER = "¦delab¦"
   val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE, batchSize = 1, throughputMiBPS = 0.5)
@@ -48,7 +49,7 @@ class ApacheCassandraConnector extends DBConnector {
       cassandra_replication_rack = Utils.readEnvVariable("cassandra_replication_rack")
       cassandra_replication_factor = Utils.readEnvVariable("cassandra_replication_factor")
       cassandra_write_consistency_level = Utils.readEnvVariable("cassandra_write_consistency_level")
-//      println(cassandra_host, cassandra_keyspace_name, cassandra_keyspace_name)
+      //      println(cassandra_host, cassandra_keyspace_name, cassandra_keyspace_name)
     } catch {
       case e: NullPointerException =>
         e.printStackTrace()
@@ -86,9 +87,9 @@ class ApacheCassandraConnector extends DBConnector {
         spark.close() //Stop Spark
         System.exit(1)
     }
-    this.tables=CassandraTables.getTableNames(config.log_name)
+    this.tables = CassandraTables.getTableNames(config.log_name)
     if (config.delete_previous) {
-      this.dropTables(this.tables.keys.toList)
+      this.dropTables(CassandraTables.getTablesStructures(config.log_name).keys.toList)
     }
     if (config.delete_all) {
       this.dropAlltables()
@@ -98,7 +99,7 @@ class ApacheCassandraConnector extends DBConnector {
 
   }
 
-  private def dropAlltables():Unit={
+  private def dropAlltables(): Unit = {
     val spark = SparkSession.builder().getOrCreate()
 
     try {
@@ -120,7 +121,7 @@ class ApacheCassandraConnector extends DBConnector {
     }
   }
 
-  private def dropTables(tables:List[String]):Unit={
+  private def dropTables(tables: List[String]): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     try {
       CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
@@ -159,8 +160,6 @@ class ApacheCassandraConnector extends DBConnector {
   }
 
 
-
-
   /**
    * This method constructs the appropriate metadata based on the already stored in the database and the
    * new presented in the config object
@@ -172,11 +171,11 @@ class ApacheCassandraConnector extends DBConnector {
     Logger.getLogger("Metadata").log(Level.INFO, s"Getting metadata")
     val start = System.currentTimeMillis()
     val spark = SparkSession.builder().getOrCreate()
-    val prevMetaData = spark.read.cassandraFormat(tables("meta"),this.cassandra_keyspace_name,"").load()
-    val metaData= if(prevMetaData.count()==0){ //has no previous record
+    val prevMetaData = spark.read.cassandraFormat(tables("meta"), this.cassandra_keyspace_name, "").load()
+    val metaData = if (prevMetaData.count() == 0) { //has no previous record
       SetMetadata.initialize_metadata(config)
-    }else{
-      this.load_metadata(prevMetaData,config)
+    } else {
+      this.load_metadata(prevMetaData, config)
     }
     val total = System.currentTimeMillis() - start
     this.write_metadata(metaData) //persist this version back
@@ -184,12 +183,12 @@ class ApacheCassandraConnector extends DBConnector {
     metaData
   }
 
-  private def load_metadata(meta:DataFrame,config: Config):MetaData={
-    val m = meta.collect().map(r=>(r.getAs[String]("key"),r.getAs[String]("value"))).toMap
-    MetaData(traces = m("traces").toInt, events = m("events").toInt,pairs = m("pairs").toInt,lookback = m("lookback").toInt,
+  private def load_metadata(meta: DataFrame, config: Config): MetaData = {
+    val m = meta.collect().map(r => (r.getAs[String]("key"), r.getAs[String]("value"))).toMap
+    MetaData(traces = m("traces").toInt, events = m("events").toInt, pairs = m("pairs").toInt, lookback = m("lookback").toInt,
       split_every_days = m("split_every_days").toInt, last_interval = m("last_interval"),
-      has_previous_stored = m("has_previous_stored").toBoolean,filename = m("filename"),
-      log_name = m("log_name"),mode = m("mode"),compression = m("compression"))
+      has_previous_stored = m("has_previous_stored").toBoolean, filename = m("filename"),
+      log_name = m("log_name"), mode = m("mode"), compression = m("compression"))
   }
 
   /**
@@ -201,7 +200,7 @@ class ApacheCassandraConnector extends DBConnector {
     val df = ApacheCassandraTransformations.transformMetaToDF(metaData)
     df.write.mode(SaveMode.Overwrite)
       .format("org.apache.spark.sql.cassandra")
-      .options(Map("table"->tables("meta"),"keyspace"->this.cassandra_keyspace_name,"confirm.truncate"->"true"))
+      .options(Map("table" -> tables("meta"), "keyspace" -> this.cassandra_keyspace_name, "confirm.truncate" -> "true"))
       .save()
   }
 
@@ -213,7 +212,7 @@ class ApacheCassandraConnector extends DBConnector {
    */
   override def read_sequence_table(metaData: MetaData): RDD[Structs.Sequence] = {
     val df = this.readTable(tables("seq"))
-    if(df.isEmpty){
+    if (df.isEmpty) {
       return null
     }
     val rdd = ApacheCassandraTransformations.transformSeqToRDD(df)
@@ -234,8 +233,8 @@ class ApacheCassandraConnector extends DBConnector {
     Logger.getLogger("Sequence Table Write").log(Level.INFO, s"Start writing sequence table")
     val start = System.currentTimeMillis()
     val prevSeq = this.read_sequence_table(metaData)
-    val combined = this.combine_sequence_table(sequenceRDD,prevSeq)
-    val rddCass = ApacheCassandraTransformations.transformSeqToDF(combined)
+    val combined = this.combine_sequence_table(sequenceRDD, prevSeq)
+    val rddCass = ApacheCassandraTransformations.transformSeqToWrite(combined)
     rddCass.persist()
     rddCass
       .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("seq"),
@@ -269,7 +268,23 @@ class ApacheCassandraConnector extends DBConnector {
    * @param singleRDD Contains the single inverted index
    * @param metaData  Containing all the necessary information for the storing
    */
-  override def write_single_table(singleRDD: RDD[Structs.InvertedSingleFull], metaData: MetaData): RDD[Structs.InvertedSingleFull] = ???
+  override def write_single_table(singleRDD: RDD[Structs.InvertedSingleFull], metaData: MetaData): RDD[Structs.InvertedSingleFull] = {
+    Logger.getLogger("Single Table Write").log(Level.INFO, s"Start writing single table")
+    val start = System.currentTimeMillis()
+    val newEvents = singleRDD.map(x => x.times.size).reduce((x, y) => x + y)
+    metaData.events += newEvents //count and update metadata
+    val previousSingle = read_single_table(metaData)
+    val combined = combine_single_table(singleRDD, previousSingle)
+    val transformed = ApacheCassandraTransformations.transformSingleToWrite(combined)
+    transformed.persist(StorageLevel.MEMORY_AND_DISK)
+    transformed
+      .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("single"),
+        columns = SomeColumns("event_type", "occurrences"), writeConf = writeConf)
+    transformed.unpersist()
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("Single Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+    combined
+  }
 
   /**
    * Read data as an rdd from the SingleTable
@@ -277,7 +292,13 @@ class ApacheCassandraConnector extends DBConnector {
    * @param metaData Containing all the necessary information for the storing
    * @return In RDD the stored data
    */
-  override def read_single_table(metaData: MetaData): RDD[Structs.InvertedSingleFull] = ???
+  override def read_single_table(metaData: MetaData): RDD[Structs.InvertedSingleFull] = {
+    val df = this.readTable(tables("single"))
+    if (df.isEmpty) {
+      return null
+    }
+    ApacheCassandraTransformations.transformSingleToRDD(df)
+  }
 
   /**
    * Returns data from LastChecked Table

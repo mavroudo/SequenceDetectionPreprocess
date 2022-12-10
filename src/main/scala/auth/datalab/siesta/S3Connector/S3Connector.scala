@@ -179,8 +179,8 @@ class S3Connector extends DBConnector {
       .repartition(col("event_type"))
       .write.partitionBy("event_type")
       .mode(SaveMode.Overwrite).parquet(single_table) //store to s3
-    val total = System.currentTimeMillis() - start
     df.unpersist()
+    val total = System.currentTimeMillis() - start
     Logger.getLogger("Single Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
     combined
   }

@@ -37,8 +37,9 @@ object SiestaPipeline {
 
     val invertedSingleFull = ExtractSingle.extractFull(combined) //calculates inverted single
     combined.unpersist()
-//    val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull,metadata)
-//    combinedInvertedFull.persist(StorageLevel.MEMORY_AND_DISK)
+    val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull,metadata)
+    combinedInvertedFull.persist(StorageLevel.MEMORY_AND_DISK)
+    val readSingle = dbConnector.read_single_table(metadata)
 //
 //    //Up until now there should be no problem with the memory, or time-outs during writing. However creating n-tuples
 //    //creates large amount of data.

@@ -17,7 +17,7 @@ class TestSequenceTable extends FunSuite with BeforeAndAfterAll{
 
 
   test("Write and read Sequences (1)") {
-    config = Config(delete_all = true, log_name = "test")
+    config = Config(delete_previous = true, log_name = "test")
     dbConnector.initialize_spark(config)
     this.dbConnector.initialize_db(config)
     this.metaData = dbConnector.get_metadata(config)
@@ -34,7 +34,7 @@ class TestSequenceTable extends FunSuite with BeforeAndAfterAll{
   }
 
   test("Read and write Sequences (2)"){
-    config = Config(delete_all = true, log_name = "test")
+    config = Config(delete_previous = true, log_name = "test")
     dbConnector.initialize_spark(config)
     this.dbConnector.initialize_db(config)
     this.metaData = dbConnector.get_metadata(config)
