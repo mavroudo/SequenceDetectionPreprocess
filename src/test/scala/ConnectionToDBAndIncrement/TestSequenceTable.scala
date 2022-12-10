@@ -16,22 +16,22 @@ class TestSequenceTable extends FunSuite with BeforeAndAfterAll{
   @transient var config: Config = null
 
 
-//  test("Write and read Sequences (1)") {
-//    config = Config(delete_all = true, log_name = "test")
-//    dbConnector.initialize_spark(config)
-//    this.dbConnector.initialize_db(config)
-//    this.metaData = dbConnector.get_metadata(config)
-//    val spark = SparkSession.builder().getOrCreate()
-//    val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
-//
-//
-//    dbConnector.write_sequence_table(data,metaData)
-//    val collected = dbConnector.read_sequence_table(metaData).collect()
-//    assert(collected.length == 3)
-//    assert(collected.count(_.events.size == 3) == 1)
-//    assert(collected.count(_.events.size == 2) == 1)
-//    assert(collected.count(_.events.size == 4) == 1)
-//  }
+  test("Write and read Sequences (1)") {
+    config = Config(delete_all = true, log_name = "test")
+    dbConnector.initialize_spark(config)
+    this.dbConnector.initialize_db(config)
+    this.metaData = dbConnector.get_metadata(config)
+    val spark = SparkSession.builder().getOrCreate()
+    val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
+
+
+    dbConnector.write_sequence_table(data,metaData)
+    val collected = dbConnector.read_sequence_table(metaData).collect()
+    assert(collected.length == 3)
+    assert(collected.count(_.events.size == 3) == 1)
+    assert(collected.count(_.events.size == 2) == 1)
+    assert(collected.count(_.events.size == 4) == 1)
+  }
 
   test("Read and write Sequences (2)"){
     config = Config(delete_all = true, log_name = "test")

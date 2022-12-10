@@ -29,12 +29,12 @@ object SiestaPipeline {
 
     //Main pipeline starts here:
     val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
-//
+
     val combined = dbConnector.write_sequence_table(sequenceRDD,metadata) //writes traces to sequence table and ignore the output
     combined.persist(StorageLevel.MEMORY_AND_DISK)
     val intervals =  Intervals.intervals(sequenceRDD,metadata.last_interval,metadata.split_every_days)
     metadata.last_interval=s"${intervals.last.start.toString}_${intervals.last.end.toString}"
-//
+
     val invertedSingleFull = ExtractSingle.extractFull(combined) //calculates inverted single
     combined.unpersist()
 //    val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull,metadata)

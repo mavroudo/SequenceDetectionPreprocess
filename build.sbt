@@ -46,6 +46,8 @@ lazy val root = (project in file("."))
 //    libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.0.3",
 //    libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.0.3",
 
+
+
     assemblyMergeStrategy in assembly := {
       case manifest if manifest.contains("MANIFEST.MF") =>
         MergeStrategy.discard

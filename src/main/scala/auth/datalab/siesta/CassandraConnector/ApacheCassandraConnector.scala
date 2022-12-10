@@ -235,9 +235,12 @@ class ApacheCassandraConnector extends DBConnector {
     val start = System.currentTimeMillis()
     val prevSeq = this.read_sequence_table(metaData)
     val combined = this.combine_sequence_table(sequenceRDD,prevSeq)
-    combined
+    val rddCass = ApacheCassandraTransformations.transformSeqToDF(combined)
+    rddCass.persist()
+    rddCass
       .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("seq"),
         columns = SomeColumns("events", "sequence_id"), writeConf = writeConf)
+    rddCass.unpersist()
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Sequence Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
     combined
