@@ -1,7 +1,9 @@
+*/target/*
 target/*
 *.xes
 *.class
 *.log
+*/.idea/*
 .idea/*
 pythonTesting/env/*
 *.withTimestamp
@@ -17,3 +19,6 @@ project/*
 
 #cassandra
 dockerbase/cassandra/data/*
+
+#allow specific test datasets
+!experiments/input/test1.withTimestamp

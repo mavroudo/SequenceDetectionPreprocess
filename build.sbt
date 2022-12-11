@@ -6,7 +6,7 @@ ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.11.12"
 ThisBuild / organization := "auth.datalab"
 ThisBuild / parallelExecution in Test := false
-assembly / mainClass := Some("auth.datalab.sequenceDetection.SequenceDetection")
+assembly / mainClass := Some("auth.datalab.siesta.Main")
 
 lazy val root = (project in file("."))
   .settings(
@@ -40,11 +40,13 @@ lazy val root = (project in file("."))
     },
 
     //minio (put in comments if want to execute cassandra
-    libraryDependencies += "io.minio" % "spark-select_2.11" % "2.1",
-    libraryDependencies += "io.minio" % "minio" % "3.0.12",
-    libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.0.3",
-    libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.0.3",
-    libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.0.3",
+//    libraryDependencies += "io.minio" % "spark-select_2.11" % "2.1",
+//    libraryDependencies += "io.minio" % "minio" % "3.0.12",
+//    libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.0.3",
+//    libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.0.3",
+//    libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.0.3",
+
+
 
     assemblyMergeStrategy in assembly := {
       case manifest if manifest.contains("MANIFEST.MF") =>
