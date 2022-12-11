@@ -261,7 +261,8 @@ class ApacheCassandraConnector extends DBConnector {
     val prevSeq = this.read_sequence_table(metaData)
     val combined = this.combine_sequence_table(sequenceRDD, prevSeq)
     val rddCass = ApacheCassandraTransformations.transformSeqToWrite(combined)
-    rddCass.persist()
+    rddCass.persist(StorageLevel.MEMORY_AND_DISK)
+    metaData.traces = rddCass.count()
     rddCass
       .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("seq"),
         columns = SomeColumns("events", "sequence_id"), writeConf = writeConf)
@@ -371,7 +372,18 @@ class ApacheCassandraConnector extends DBConnector {
    *                  if there are any in these periods)
    * @return combined record of pairs during the interval periods
    */
-  override def read_index_table(metaData: MetaData, intervals: List[Structs.Interval]): RDD[Structs.PairFull] = ???
+  override def read_index_table(metaData: MetaData, intervals: List[Structs.Interval]): RDD[Structs.PairFull] = {
+    val spark = SparkSession.builder().getOrCreate()
+    val df = this.readTable(tables("index"))
+    df.createOrReplaceTempView("IndexTable")
+    val interval_min = intervals.map(_.start).distinct.sortWith((x, y) => x.before(y)).head
+    val interval_max = intervals.map(_.end).distinct.sortWith((x, y) => x.before(y)).last
+    val parkSQL = spark.sql(s"""select * from IndexTable where (start>=to_timestamp('$interval_min') and end<=to_timestamp('$interval_max'))""")
+    if(parkSQL.isEmpty){
+      return null
+    }
+    ApacheCassandraTransformations.transformIndexToRDD(parkSQL,metaData)
+  }
 
   /**
    * Reads the all the indexed pairs (mainly for testing reasons) advice to use the above method
@@ -379,7 +391,13 @@ class ApacheCassandraConnector extends DBConnector {
    * @param metaData Containing all the necessary information for the storing
    * @return All the indexed pairs
    */
-  override def read_index_table(metaData: MetaData): RDD[Structs.PairFull] = ???
+  override def read_index_table(metaData: MetaData): RDD[Structs.PairFull] = {
+    val df = this.readTable(tables("index"))
+    if (df.isEmpty) {
+      return null
+    }
+    ApacheCassandraTransformations.transformIndexToRDD(df,metaData)
+  }
 
   /**
    * Write the combined pairs back to the S3, grouped by the interval and the first event
@@ -388,7 +406,20 @@ class ApacheCassandraConnector extends DBConnector {
    * @param metaData  Containing all the necessary information for the storing
    * @param intervals The period of times that the pairs will be splitted
    */
-  override def write_index_table(newPairs: RDD[Structs.PairFull], metaData: MetaData, intervals: List[Structs.Interval]): Unit = ???
+  override def write_index_table(newPairs: RDD[Structs.PairFull], metaData: MetaData, intervals: List[Structs.Interval]): Unit = {
+    Logger.getLogger("Index Table Write").log(Level.INFO, s"Start writing Index table")
+    val start = System.currentTimeMillis()
+    val previousIndexed = this.read_index_table(metaData, intervals)
+    val combined = this.combine_index_table(newPairs, previousIndexed, metaData, intervals)
+    metaData.pairs += combined.count()
+    val df = ApacheCassandraTransformations.transformIndexToWrite(combined, metaData)
+    df.persist(StorageLevel.MEMORY_AND_DISK)
+    df
+      .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("index"), writeConf = writeConf)
+    df.unpersist()
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("Index Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+  }
 
   /**
    * Read previously stored data in the count table
@@ -396,7 +427,13 @@ class ApacheCassandraConnector extends DBConnector {
    * @param metaData Containing all the necessary information for the storing
    * @return The count data stored in the count table
    */
-  override def read_count_table(metaData: MetaData): RDD[Structs.Count] = ???
+  override def read_count_table(metaData: MetaData): RDD[Structs.Count] = {
+    val df = this.readTable(tables("count"))
+    if (df.isEmpty) {
+      return null
+    }
+    ApacheCassandraTransformations.transformCountToRDD(df)
+  }
 
   /**
    * Write count to countTable
@@ -404,5 +441,17 @@ class ApacheCassandraConnector extends DBConnector {
    * @param counts   Calculated basic statistics in order to be stored in the count table
    * @param metaData Containing all the necessary information for the storing
    */
-  override def write_count_table(counts: RDD[Structs.Count], metaData: MetaData): Unit = ???
+  override def write_count_table(counts: RDD[Structs.Count], metaData: MetaData): Unit = {
+    Logger.getLogger("Count Table Write").log(Level.INFO, s" writing Count table")
+    val start = System.currentTimeMillis()
+    val previousIndexed = this.read_count_table(metaData)
+    val combined = this.combine_count_table(counts, previousIndexed, metaData)
+    val df = ApacheCassandraTransformations.transformCountToWrite(combined)
+    df.persist(StorageLevel.MEMORY_AND_DISK)
+    df
+      .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("count"), writeConf = writeConf)
+    df.unpersist()
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("Count Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+  }
 }

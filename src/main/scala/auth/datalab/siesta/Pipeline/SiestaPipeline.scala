@@ -50,13 +50,13 @@ object SiestaPipeline {
     x._2.unpersist()
     x._1.persist(StorageLevel.MEMORY_AND_DISK)
     dbConnector.write_index_table(x._1,metadata,intervals)
-//    val counts = ExtractCounts.extract(x._1)
-//    counts.persist(StorageLevel.MEMORY_AND_DISK)
-//    dbConnector.write_count_table(counts,metadata)
-//    counts.unpersist()
-//    x._1.unpersist()
-//    metadata.has_previous_stored=true
-//    dbConnector.write_metadata(metadata)
+    val counts = ExtractCounts.extract(x._1)
+    counts.persist(StorageLevel.MEMORY_AND_DISK)
+    dbConnector.write_count_table(counts,metadata)
+    counts.unpersist()
+    x._1.unpersist()
+    metadata.has_previous_stored=true
+    dbConnector.write_metadata(metadata)
     dbConnector.closeSpark()
     println("Done with this shit")
 

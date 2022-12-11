@@ -22,7 +22,7 @@ object CassandraTables {
     tableMap+=(("single",logname+"_single"))
     tableMap+=(("lastChecked",logname+"_lastchecked"))
     tableMap+=(("count",logname+"_count"))
-    tableMap+(("index",logname+"_index"))
+    tableMap+=(("index",logname+"_index"))
     tableMap.toMap
   }
 
