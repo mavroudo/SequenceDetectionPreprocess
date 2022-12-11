@@ -154,6 +154,7 @@ class ApacheCassandraConnector extends DBConnector {
     catch {
       case e: Exception =>
         Logger.getLogger("Initialization db").log(Level.ERROR, s"A problem occurred creating the tables")
+        e.printStackTrace()
         spark.close()
         System.exit(1)
     }
@@ -306,7 +307,13 @@ class ApacheCassandraConnector extends DBConnector {
    * @param metaData Containing all the necessary information for the storing
    * @return LastChecked records
    */
-  override def read_last_checked_table(metaData: MetaData): RDD[Structs.LastChecked] = ???
+  override def read_last_checked_table(metaData: MetaData): RDD[Structs.LastChecked] = {
+    val df = this.readTable(tables("lastChecked"))
+    if (df.isEmpty) {
+      return null
+    }
+    ApacheCassandraTransformations.transformLastCheckedToRDD(df)
+  }
 
   /**
    * Writes new records for last checked back in the database and return the combined records with the
@@ -315,7 +322,21 @@ class ApacheCassandraConnector extends DBConnector {
    * @param metaData    Containing all the necessary information for the storing
    * @return The combined last checked records
    */
-  override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData): RDD[Structs.LastChecked] = ???
+  override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData): RDD[Structs.LastChecked] = {
+    Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"Start writing LastChecked table")
+    val start = System.currentTimeMillis()
+    val previousLastChecked = this.read_last_checked_table(metaData)
+    val combined = this.combine_last_checked_table(lastChecked, previousLastChecked)
+    val transformed = ApacheCassandraTransformations.transformLastCheckedToWrite(combined)
+    transformed.persist(StorageLevel.MEMORY_AND_DISK)
+    transformed
+      .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("lastChecked"),
+        columns = SomeColumns("event_a", "event_b", "occurrences"), writeConf = writeConf)
+    transformed.unpersist()
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+    combined
+  }
 
   /**
    * Read data previously stored data that correspond to the intervals, in order to be merged

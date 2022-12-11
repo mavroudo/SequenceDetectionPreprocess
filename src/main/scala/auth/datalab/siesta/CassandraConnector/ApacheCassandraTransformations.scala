@@ -59,5 +59,26 @@ object ApacheCassandraTransformations {
       })
   }
 
+  case class CassandraLastChecked(event_a:String, event_b:String, occurrences:List[String])
+
+  def transformLastCheckedToRDD(df:DataFrame):RDD[Structs.LastChecked]={
+    df.rdd.flatMap(r=>{
+      val eventA = r.getAs[String]("event_a")
+      val eventB = r.getAs[String]("event_b")
+      r.getAs[Seq[String]]("occurrences").map(oc=>{
+        val split = oc.split(",")
+        Structs.LastChecked(eventA,eventB,split(0).toLong,split(1))
+      })
+    })
+  }
+
+  def transformLastCheckedToWrite(lastChecked: RDD[Structs.LastChecked]):RDD[CassandraLastChecked]={
+    lastChecked.groupBy(x=>(x.eventA,x.eventB))
+      .map(x=>{
+        val occurrences = x._2.map(y=> s"${y.id},${y.timestamp}")
+        CassandraLastChecked(x._1._1,x._1._2,occurrences.toList)
+      })
+  }
+
 
 }

@@ -9,8 +9,8 @@ object CassandraTables {
     tableMap+=((logname+"_meta","key text, value text, PRIMARY KEY (key)"))
     tableMap+=((logname+"_seq","sequence_id text, events list<text>, PRIMARY KEY (sequence_id)"))
     tableMap+=((logname+"_single","event_type text, occurrences list<text>, PRIMARY KEY (event_type)"))
-    tableMap+=((logname+"_lastChecked","eventA text, eventB text, occurrences list<text>, PRIMARY KEY (eventA,eventB)"))
-    tableMap+=((logname+"_count","eventA text, times list<text>, PRIMARY KEY (eventA)"))
+    tableMap+=((logname+"_lastchecked","event_a text, event_b text, occurrences list<text>, PRIMARY KEY (event_a,event_b)"))
+    tableMap+=((logname+"_count","event_a text, times list<text>, PRIMARY KEY (event_a)"))
     tableMap.toMap
   }
 
@@ -19,7 +19,7 @@ object CassandraTables {
     tableMap+=(("meta",logname+"_meta"))
     tableMap+=(("seq",logname+"_seq"))
     tableMap+=(("single",logname+"_single"))
-    tableMap+=(("lastChecked",logname+"_lastChecked"))
+    tableMap+=(("lastChecked",logname+"_lastchecked"))
     tableMap+=(("count",logname+"_count"))
     tableMap.toMap
   }

@@ -39,16 +39,16 @@ object SiestaPipeline {
     combined.unpersist()
     val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull,metadata)
     combinedInvertedFull.persist(StorageLevel.MEMORY_AND_DISK)
-    val readSingle = dbConnector.read_single_table(metadata)
-//
-//    //Up until now there should be no problem with the memory, or time-outs during writing. However creating n-tuples
-//    //creates large amount of data.
-//    val lastChecked = dbConnector.read_last_checked_table(metadata)
-//    val x = ExtractPairs.extract(combinedInvertedFull,lastChecked,intervals,metadata.lookback)
-//    combinedInvertedFull.unpersist()
-//    x._2.persist(StorageLevel.MEMORY_AND_DISK)
-//    dbConnector.write_last_checked_table(x._2,metadata)
-//    x._2.unpersist()
+
+    //Up until now there should be no problem with the memory, or time-outs during writing. However creating n-tuples
+    //creates large amount of data.
+    val lastChecked = dbConnector.read_last_checked_table(metadata)
+    val x = ExtractPairs.extract(combinedInvertedFull,lastChecked,intervals,metadata.lookback)
+    combinedInvertedFull.unpersist()
+    x._2.persist(StorageLevel.MEMORY_AND_DISK)
+    dbConnector.write_last_checked_table(x._2,metadata)
+    x._2.unpersist()
+    val lastchecked_collected = dbConnector.read_last_checked_table(metadata).collect()
 //    x._1.persist(StorageLevel.MEMORY_AND_DISK)
 //    dbConnector.write_index_table(x._1,metadata,intervals)
 //    val counts = ExtractCounts.extract(x._1)
