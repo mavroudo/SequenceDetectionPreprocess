@@ -11,6 +11,7 @@ object CassandraTables {
     tableMap+=((logname+"_single","event_type text, occurrences list<text>, PRIMARY KEY (event_type)"))
     tableMap+=((logname+"_lastchecked","event_a text, event_b text, occurrences list<text>, PRIMARY KEY (event_a,event_b)"))
     tableMap+=((logname+"_count","event_a text, times list<text>, PRIMARY KEY (event_a)"))
+    tableMap+=((logname+"_index","event_a text, event_b text, start timestamp, end timestamp, occurrences list<text>, PRIMARY KEY ((event_a,event_b), start,end)"))
     tableMap.toMap
   }
 
@@ -21,7 +22,18 @@ object CassandraTables {
     tableMap+=(("single",logname+"_single"))
     tableMap+=(("lastChecked",logname+"_lastchecked"))
     tableMap+=(("count",logname+"_count"))
+    tableMap+(("index",logname+"_index"))
     tableMap.toMap
+  }
+
+  def getCompression(compressionString:String):String={
+    compressionString match {
+      case "snappy" => "SnappyCompressor"
+      case "lz4" => "LZ4Compressor"
+      case "zstd" => "ZstdCompressor"
+      case "gzip" => "DeflateCompressor"
+      case "uncompressed" => "false"
+    }
   }
 
 }

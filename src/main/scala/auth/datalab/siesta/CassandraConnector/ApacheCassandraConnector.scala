@@ -96,12 +96,12 @@ class ApacheCassandraConnector extends DBConnector {
     }
 
     this.createTables(CassandraTables.getTablesStructures(config.log_name))
+    this.setCompression(CassandraTables.getTablesStructures(config.log_name).keys.toList, CassandraTables.getCompression(config.compression))
 
   }
 
   private def dropAlltables(): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-
     try {
       val cluster = Cluster.builder().addContactPointsWithPorts(new InetSocketAddress(this.cassandra_host, this.cassandra_port.toInt)).withCredentials(this.cassandra_user, this.cassandra_pass).build()
       val session = cluster.connect(this.cassandra_keyspace_name)
@@ -144,10 +144,8 @@ class ApacheCassandraConnector extends DBConnector {
     try {
       CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
         for (table <- names) {
-          session.execute("CREATE TABLE IF NOT EXISTS " + cassandra_keyspace_name + "." +
-            table._1 + " (" + table._2 + ") " +
-            "WITH GC_GRACE_SECONDS=" + cassandra_gc_grace_seconds +
-            ";")
+          session.execute(s"CREATE TABLE IF NOT EXISTS $cassandra_keyspace_name.${table._1} (${table._2}) " +
+            s"WITH GC_GRACE_SECONDS=$cassandra_gc_grace_seconds")
         }
       }
     }
@@ -160,6 +158,33 @@ class ApacheCassandraConnector extends DBConnector {
     }
   }
 
+  private def setCompression(tables:List[String], compression:String):Unit={
+    val spark = SparkSession.builder().getOrCreate()
+    try {
+      if(compression!="false") {
+        CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
+          for (table <- tables) {
+            session.execute(s"ALTER TABLE $cassandra_keyspace_name.${table} " +
+              s"WITH compression={'class': '$compression'};")
+          }
+        }
+      }else{
+        CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
+          for (table <- tables) {
+            session.execute(s"ALTER TABLE $cassandra_keyspace_name.${table} " +
+              s"WITH compression={'enabled': 'false'};")
+          }
+        }
+      }
+    }
+    catch {
+      case e: Exception =>
+        Logger.getLogger("Initialization db").log(Level.ERROR, s"A problem occurred when setting compression")
+        e.printStackTrace()
+        spark.close()
+        System.exit(1)
+    }
+  }
 
   /**
    * This method constructs the appropriate metadata based on the already stored in the database and the
