@@ -4,6 +4,7 @@ import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
 import auth.datalab.siesta.BusinessLogic.Metadata.{MetaData, SetMetadata}
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
+import auth.datalab.siesta.Utils.Utilities
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
@@ -29,19 +30,19 @@ class S3Connector extends DBConnector {
   override def initialize_spark(config: Config): Unit = {
     lazy val spark = SparkSession.builder()
       .appName("SIESTA indexing")
-//      .master("local[*]")
+      .master("local[*]")
       .getOrCreate()
 
     //TODO: pass through environment vars
-    val s3accessKeyAws = "minioadmin"
-    val s3secretKeyAws = "minioadmin"
-    val connectionTimeOut = "600000"
-    val s3endPointLoc: String = "http://rabbit.csd.auth.gr:9000"
+    val s3accessKeyAws = Utilities.readEnvVariable("s3accessKeyAws")
+    val s3secretKeyAws = Utilities.readEnvVariable("s3secretKeyAws")
+    val s3ConnectionTimeout = Utilities.readEnvVariable("s3ConnectionTimeout")
+    val s3endPointLoc: String = Utilities.readEnvVariable("s3endPointLoc")
 
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.endpoint", s3endPointLoc)
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", s3accessKeyAws)
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", s3secretKeyAws)
-    spark.sparkContext.hadoopConfiguration.set("fs.s3a.connection.timeout", connectionTimeOut)
+    spark.sparkContext.hadoopConfiguration.set("fs.s3a.connection.timeout", s3ConnectionTimeout)
     //    spark.sparkContext.hadoopConfiguration.set("spark.sql.debug.maxToStringFields", "100")
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.path.style.access", "true")
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
