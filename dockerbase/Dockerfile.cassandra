@@ -1,0 +1,39 @@
+FROM alpine:3.14
+RUN apk --no-cache update
+RUN apk add --no-cache openjdk8
+RUN apk add sbt --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+RUN mkdir "/app"
+WORKDIR /app
+COPY dockerbase/build.cassandra.sbt /app/build.sbt
+COPY src /app/src
+COPY project /app/project
+RUN sbt clean assembly
+RUN mv target/scala-2.11/app-assembly-0.1.jar preprocess.jar
+
+#install spark
+RUN apk add --no-cache curl
+RUN curl -O https://archive.apache.org/dist/spark/spark-2.4.4/spark-2.4.4-bin-hadoop2.7.tgz &&\
+tar xvf spark-2.4.4-bin-hadoop2.7.tgz && mv spark-2.4.4-bin-hadoop2.7/ /opt/spark && rm spark-2.4.4-bin-hadoop2.7.tgz
+
+ENV cassandra_host=rabbit.csd.auth.gr
+ENV cassandra_port=9042
+ENV cassandra_user=cassandra
+ENV cassandra_pass=cassandra
+ENV cassandra_keyspace_name=siesta
+ENV cassandra_replication_class=SimpleStrategy
+ENV cassandra_replication_rack=replication_factor
+ENV cassandra_replication_factor=1
+ENV cassandra_write_consistency_level=ONE
+ENV cassandra_gc_grace_seconds=864000
+
+RUN mv /app/src/main/resources/log4j.properties /opt/spark/conf/log4j.properties
+RUN mkdir /app/input
+VOLUME /app/input
+RUN mkdir /app/output
+VOLUME /app/output
+#
+#ENTRYPOINT ["/opt/spark/bin/spark-submit", \
+#"--conf","spark.driver.extraJavaOptions=-Dlog4j.configuration=resources/log4j.properties", \
+#"--conf","spark.executor.extraJavaOptions=-Dlog4j.configuration=resources/log4j.properties","preprocess.jar"]
+ENTRYPOINT ["tail", "-f", "/dev/null"]
+#CMD ["--help"]

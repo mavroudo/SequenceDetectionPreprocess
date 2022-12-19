@@ -28,8 +28,8 @@ class S3Connector extends DBConnector {
    */
   override def initialize_spark(config: Config): Unit = {
     lazy val spark = SparkSession.builder()
-      .appName("Object Storage Test")
-      .master("local[*]")
+      .appName("SIESTA indexing")
+//      .master("local[*]")
       .getOrCreate()
 
     //TODO: pass through environment vars

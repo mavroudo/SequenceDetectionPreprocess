@@ -21,8 +21,8 @@ class TestCountTable extends FunSuite with BeforeAndAfterAll{
   test("Write and read Count (1)"){
     config = Config(delete_previous = true, log_name = "test")
     dbConnector.initialize_spark(config)
-    val spark = SparkSession.builder().getOrCreate()
 
+    val spark = SparkSession.builder().getOrCreate()
     this.dbConnector.initialize_db(config)
     this.metaData = dbConnector.get_metadata(config)
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)

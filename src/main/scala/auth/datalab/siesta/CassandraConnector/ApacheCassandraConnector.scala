@@ -57,13 +57,14 @@ class ApacheCassandraConnector extends DBConnector {
         System.exit(1)
     }
     _configuration = new SparkConf()
-      .setAppName("FA Indexing")
-      .setMaster("local[*]")
+      .setAppName("SIESTA indexing")
+//      .setMaster("local[*]")
       .set("spark.cassandra.connection.host", cassandra_host)
       .set("spark.cassandra.auth.username", cassandra_user)
       .set("spark.cassandra.auth.password", cassandra_pass)
       .set("spark.cassandra.connection.port", cassandra_port)
       .set("spark.cassandra.output.consistency.level", cassandra_write_consistency_level)
+
 
     val spark = SparkSession.builder().config(_configuration).getOrCreate()
 

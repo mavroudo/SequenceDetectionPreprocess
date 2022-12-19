@@ -1,25 +1,26 @@
 
-ThisBuild / name := "SequenceDetection"
+val sparkVersion = "2.4.4"
+
+ThisBuild / name := "Siesta"
 ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.11.12"
 ThisBuild / organization := "auth.datalab"
-parallelExecution in Test := false
+ThisBuild / parallelExecution in Test := false
+test in assembly := {}
+assembly / mainClass := Some("auth.datalab.siesta.Main")
 
 libraryDependencies += "com.typesafe.scala-logging" % "scala-logging-slf4j_2.10" % "2.1.2"
-libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "2.4.1"
-libraryDependencies += "org.scalatest" % "scalatest_2.11" % "3.0.4" % "test"
-
-//libraryDependencies += "monetdb" % "monetdb-jdbc-new" % "2.36"
-
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
+//test
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1"
+libraryDependencies += "org.scalatest" % "scalatest_2.11" % "3.0.4" % "test"
+//scala
+libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.3.6"
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
 libraryDependencies += "de.uni.freiburg.iig.telematik" % "SEWOL" % "1.0.2"
-
 libraryDependencies += "org.eu.acolyte" %% "jdbc-scala" % "1.0.46" % "test"
-
 libraryDependencies += "com.madhukaraphatak" %% "java-sizeof" % "0.1"
 libraryDependencies += "com.github.scopt" %% "scopt" % "4.1.0"
-val sparkVersion = "2.4.4"
+libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "2.4.2"
 
 
 //to run the sbt assembly the '% "provided",' section must not be in comments
@@ -30,22 +31,26 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-mllib" % sparkVersion % "provided",
   "org.apache.spark" %% "spark-sql" % sparkVersion % "provided")
 
+
+dependencyOverrides ++= {
+  Seq(
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.6.7.1",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7",
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.6.7"
+  )
+}
+
+
 assemblyMergeStrategy in assembly := {
   case manifest if manifest.contains("MANIFEST.MF") =>
-    // We don't need manifest files since sbt-assembly will create
-    // one with the given settings
     MergeStrategy.discard
   case referenceOverrides if referenceOverrides.contains("reference-overrides.conf") =>
-    // Keep the content for all reference-overrides.conf files
     MergeStrategy.concat
   case deckfour if deckfour.contains("deckfour") || deckfour.contains(".cache") =>
-    // For all the other files, use the default sbt-assembly merge strategy
-    //val oldStrategy = (assemblyMergeStrategy in assembly).value
-    //oldStrategy(x)
-    //MergeStrategy.first
     MergeStrategy.last
-  case _ =>
+  case x =>
     MergeStrategy.last
 }
 
-assembly / mainClass := Some("auth.datalab.sequenceDetection.Main")
+
+
