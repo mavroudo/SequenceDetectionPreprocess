@@ -213,9 +213,12 @@ trait DBConnector {
   def combine_count_table(newCounts:RDD[Structs.Count],prevCounts:RDD[Structs.Count],metaData: MetaData):RDD[Structs.Count]={
     if(prevCounts==null) return newCounts
     newCounts.union(prevCounts)
-      .map(x=>((x.eventA,x.eventB,x.id),x.count))
-      .reduceByKey((x,y)=>x+y)
-      .map(y=>Structs.Count(y._1._1,y._1._2,y._1._3,y._2))
+      .map(x=>((x.eventA,x.eventB),x.sum_duration,x.count,x.min_duration,x.max_duration))
+      .keyBy(_._1)
+      .reduceByKey((a, b) => {
+        (a._1, a._2 + b._2, a._3 + b._3, Math.min(a._4, b._4), Math.max(a._5, b._5))
+      })
+      .map(y => Structs.Count(y._1._1, y._1._2, y._2._2, y._2._3, y._2._4, y._2._5))
   }
 
 }

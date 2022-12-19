@@ -1,6 +1,8 @@
 package auth.datalab.siesta.CommandLineParser
 
-import auth.datalab.sequenceDetection.{Structs, TraceGenerator, Utils}
+import auth.datalab.siesta.BusinessLogic.IngestData.ReadLogFile
+import auth.datalab.siesta.BusinessLogic.Model.Structs
+import auth.datalab.siesta.TraceGenerator.TraceGenerator
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
@@ -22,7 +24,7 @@ object Utilities {
     var traceGenerator: TraceGenerator = null
     val sequencesRDD_before_repartitioned: RDD[Structs.Sequence] = {
       if (c.filename != "synthetic") {
-        Utils.readLog(c.filename)
+        ReadLogFile.readLog(c.filename)
       } else {
         traceGenerator = new TraceGenerator(c.traces, c.event_types, c.length_min, c.length_max)
         traceGenerator.produce((1 to rand_data).toList)
@@ -35,7 +37,7 @@ object Utilities {
    * Return the number of traces in the dataset (synthetic/file)
    *
    * @param c    Configuration object
-   * @param data Data returned from the [[auth.datalab.sequenceDetection.CommandLineParser.Utilities#getRDD(auth.datalab.sequenceDetection.CommandLineParser.Config)]]
+   * @param data Data returned from the [[auth.datalab.siesta.CommandLineParser.Utilities#getRDD(auth.datalab.sequenceDetection.CommandLineParser.Config)]]
    * @return
    */
   def getTraces(c: Config, data: RDD[Structs.Sequence]): Int = {
@@ -49,7 +51,7 @@ object Utilities {
    * If the user has define the number of iterations it will return that instead
    *
    * @param c      The configuration object
-   * @param data   Data returned from the [[auth.datalab.sequenceDetection.CommandLineParser.Utilities#getRDD(auth.datalab.sequenceDetection.CommandLineParser.Config)]]
+   * @param data   Data returned from the [[auth.datalab.siesta.CommandLineParser.Utilities#getRDD(auth.datalab.sequenceDetection.CommandLineParser.Config)]]
    * @param traces number of traces
    * @return
    */
@@ -79,7 +81,7 @@ object Utilities {
    * Split the ids based on the provided/calculated iterations
    *
    * @param c          The configuration object
-   * @param data       Data returned from the [[auth.datalab.sequenceDetection.CommandLineParser.Utilities#getRDD(auth.datalab.sequenceDetection.CommandLineParser.Config)]]
+   * @param data       Data returned from the [[auth.datalab.siesta.CommandLineParser.Utilities#getRDD(auth.datalab.sequenceDetection.CommandLineParser.Config)]]
    * @param traces     number of traces
    * @param iterations number of iterations
    * @return
@@ -102,7 +104,7 @@ object Utilities {
    * Returns the data in RDD based on the ids in this iterations
    *
    * @param c              The configuration object
-   * @param data           Data returned from the [[auth.datalab.sequenceDetection.CommandLineParser.Utilities#getRDD(auth.datalab.sequenceDetection.CommandLineParser.Config)]]
+   * @param data           Data returned from the [[auth.datalab.siesta.CommandLineParser.Utilities#getRDD(auth.datalab.sequenceDetection.CommandLineParser.Config)]]
    * @param ids            Ids in this iteration
    * @param traceGenerator in case of synthetic, otherwise will not be used
    * @param allExecutors   number of executors to repartition the data

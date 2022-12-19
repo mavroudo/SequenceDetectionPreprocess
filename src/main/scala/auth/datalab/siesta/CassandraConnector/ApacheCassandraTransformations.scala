@@ -135,7 +135,7 @@ object ApacheCassandraTransformations {
   def transformCountToWrite(counts:RDD[Structs.Count]):RDD[CassandraCount]={
     counts.groupBy(_.eventA)
       .map(x=>{
-        val times = x._2.map(t=> s"${t.eventB},${t.id},${t.count}")
+        val times = x._2.map(t=> s"${t.eventB},${t.sum_duration},${t.count},${t.max_duration},${t.max_duration}")
         CassandraCount(x._1,times.toList)
       })
   }
@@ -145,7 +145,7 @@ object ApacheCassandraTransformations {
       val eventA=r.getAs[String]("event_a")
       r.getAs[Seq[String]]("times").map(t => {
         val s = t.split(",")
-        Structs.Count(eventA, s(0), s(1).toLong, s(2).toInt)
+        Structs.Count(eventA, s(0), s(1).toLong, s(2).toInt,s(3).toLong,s(4).toLong)
       })
     })
   }

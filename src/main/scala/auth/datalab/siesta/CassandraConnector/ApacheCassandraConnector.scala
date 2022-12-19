@@ -1,10 +1,11 @@
 package auth.datalab.siesta.CassandraConnector
 
-import auth.datalab.sequenceDetection.Utils
+
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
 import auth.datalab.siesta.BusinessLogic.Metadata.{MetaData, SetMetadata}
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
+import auth.datalab.siesta.Utils.Utilities
 import com.datastax.driver.core.{Cluster, ConsistencyLevel}
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
@@ -39,16 +40,16 @@ class ApacheCassandraConnector extends DBConnector {
    */
   override def initialize_spark(config: Config): Unit = {
     try {
-      cassandra_host = Utils.readEnvVariable("cassandra_host")
-      cassandra_port = Utils.readEnvVariable("cassandra_port")
-      cassandra_user = Utils.readEnvVariable("cassandra_user")
-      cassandra_pass = Utils.readEnvVariable("cassandra_pass")
-      cassandra_gc_grace_seconds = Utils.readEnvVariable("cassandra_gc_grace_seconds")
-      cassandra_keyspace_name = Utils.readEnvVariable("cassandra_keyspace_name")
-      cassandra_replication_class = Utils.readEnvVariable("cassandra_replication_class")
-      cassandra_replication_rack = Utils.readEnvVariable("cassandra_replication_rack")
-      cassandra_replication_factor = Utils.readEnvVariable("cassandra_replication_factor")
-      cassandra_write_consistency_level = Utils.readEnvVariable("cassandra_write_consistency_level")
+      cassandra_host = Utilities.readEnvVariable("cassandra_host")
+      cassandra_port = Utilities.readEnvVariable("cassandra_port")
+      cassandra_user = Utilities.readEnvVariable("cassandra_user")
+      cassandra_pass = Utilities.readEnvVariable("cassandra_pass")
+      cassandra_gc_grace_seconds = Utilities.readEnvVariable("cassandra_gc_grace_seconds")
+      cassandra_keyspace_name = Utilities.readEnvVariable("cassandra_keyspace_name")
+      cassandra_replication_class = Utilities.readEnvVariable("cassandra_replication_class")
+      cassandra_replication_rack = Utilities.readEnvVariable("cassandra_replication_rack")
+      cassandra_replication_factor = Utilities.readEnvVariable("cassandra_replication_factor")
+      cassandra_write_consistency_level = Utilities.readEnvVariable("cassandra_write_consistency_level")
       //      println(cassandra_host, cassandra_keyspace_name, cassandra_keyspace_name)
     } catch {
       case e: NullPointerException =>
@@ -164,14 +165,14 @@ class ApacheCassandraConnector extends DBConnector {
       if(compression!="false") {
         CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
           for (table <- tables) {
-            session.execute(s"ALTER TABLE $cassandra_keyspace_name.${table} " +
+            session.execute(s"ALTER TABLE $cassandra_keyspace_name.$table " +
               s"WITH compression={'class': '$compression'};")
           }
         }
       }else{
         CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
           for (table <- tables) {
-            session.execute(s"ALTER TABLE $cassandra_keyspace_name.${table} " +
+            session.execute(s"ALTER TABLE $cassandra_keyspace_name.$table " +
               s"WITH compression={'enabled': 'false'};")
           }
         }
