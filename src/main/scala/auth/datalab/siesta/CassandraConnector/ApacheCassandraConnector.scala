@@ -61,7 +61,7 @@ class ApacheCassandraConnector extends DBConnector {
     }
     _configuration = new SparkConf()
       .setAppName("SIESTA indexing")
-//      .setMaster("local[*]")
+      .setMaster("local[*]")
       .set("spark.cassandra.connection.host", cassandra_host)
       .set("spark.cassandra.auth.username", cassandra_user)
       .set("spark.cassandra.auth.password", cassandra_pass)

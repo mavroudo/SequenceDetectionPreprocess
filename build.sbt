@@ -20,15 +20,15 @@ libraryDependencies += "com.github.scopt" %% "scopt" % "4.1.0" //parser for the 
 //to debug in IDE the '  "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion , //"2.0.0",' section must be in comments
 libraryDependencies ++= Seq(
   //      "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion, //"2.0.0"
-  "org.apache.spark" %% "spark-core" % sparkVersion, //% "provided",
+  "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
   //      "org.apache.spark" %% "spark-mllib" % sparkVersion ,
-  "org.apache.spark" %% "spark-sql" % sparkVersion ) //% "provided"
+  "org.apache.spark" %% "spark-sql" % sparkVersion % "provided")
 //
 dependencyOverrides ++= {
   Seq(
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.10.3",
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.10.3",
-    "com.fasterxml.jackson.core" % "jackson-core" % "2.10.3"
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.1",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.0",
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.14.0"
   )
 }
 
@@ -37,10 +37,10 @@ dependencyOverrides ++= {
 //minio (put in comments if want to execute cassandra
 libraryDependencies += "io.minio" % "spark-select_2.11" % "2.1"
 libraryDependencies += "io.minio" % "minio" % "3.0.12"
-libraryDependencies += "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.0.3"
-libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.0.3"
-libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.0.3"
-libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.0.3" //3.0.3
+libraryDependencies += "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.3.2"
+libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.3.2"
+libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.3.2"
+libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.3.2" //3.0.3
 libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "3.2.0" //was 2.4.2
 
 

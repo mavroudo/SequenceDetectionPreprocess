@@ -6,6 +6,7 @@ import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs
+import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 //import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
@@ -22,8 +23,7 @@ object SiestaPipeline {
   def execute(c: Config): Unit = {
 
     val dbConnector = if (c.database == "cassandra") {
-//      new ApacheCassandraConnector()
-      new S3Connector()
+      new ApacheCassandraConnector()
     } else {
       new S3Connector()
     }
@@ -40,7 +40,7 @@ object SiestaPipeline {
       val combined = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence table and ignore the output
       combined.persist(StorageLevel.MEMORY_AND_DISK)
       val intervals = Intervals.intervals(sequenceRDD, metadata.last_interval, metadata.split_every_days)
-      metadata.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
+//      metadata.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}" TODO: fix it
 
       val invertedSingleFull = ExtractSingle.extractFull(combined) //calculates inverted single
       combined.unpersist()
