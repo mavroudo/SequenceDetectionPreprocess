@@ -6,7 +6,7 @@ import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs
-import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
+//import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.log4j.{Level, Logger}
@@ -22,7 +22,8 @@ object SiestaPipeline {
   def execute(c: Config): Unit = {
 
     val dbConnector = if (c.database == "cassandra") {
-      new ApacheCassandraConnector()
+//      new ApacheCassandraConnector()
+      new S3Connector()
     } else {
       new S3Connector()
     }

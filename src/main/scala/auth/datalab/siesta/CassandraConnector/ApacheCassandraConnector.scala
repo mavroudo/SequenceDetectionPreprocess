@@ -6,7 +6,8 @@ import auth.datalab.siesta.BusinessLogic.Metadata.{MetaData, SetMetadata}
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.Utils.Utilities
-import com.datastax.driver.core.{Cluster, ConsistencyLevel}
+import com.datastax.oss.driver.api.core.metadata.schema.TableMetadata
+import com.datastax.oss.driver.api.core.{ConsistencyLevel, CqlIdentifier}
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
 import com.datastax.spark.connector.{SomeColumns, toRDDFunctions}
@@ -18,6 +19,8 @@ import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
 import java.net.InetSocketAddress
+import scala.collection.JavaConverters.mapAsScalaMapConverter
+import scala.collection.mutable
 
 class ApacheCassandraConnector extends DBConnector {
   var cassandra_host: String = _
@@ -33,7 +36,7 @@ class ApacheCassandraConnector extends DBConnector {
   var tables: Map[String, String] = Map[String, String]()
   var _configuration: SparkConf = _
   val DELIMITER = "¦delab¦"
-  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE, batchSize = 1, throughputMiBPS = 0.5)
+  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE, batchSize = 1, throughputMiBPS = Option(0.5))
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
@@ -103,17 +106,19 @@ class ApacheCassandraConnector extends DBConnector {
   }
 
   private def dropAlltables(): Unit = {
+
     val spark = SparkSession.builder().getOrCreate()
     try {
-      val cluster = Cluster.builder().addContactPointsWithPorts(new InetSocketAddress(this.cassandra_host, this.cassandra_port.toInt)).withCredentials(this.cassandra_user, this.cassandra_pass).build()
-      val session = cluster.connect(this.cassandra_keyspace_name)
-      val tables_iterator = cluster.getMetadata.getKeyspace(this.cassandra_keyspace_name).getTables.iterator()
-      while (tables_iterator.hasNext) {
-        session.execute("drop table if exists " + this.cassandra_keyspace_name + '.' + tables_iterator.next.getName + ";")
+      CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
+        session.getMetadata
+          .getKeyspace(this.cassandra_keyspace_name)
+          .get().getTables.asScala
+          .map(x=>x._2.getName.toString)
+          .foreach(table=>{
+            session.execute("drop table if exists " + this.cassandra_keyspace_name + '.' + table + ";")
+          })
+        session.close()
       }
-      session.close()
-      cluster.close()
-
     } catch {
       case e: Exception =>
         Logger.getLogger("Initialization db").log(Level.ERROR, s"A problem occurred dropping tables tables")

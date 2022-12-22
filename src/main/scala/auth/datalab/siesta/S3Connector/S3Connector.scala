@@ -30,7 +30,7 @@ class S3Connector extends DBConnector {
   override def initialize_spark(config: Config): Unit = {
     lazy val spark = SparkSession.builder()
       .appName("SIESTA indexing")
-      .master("local[*]")
+//      .master("local[*]")
       .getOrCreate()
 
     //TODO: pass through environment vars
@@ -58,7 +58,7 @@ class S3Connector extends DBConnector {
    */
   override def initialize_db(config: Config): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-    val fs = FileSystem.get(new URI("s3a://siesta/"), spark.sparkContext.hadoopConfiguration)
+//    val fs = FileSystem.get(new URI("s3a://siesta/"), spark.sparkContext.hadoopConfiguration)
 
     //define name tables
     seq_table = s"""s3a://siesta/${config.log_name}/seq.parquet/"""
@@ -69,10 +69,10 @@ class S3Connector extends DBConnector {
     count_table = s"""s3a://siesta/${config.log_name}/count.parquet/"""
 
     //delete previous stored values
-    if (config.delete_previous) fs.delete(new Path(s"""s3a://siesta/${config.log_name}/"""), true)
+//    if (config.delete_previous) fs.delete(new Path(s"""s3a://siesta/${config.log_name}/"""), true)
 
     //delete all stored indices in this db
-    if (config.delete_all) fs.delete(new Path(s"""s3a://siesta/"""), true)
+//    if (config.delete_all) fs.delete(new Path(s"""s3a://siesta/"""), true)
   }
 
   /**
