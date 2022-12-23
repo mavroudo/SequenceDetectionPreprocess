@@ -17,7 +17,6 @@ object Main {
     } else {
       config = conf.get
     }
-    config=Config()
     SiestaPipeline.execute(config)
   }
 

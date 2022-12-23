@@ -7,6 +7,7 @@ import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.Utils.Utilities
 import com.datastax.oss.driver.api.core.metadata.schema.TableMetadata
+import  org.xerial.snappy.Snappy
 import com.datastax.oss.driver.api.core.{ConsistencyLevel, CqlIdentifier}
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
@@ -61,7 +62,7 @@ class ApacheCassandraConnector extends DBConnector {
     }
     _configuration = new SparkConf()
       .setAppName("SIESTA indexing")
-      .setMaster("local[*]")
+//      .setMaster("local[*]")
       .set("spark.cassandra.connection.host", cassandra_host)
       .set("spark.cassandra.auth.username", cassandra_user)
       .set("spark.cassandra.auth.password", cassandra_pass)
