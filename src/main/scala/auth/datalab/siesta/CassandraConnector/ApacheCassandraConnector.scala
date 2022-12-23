@@ -1,11 +1,14 @@
 package auth.datalab.siesta.CassandraConnector
 
-import auth.datalab.sequenceDetection.Utils
+
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
 import auth.datalab.siesta.BusinessLogic.Metadata.{MetaData, SetMetadata}
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
-import com.datastax.driver.core.{Cluster, ConsistencyLevel}
+import auth.datalab.siesta.Utils.Utilities
+import com.datastax.oss.driver.api.core.metadata.schema.TableMetadata
+import  org.xerial.snappy.Snappy
+import com.datastax.oss.driver.api.core.{ConsistencyLevel, CqlIdentifier}
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
 import com.datastax.spark.connector.{SomeColumns, toRDDFunctions}
@@ -17,6 +20,8 @@ import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
 import java.net.InetSocketAddress
+import scala.collection.JavaConverters.mapAsScalaMapConverter
+import scala.collection.mutable
 
 class ApacheCassandraConnector extends DBConnector {
   var cassandra_host: String = _
@@ -32,23 +37,23 @@ class ApacheCassandraConnector extends DBConnector {
   var tables: Map[String, String] = Map[String, String]()
   var _configuration: SparkConf = _
   val DELIMITER = "¦delab¦"
-  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE, batchSize = 1, throughputMiBPS = 0.5)
+  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE, batchSize = 1, throughputMiBPS = Option(0.5))
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
    */
   override def initialize_spark(config: Config): Unit = {
     try {
-      cassandra_host = Utils.readEnvVariable("cassandra_host")
-      cassandra_port = Utils.readEnvVariable("cassandra_port")
-      cassandra_user = Utils.readEnvVariable("cassandra_user")
-      cassandra_pass = Utils.readEnvVariable("cassandra_pass")
-      cassandra_gc_grace_seconds = Utils.readEnvVariable("cassandra_gc_grace_seconds")
-      cassandra_keyspace_name = Utils.readEnvVariable("cassandra_keyspace_name")
-      cassandra_replication_class = Utils.readEnvVariable("cassandra_replication_class")
-      cassandra_replication_rack = Utils.readEnvVariable("cassandra_replication_rack")
-      cassandra_replication_factor = Utils.readEnvVariable("cassandra_replication_factor")
-      cassandra_write_consistency_level = Utils.readEnvVariable("cassandra_write_consistency_level")
+      cassandra_host = Utilities.readEnvVariable("cassandra_host")
+      cassandra_port = Utilities.readEnvVariable("cassandra_port")
+      cassandra_user = Utilities.readEnvVariable("cassandra_user")
+      cassandra_pass = Utilities.readEnvVariable("cassandra_pass")
+      cassandra_gc_grace_seconds = Utilities.readEnvVariable("cassandra_gc_grace_seconds")
+      cassandra_keyspace_name = Utilities.readEnvVariable("cassandra_keyspace_name")
+      cassandra_replication_class = Utilities.readEnvVariable("cassandra_replication_class")
+      cassandra_replication_rack = Utilities.readEnvVariable("cassandra_replication_rack")
+      cassandra_replication_factor = Utilities.readEnvVariable("cassandra_replication_factor")
+      cassandra_write_consistency_level = Utilities.readEnvVariable("cassandra_write_consistency_level")
       //      println(cassandra_host, cassandra_keyspace_name, cassandra_keyspace_name)
     } catch {
       case e: NullPointerException =>
@@ -56,13 +61,14 @@ class ApacheCassandraConnector extends DBConnector {
         System.exit(1)
     }
     _configuration = new SparkConf()
-      .setAppName("FA Indexing")
-      .setMaster("local[*]")
+      .setAppName("SIESTA indexing")
+//      .setMaster("local[*]")
       .set("spark.cassandra.connection.host", cassandra_host)
       .set("spark.cassandra.auth.username", cassandra_user)
       .set("spark.cassandra.auth.password", cassandra_pass)
       .set("spark.cassandra.connection.port", cassandra_port)
       .set("spark.cassandra.output.consistency.level", cassandra_write_consistency_level)
+
 
     val spark = SparkSession.builder().config(_configuration).getOrCreate()
 
@@ -101,17 +107,19 @@ class ApacheCassandraConnector extends DBConnector {
   }
 
   private def dropAlltables(): Unit = {
+
     val spark = SparkSession.builder().getOrCreate()
     try {
-      val cluster = Cluster.builder().addContactPointsWithPorts(new InetSocketAddress(this.cassandra_host, this.cassandra_port.toInt)).withCredentials(this.cassandra_user, this.cassandra_pass).build()
-      val session = cluster.connect(this.cassandra_keyspace_name)
-      val tables_iterator = cluster.getMetadata.getKeyspace(this.cassandra_keyspace_name).getTables.iterator()
-      while (tables_iterator.hasNext) {
-        session.execute("drop table if exists " + this.cassandra_keyspace_name + '.' + tables_iterator.next.getName + ";")
+      CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
+        session.getMetadata
+          .getKeyspace(this.cassandra_keyspace_name)
+          .get().getTables.asScala
+          .map(x=>x._2.getName.toString)
+          .foreach(table=>{
+            session.execute("drop table if exists " + this.cassandra_keyspace_name + '.' + table + ";")
+          })
+        session.close()
       }
-      session.close()
-      cluster.close()
-
     } catch {
       case e: Exception =>
         Logger.getLogger("Initialization db").log(Level.ERROR, s"A problem occurred dropping tables tables")
@@ -164,14 +172,14 @@ class ApacheCassandraConnector extends DBConnector {
       if(compression!="false") {
         CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
           for (table <- tables) {
-            session.execute(s"ALTER TABLE $cassandra_keyspace_name.${table} " +
+            session.execute(s"ALTER TABLE $cassandra_keyspace_name.$table " +
               s"WITH compression={'class': '$compression'};")
           }
         }
       }else{
         CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
           for (table <- tables) {
-            session.execute(s"ALTER TABLE $cassandra_keyspace_name.${table} " +
+            session.execute(s"ALTER TABLE $cassandra_keyspace_name.$table " +
               s"WITH compression={'enabled': 'false'};")
           }
         }

@@ -9,7 +9,6 @@ object Main {
 
 
   def main(args: Array[String]): Unit = {
-
     Logger.getLogger("org").setLevel(Level.ERROR)
     val conf: Option[Config] = ParsingArguments.parseArguments(args)
     var config: Config = null
@@ -18,7 +17,6 @@ object Main {
     } else {
       config = conf.get
     }
-
     SiestaPipeline.execute(config)
   }
 

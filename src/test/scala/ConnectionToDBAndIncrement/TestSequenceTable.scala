@@ -10,8 +10,8 @@ import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 
 class TestSequenceTable extends FunSuite with BeforeAndAfterAll{
-//  @transient var dbConnector: DBConnector = new S3Connector()
-  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
+  @transient var dbConnector: DBConnector = new S3Connector()
+//  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
   @transient var metaData: MetaData = null
   @transient var config: Config = null
 

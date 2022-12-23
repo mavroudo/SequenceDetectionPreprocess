@@ -21,9 +21,9 @@ libraryDependencies += "com.github.scopt" %% "scopt" % "4.1.0" //parser for the 
 //to debug in IDE the '  "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion , //"2.0.0",' section must be in comments
 libraryDependencies ++= Seq(
   //      "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion, //"2.0.0"
-  "org.apache.spark" %% "spark-core" % sparkVersion , //% "provided"
+  "org.apache.spark" %% "spark-core" % sparkVersion % "provided", //% "provided"
   //      "org.apache.spark" %% "spark-mllib" % sparkVersion ,
-  "org.apache.spark" %% "spark-sql" % sparkVersion )
+  "org.apache.spark" %% "spark-sql" % sparkVersion % "provided")
 
 
 //
@@ -40,11 +40,14 @@ dependencyOverrides ++= {
 //minio (put in comments if want to execute cassandra
 //libraryDependencies += "io.minio" %% "spark-select" % "2.1"
 //libraryDependencies += "io.minio" % "minio" % "3.0.12"
-libraryDependencies += "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.2.0"
-libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.2.0"
-libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.2.0"
+libraryDependencies += "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.2.0" //% "provided"
+libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.2.0" //% "provided"
+libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.2.0" //% "provided"
 libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.2.0" //3.0.3
 libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "3.2.0" //was 2.4.2
+//libraryDependencies += "org.apache.parquet" % "parquet-hadoop"%"1.8.1"
+//try to add compressions
+//libraryDependencies += "org.xerial.snappy" % "snappy-java" % "1.1.7.5"
 
 
 assemblyMergeStrategy in assembly := {

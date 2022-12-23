@@ -129,7 +129,7 @@ object S3Transformations {
     import spark.sqlContext.implicits._
     counts.groupBy(_.eventA)
       .map(x=>{
-        val counts = x._2.map(y=>(y.eventB,y.id,y.count))
+        val counts = x._2.map(y=>(y.eventB,y.sum_duration,y.count,y.min_duration,y.max_duration))
         Structs.CountList(x._1,counts.toList)
       })
       .toDF("eventA","times")
@@ -139,7 +139,7 @@ object S3Transformations {
     df.rdd.flatMap(row=>{
       val eventA=row.getAs[String]("eventA")
       row.getAs[Seq[Row]]("times").map(t=>{
-        Structs.Count(eventA,t.getString(0),t.getLong(1),t.getInt(2))
+        Structs.Count(eventA,t.getString(0),t.getLong(1),t.getInt(2),t.getLong(3),t.getLong(4))
       })
     })
   }

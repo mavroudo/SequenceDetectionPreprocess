@@ -13,8 +13,8 @@ import org.apache.spark.storage.StorageLevel
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 class TestMetaData extends FunSuite with BeforeAndAfterAll {
-//  @transient var dbConnector = new S3Connector()
-  @transient var dbConnector = new ApacheCassandraConnector()
+  @transient var dbConnector = new S3Connector()
+//  @transient var dbConnector = new ApacheCassandraConnector()
 
   test("Test get metadata first time") {
     val c = Config(delete_previous = true, log_name = "test")
