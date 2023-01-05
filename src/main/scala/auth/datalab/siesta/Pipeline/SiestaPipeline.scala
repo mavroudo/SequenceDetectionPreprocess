@@ -40,7 +40,6 @@ object SiestaPipeline {
       val combined = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence table and ignore the output
       combined.persist(StorageLevel.MEMORY_AND_DISK)
       val intervals = Intervals.intervals(sequenceRDD, metadata.last_interval, metadata.split_every_days)
-//      metadata.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}" TODO: fix it
 
       val invertedSingleFull = ExtractSingle.extractFull(combined) //calculates inverted single
       combined.unpersist()
@@ -63,6 +62,7 @@ object SiestaPipeline {
       counts.unpersist()
       x._1.unpersist()
       metadata.has_previous_stored = true
+      metadata.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
       dbConnector.write_metadata(metadata)
       dbConnector.closeSpark()
 

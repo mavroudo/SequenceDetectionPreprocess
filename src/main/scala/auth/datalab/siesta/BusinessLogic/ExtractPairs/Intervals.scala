@@ -34,6 +34,7 @@ object Intervals {
         Logger.getLogger("Calculating intervals").log(Level.ERROR,s"There is an event that has timestamp before the last interval")
         System.exit(12)
       }
+      buffer+=Structs.Interval(Timestamp.from(start),Timestamp.from(end))
       while(end.isBefore(maxTimestamp.toInstant)){
         start=end.plus(1,ChronoUnit.DAYS)
         end=end.plus(days+1,ChronoUnit.DAYS)
@@ -42,14 +43,14 @@ object Intervals {
     }
 
     Logger.getLogger("Calculate Intervals").log(Level.INFO,s"found ${buffer.size} intervals.")
+    val c =buffer.toList.map(x=>s"${x.start.toString}_${x.end.toString}").mkString("||")
+    Logger.getLogger("Calculate Intervals").log(Level.INFO,s"intervals: $c")
     buffer.toList
   }
 
   def intervals(sequenceRDD:RDD[Structs.Sequence],last_interval:String,split_every_days:Int):List[Structs.Interval]={
-    implicit def ordered:Ordering[Timestamp] = new Ordering[Timestamp] {
-      override def compare(x: Timestamp, y: Timestamp): Int = {
-        x compareTo y
-      }
+    implicit def ordered:Ordering[Timestamp] = (x: Timestamp, y: Timestamp) => {
+      x compareTo y
     }
     val min = sequenceRDD.map(x=>Timestamp.valueOf(x.events.head.timestamp)).min()
     val max = sequenceRDD.map(x=>Timestamp.valueOf(x.events.last.timestamp)).max()

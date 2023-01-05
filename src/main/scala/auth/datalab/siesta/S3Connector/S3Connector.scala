@@ -69,10 +69,15 @@ class S3Connector extends DBConnector {
     count_table = s"""s3a://siesta/${config.log_name}/count.parquet/"""
 
     //delete previous stored values
-    if (config.delete_previous) fs.delete(new Path(s"""s3a://siesta/${config.log_name}/"""), true)
-
+    if (config.delete_previous){
+      fs.delete(new Path(s"""s3a://siesta/${config.log_name}/"""), true)
+    }
     //delete all stored indices in this db
-    if (config.delete_all) fs.delete(new Path(s"""s3a://siesta/"""), true)
+    if (config.delete_all){
+      for(l <- fs.listStatus(new Path(s"""s3a://siesta/"""))){
+        fs.delete(l.getPath,true)
+      }
+    }
   }
 
   /**
