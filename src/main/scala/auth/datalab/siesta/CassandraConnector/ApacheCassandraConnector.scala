@@ -6,9 +6,7 @@ import auth.datalab.siesta.BusinessLogic.Metadata.{MetaData, SetMetadata}
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.Utils.Utilities
-import com.datastax.oss.driver.api.core.metadata.schema.TableMetadata
-import  org.xerial.snappy.Snappy
-import com.datastax.oss.driver.api.core.{ConsistencyLevel, CqlIdentifier}
+import com.datastax.oss.driver.api.core.ConsistencyLevel
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
 import com.datastax.spark.connector.{SomeColumns, toRDDFunctions}
@@ -18,10 +16,9 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.cassandra.DataFrameReaderWrapper
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.apache.spark.storage.StorageLevel
-
-import java.net.InetSocketAddress
+import com.datastax.spark.connector._
 import scala.collection.JavaConverters.mapAsScalaMapConverter
-import scala.collection.mutable
+
 
 class ApacheCassandraConnector extends DBConnector {
   var cassandra_host: String = _
@@ -268,12 +265,12 @@ class ApacheCassandraConnector extends DBConnector {
     val start = System.currentTimeMillis()
     val prevSeq = this.read_sequence_table(metaData)
     val combined = this.combine_sequence_table(sequenceRDD, prevSeq)
-    val rddCass = ApacheCassandraTransformations.transformSeqToWrite(combined)
+    val rddCass = ApacheCassandraTransformations.transformSeqToWrite(sequenceRDD)
     rddCass.persist(StorageLevel.MEMORY_AND_DISK)
     metaData.traces = rddCass.count()
     rddCass
       .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("seq"),
-        columns = SomeColumns("events", "sequence_id"), writeConf = writeConf)
+        columns = SomeColumns("events" append, "sequence_id"), writeConf = writeConf)
     rddCass.unpersist()
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Sequence Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
@@ -417,13 +414,14 @@ class ApacheCassandraConnector extends DBConnector {
   override def write_index_table(newPairs: RDD[Structs.PairFull], metaData: MetaData, intervals: List[Structs.Interval]): Unit = {
     Logger.getLogger("Index Table Write").log(Level.INFO, s"Start writing Index table")
     val start = System.currentTimeMillis()
-    val previousIndexed = this.read_index_table(metaData, intervals)
-    val combined = this.combine_index_table(newPairs, previousIndexed, metaData, intervals)
-    metaData.pairs += combined.count()
-    val df = ApacheCassandraTransformations.transformIndexToWrite(combined, metaData)
+//    val previousIndexed = this.read_index_table(metaData, intervals)
+//    val combined = this.combine_index_table(newPairs, previousIndexed, metaData, intervals)
+    metaData.pairs += newPairs.count()
+    val df = ApacheCassandraTransformations.transformIndexToWrite(newPairs, metaData)
     df.persist(StorageLevel.MEMORY_AND_DISK)
     df
-      .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("index"), writeConf = writeConf)
+      .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("index"),
+        columns = SomeColumns("event_a", "event_b","start","end", "occurrences" append), writeConf = writeConf)
     df.unpersist()
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Index Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
@@ -462,4 +460,5 @@ class ApacheCassandraConnector extends DBConnector {
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Count Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
   }
+
 }

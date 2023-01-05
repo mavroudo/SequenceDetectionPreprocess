@@ -16,6 +16,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.14" % "test"
 //    libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1",
 libraryDependencies += "de.uni.freiburg.iig.telematik" % "SEWOL" % "1.0.2" //read data
 libraryDependencies += "com.github.scopt" %% "scopt" % "4.1.0" //parser for the commandlines
+libraryDependencies += "com.github.jnr" % "jnr-posix" % "3.1.15"
 
 //to run the sbt assembly the '% "provided",' section must not be in comments
 //to debug in IDE the '  "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion , //"2.0.0",' section must be in comments

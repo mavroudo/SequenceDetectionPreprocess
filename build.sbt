@@ -17,6 +17,9 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.14" % "test"
 libraryDependencies += "de.uni.freiburg.iig.telematik" % "SEWOL" % "1.0.2" //read data
 libraryDependencies += "com.github.scopt" %% "scopt" % "4.1.0" //parser for the commandlines
 
+libraryDependencies += "com.github.jnr" % "jnr-posix" % "3.1.15"
+libraryDependencies += "joda-time" % "joda-time" % "2.12.2"
+
 //to run the sbt assembly the '% "provided",' section must not be in comments
 //to debug in IDE the '  "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion , //"2.0.0",' section must be in comments
 libraryDependencies ++= Seq(

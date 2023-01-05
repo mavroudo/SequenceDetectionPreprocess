@@ -9,16 +9,17 @@ import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.sql.SparkSession
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.{BeforeAndAfterAll}
 
-class TestCountTable extends FunSuite with BeforeAndAfterAll{
+
+class TestCountTable extends AnyFlatSpec with BeforeAndAfterAll {
   @transient var dbConnector: DBConnector = new S3Connector()
-//  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
+  //  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
   @transient var metaData: MetaData = _
   @transient var config: Config = _
 
-
-  test("Write and read Count (1)"){
+  it should "create correctly the index for one log" in {
     config = Config(delete_previous = true, log_name = "test")
     dbConnector.initialize_spark(config)
 
@@ -32,10 +33,10 @@ class TestCountTable extends FunSuite with BeforeAndAfterAll{
     val counts = ExtractCounts.extract(x._1)
     dbConnector.write_count_table(counts, metaData)
     val collected = dbConnector.read_count_table(metaData)
-    assert(collected.map(_.count).sum==9)
+    assert(collected.map(_.count).sum == 9)
   }
 
-  test("Write and read Count (2)"){
+  it should "create correctly the index for two logs" in {
     config = Config(delete_previous = true, log_name = "test")
     dbConnector.initialize_spark(config)
     val spark = SparkSession.builder().getOrCreate()
@@ -53,6 +54,10 @@ class TestCountTable extends FunSuite with BeforeAndAfterAll{
     val counts = ExtractCounts.extract(x._1)
     dbConnector.write_count_table(counts, metaData)
     dbConnector.write_metadata(metaData) //till here index the first one
+    val c1 = dbConnector.read_count_table(metaData).collect()
+    metaData.has_previous_stored = true
+    metaData.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
+
 
     //index the second one
     val data2 = spark.sparkContext.parallelize(CreateRDD.createRDD_2)
@@ -64,34 +69,23 @@ class TestCountTable extends FunSuite with BeforeAndAfterAll{
     val x2 = ExtractPairs.extract(combinedInvertedFull2, last_checked, intervals2, config.lookback_days)
     val counts2 = ExtractCounts.extract(x2._1)
     dbConnector.write_count_table(counts2, metaData)
-    val collected =dbConnector.read_count_table(metaData).collect()
+    val collected = dbConnector.read_count_table(metaData).collect()
+    assert(collected.length == 9)
+    assert(collected.filter(x => x.eventA == "a" && x.eventB == "b").head.count == 2)
+    assert(collected.filter(x => x.eventA == "a" && x.eventB == "a").head.count == 3)
+    assert(collected.filter(x => x.eventA == "a" && x.eventB == "c").head.count == 2)
 
-//    assert(collected.length==14)
-//    assert(collected.filter(x=> x.id==0 && x.eventA=="a" && x.eventB=="a").head.count==1)
-//    assert(collected.filter(x=> x.id==0 && x.eventA=="a" && x.eventB=="b").head.count==3)
-//    assert(collected.filter(x=> x.id==0 && x.eventA=="b" && x.eventB=="a").head.count==2)
-//    assert(collected.filter(x=> x.id==0 && x.eventA=="b" && x.eventB=="b").head.count==1)
-//
-//    assert(collected.filter(x=> x.id==1 && x.eventA=="a" && x.eventB=="c").head.count==1)
-//    assert(collected.filter(x=> x.id==1 && x.eventA=="c" && x.eventB=="a").head.count==1)
-//    assert(collected.filter(x=> x.id==1 && x.eventA=="a" && x.eventB=="a").head.count==1)
-//
-//
-//    assert(collected.filter(x => x.id == 2 && x.eventA == "a" && x.eventB == "a").head.count == 1)
-//    assert(collected.filter(x => x.id == 2 && x.eventA == "a" && x.eventB == "c").head.count == 1)
-//    assert(collected.filter(x => x.id == 2 && x.eventA == "b" && x.eventB == "c").head.count == 1)
-//    assert(collected.filter(x => x.id == 2 && x.eventA == "c" && x.eventB == "c").head.count == 1)
-//    assert(collected.filter(x => x.id == 2 && x.eventA == "c" && x.eventB == "a").head.count == 2)
-//    assert(collected.filter(x => x.id == 2 && x.eventA == "b" && x.eventB == "a").head.count == 1)
-//    assert(collected.filter(x => x.id == 2 && x.eventA == "c" && x.eventB == "b").head.count == 1)
+    assert(collected.filter(x => x.eventA == "c" && x.eventB == "b").head.count == 1)
+    assert(collected.filter(x => x.eventA == "c" && x.eventB == "c").head.count == 1)
+    assert(collected.filter(x => x.eventA == "c" && x.eventB == "a").head.count == 3)
+
+    assert(collected.filter(x => x.eventA == "b" && x.eventB == "b").head.count == 1)
+    assert(collected.filter(x => x.eventA == "b" && x.eventB == "c").head.count == 1)
+    assert(collected.filter(x => x.eventA == "b" && x.eventB == "a").head.count == 3)
   }
 
-
-
-
-  override def afterAll(): Unit = {
-    this.dbConnector.closeSpark()
-  }
-
+    override def afterAll(): Unit = {
+      this.dbConnector.closeSpark()
+    }
 
 }

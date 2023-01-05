@@ -8,7 +8,7 @@ object ExtractCounts {
 
   def extract(pairs:RDD[Structs.PairFull]):RDD[Structs.Count]={
     pairs.map(x=>{
-      val duration = x.timeB.getTime-x.timeA.getTime
+      val duration = (x.timeB.getTime-x.timeA.getTime)/1000 //store it in seconds
       ((x.eventA,x.eventB),duration,1,duration,duration)
     })
       .keyBy(_._1)

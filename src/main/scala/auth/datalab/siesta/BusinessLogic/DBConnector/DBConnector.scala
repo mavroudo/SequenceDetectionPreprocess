@@ -210,15 +210,22 @@ trait DBConnector {
    * @param metaData Containing all the necessary information for the storing
    * @return The combined count records
    */
-  def combine_count_table(newCounts:RDD[Structs.Count],prevCounts:RDD[Structs.Count],metaData: MetaData):RDD[Structs.Count]={
-    if(prevCounts==null) return newCounts
-    newCounts.union(prevCounts)
-      .map(x=>((x.eventA,x.eventB),x.sum_duration,x.count,x.min_duration,x.max_duration))
-      .keyBy(_._1)
-      .reduceByKey((a, b) => {
-        (a._1, a._2 + b._2, a._3 + b._3, Math.min(a._4, b._4), Math.max(a._5, b._5))
+  def combine_count_table(newCounts: RDD[Structs.Count], prevCounts: RDD[Structs.Count], metaData: MetaData): RDD[Structs.Count] = {
+    if (prevCounts == null) return newCounts
+    newCounts.keyBy(x => (x.eventA, x.eventB))
+      .fullOuterJoin(prevCounts.keyBy(x => (x.eventA, x.eventB)))
+      .map(y => {
+        val c1 = y._2._1.getOrElse(Structs.Count(y._1._1, y._1._2, 0, 0, -1, -1))
+        val c2 = y._2._2.getOrElse(Structs.Count(y._1._1, y._1._2, 0, 0, -1, -1))
+        val m = if(c1.min_duration == -1) c2.min_duration
+        else if(c2.min_duration == -1) c1.min_duration
+        else Math.min(c1.min_duration,c2.min_duration)
+        val ma = if (c1.max_duration == -1) c2.max_duration
+        else if (c2.max_duration == -1) c1.max_duration
+        else Math.max(c1.max_duration, c2.max_duration)
+        Structs.Count(c1.eventA, c1.eventB, c1.sum_duration + c2.max_duration, c1.count + c2.count,
+          m, ma)
       })
-      .map(y => Structs.Count(y._1._1, y._1._2, y._2._2, y._2._3, y._2._4, y._2._5))
   }
 
 }

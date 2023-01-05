@@ -22,5 +22,6 @@ dockerbase/cassandra/data/*
 
 #allow specific test datasets
 !experiments/input/test1.withTimestamp
+!experiments/input/test2.withTimestamp
 
 dockerbase/spark-3.0.0-bin-hadoop3.2/*
