@@ -25,7 +25,7 @@ object ExtractSequence {
     val z: ListBuffer[Structs.Event] = new ListBuffer[Structs.Event]()
     z ++= x
     z ++= y
-    z.sortWith((a, b) => Utilities.compareTimes(a.timestamp, b.timestamp))
+//    z.sortWith((a, b) => Utilities.compareTimes(a.timestamp, b.timestamp))
     z.toList
   }
 
