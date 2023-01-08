@@ -70,7 +70,7 @@ trait DBConnector {
       .map(x => {
         val prevEvents = x._2._1.getOrElse(Structs.Sequence(List(), -1)).events
         val newEvents = x._2._2.getOrElse(Structs.Sequence(List(), -1)).events
-        Structs.Sequence(ExtractSequence.combineSequences(prevEvents, newEvents), x._1)
+        Structs.Sequence(ExtractSequence.combineSequences2(prevEvents, newEvents), x._1)
       })
     combined
   }
