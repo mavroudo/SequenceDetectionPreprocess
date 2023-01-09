@@ -10,9 +10,10 @@ import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.sql.SparkSession
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpec
 
-class TestExtractCount extends FunSuite with BeforeAndAfterAll{
+class TestExtractCount extends AnyFlatSpec with BeforeAndAfterAll{
 
   @transient var dbConnector: DBConnector = new S3Connector()
 //  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
@@ -26,7 +27,7 @@ class TestExtractCount extends FunSuite with BeforeAndAfterAll{
     this.metaData = dbConnector.get_metadata(config)
   }
 
-  test("Calculate counts") {
+  it should "Calculate correctly the count table" in {
     val spark = SparkSession.builder().getOrCreate()
     config = Config(delete_previous = true, log_name = "test")
     this.dbConnector.initialize_db(config)
@@ -36,8 +37,9 @@ class TestExtractCount extends FunSuite with BeforeAndAfterAll{
     val invertedSingleFull = ExtractSingle.extractFull(data)
     val x = ExtractPairs.extract(invertedSingleFull, null, intervals, 10)
     val counts = ExtractCounts.extract(x._1).collect()
-    assert(counts.map(_.count).sum==9)
+    assert(counts.map(_.count).sum == 9)
   }
+
 
   override def afterAll(): Unit = {
     this.dbConnector.closeSpark()

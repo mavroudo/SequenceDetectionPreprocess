@@ -10,13 +10,14 @@ import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.BeforeAndAfterAll
 
-class TestMetaData extends FunSuite with BeforeAndAfterAll {
+class TestMetaData extends AnyFlatSpec with BeforeAndAfterAll {
   @transient var dbConnector = new S3Connector()
 //  @transient var dbConnector = new ApacheCassandraConnector()
 
-  test("Test get metadata first time") {
+  it should "Get metadata for the first time" in {
     val c = Config(delete_previous = true, log_name = "test")
     dbConnector.initialize_spark(c)
     dbConnector.initialize_db(config = c)
@@ -28,8 +29,7 @@ class TestMetaData extends FunSuite with BeforeAndAfterAll {
     assert(metadata.events == 0)
 
   }
-
-  test("Write and read metadata after first indexing") {
+  it should "Write and read metadata after the first indexing" in {
     val c = Config(delete_previous = true, log_name = "test")
     dbConnector.initialize_spark(c)
     dbConnector.initialize_db(config = c)

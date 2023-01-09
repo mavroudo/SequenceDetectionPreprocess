@@ -6,17 +6,17 @@ import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.sql.SparkSession
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpec
 
 
-class TestSequenceTable extends FunSuite with BeforeAndAfterAll{
+class TestSequenceTable extends AnyFlatSpec with BeforeAndAfterAll{
   @transient var dbConnector: DBConnector = new S3Connector()
 //  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
   @transient var metaData: MetaData = null
   @transient var config: Config = null
 
-
-  test("Write and read Sequences (1)") {
+  it should "Write and read Sequences (1)" in {
     config = Config(delete_previous = true, log_name = "test")
     dbConnector.initialize_spark(config)
     this.dbConnector.initialize_db(config)
@@ -33,7 +33,7 @@ class TestSequenceTable extends FunSuite with BeforeAndAfterAll{
     assert(collected.count(_.events.size == 4) == 1)
   }
 
-  test("Read and write Sequences (2)"){
+  it should "Write and read Sequences (2)" in {
     config = Config(delete_previous = true, log_name = "test")
     dbConnector.initialize_spark(config)
     this.dbConnector.initialize_db(config)

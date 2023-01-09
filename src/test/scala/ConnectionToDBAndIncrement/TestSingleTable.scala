@@ -7,9 +7,10 @@ import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.sql.SparkSession
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.BeforeAndAfterAll
 
-class TestSingleTable extends FunSuite with BeforeAndAfterAll {
+class TestSingleTable extends AnyFlatSpec with BeforeAndAfterAll {
   @transient var dbConnector:DBConnector = new S3Connector()
 //  @transient var dbConnector:DBConnector = new ApacheCassandraConnector()
   @transient var metaData:MetaData = null
@@ -23,7 +24,7 @@ class TestSingleTable extends FunSuite with BeforeAndAfterAll {
     this.metaData=dbConnector.get_metadata(config)
   }
 
-  test("Calculate single inverted") {
+  it should "Calculate correctly the single inverted index" in {
     val spark = SparkSession.builder().getOrCreate()
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
     val invertedSingleFull = ExtractSingle.extractFull(data)
@@ -32,7 +33,7 @@ class TestSingleTable extends FunSuite with BeforeAndAfterAll {
     assert(collected.count(_.positions.size != 1)==2)
   }
 
-  test("Write single inverted and read it back (1)") {
+  it should "Write and read single inverted index (1)" in {
     val spark = SparkSession.builder().getOrCreate()
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
     val invertedSingleFull = ExtractSingle.extractFull(data)
@@ -47,8 +48,7 @@ class TestSingleTable extends FunSuite with BeforeAndAfterAll {
     assert(c.count(_.positions.size != 1) == 2)
     assert(c.count(_.positions.size == 1) == 5)
   }
-
-  test("Write single inverted and read it back (2)") {
+  it should "Write and read single inverted index (2)" in {
     val spark = SparkSession.builder().getOrCreate()
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
     val invertedSingleFull = ExtractSingle.extractFull(data)

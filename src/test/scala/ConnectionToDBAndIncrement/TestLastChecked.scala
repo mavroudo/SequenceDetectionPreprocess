@@ -9,11 +9,12 @@ import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.sql.SparkSession
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.BeforeAndAfterAll
 
 import java.sql.Timestamp
 
-class TestLastChecked extends FunSuite with BeforeAndAfterAll{
+class TestLastChecked extends AnyFlatSpec with BeforeAndAfterAll{
 
   @transient var dbConnector: DBConnector = new S3Connector()
 //  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
@@ -28,7 +29,7 @@ class TestLastChecked extends FunSuite with BeforeAndAfterAll{
     this.metaData = dbConnector.get_metadata(config)
   }
 
-  test("Write and read from LastChecked (1)"){
+  it should "Write and read from Last Checked (1)" in{
     val spark = SparkSession.builder().getOrCreate()
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
     val invertedSingleFull = ExtractSingle.extractFull(data)
@@ -39,8 +40,7 @@ class TestLastChecked extends FunSuite with BeforeAndAfterAll{
     assert(collected.length==8)
 
   }
-
-  test("Write and read from LastChecked (2)"){
+  it should "Write and read form LastChecked (2)" in {
     config = Config(delete_previous = true, log_name = "test")
     dbConnector.initialize_spark(config)
     val spark = SparkSession.builder().getOrCreate()
