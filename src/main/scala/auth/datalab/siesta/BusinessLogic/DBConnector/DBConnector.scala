@@ -108,7 +108,7 @@ trait DBConnector {
         val previous = x._2._1.getOrElse(Structs.InvertedSingleFull(-1, "", List(), List()))
         val prevOc = previous.times.zip(previous.positions)
         val newOc = x._2._2.times.zip(x._2._2.positions)
-        val combine = ExtractSingle.combineTimes(prevOc, newOc).distinct
+        val combine = ExtractSingle.combineTimes2(prevOc, newOc).distinct
         Structs.InvertedSingleFull(x._1._1, x._1._2, combine.map(_._1), combine.map(_._2))
       })
     combined
