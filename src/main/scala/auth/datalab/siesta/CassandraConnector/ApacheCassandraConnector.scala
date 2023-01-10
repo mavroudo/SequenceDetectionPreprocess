@@ -34,7 +34,7 @@ class ApacheCassandraConnector extends DBConnector {
   var tables: Map[String, String] = Map[String, String]()
   var _configuration: SparkConf = _
   val DELIMITER = "¦delab¦"
-  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.LOCAL_ONE,throughputMiBPS = Option(1))
+  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.LOCAL_ONE,throughputMiBPS = Option(0.8), parallelismLevel = 3)
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
