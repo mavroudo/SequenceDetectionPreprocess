@@ -2,21 +2,22 @@ package auth.datalab.siesta.CassandraConnector
 
 
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
+import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.Metadata.{MetaData, SetMetadata}
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.Utils.Utilities
 import com.datastax.oss.driver.api.core.ConsistencyLevel
+import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
-import com.datastax.spark.connector.{SomeColumns, toRDDFunctions}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.cassandra.DataFrameReaderWrapper
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.apache.spark.storage.StorageLevel
-import com.datastax.spark.connector._
+
 import scala.collection.JavaConverters.mapAsScalaMapConverter
 
 
@@ -34,7 +35,7 @@ class ApacheCassandraConnector extends DBConnector {
   var tables: Map[String, String] = Map[String, String]()
   var _configuration: SparkConf = _
   val DELIMITER = "¦delab¦"
-  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.LOCAL_ONE,throughputMiBPS = Option(0.8), parallelismLevel = 3)
+  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.LOCAL_ONE, throughputMiBPS = Option(0.8), parallelismLevel = 3)
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
@@ -112,8 +113,8 @@ class ApacheCassandraConnector extends DBConnector {
         session.getMetadata
           .getKeyspace(this.cassandra_keyspace_name)
           .get().getTables.asScala
-          .map(x=>x._2.getName.toString)
-          .foreach(table=>{
+          .map(x => x._2.getName.toString)
+          .foreach(table => {
             session.execute("drop table if exists " + this.cassandra_keyspace_name + '.' + table + ";")
           })
         session.close()
@@ -164,17 +165,17 @@ class ApacheCassandraConnector extends DBConnector {
     }
   }
 
-  private def setCompression(tables:List[String], compression:String):Unit={
+  private def setCompression(tables: List[String], compression: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     try {
-      if(compression!="false") {
+      if (compression != "false") {
         CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
           for (table <- tables) {
             session.execute(s"ALTER TABLE $cassandra_keyspace_name.$table " +
               s"WITH compression={'class': '$compression'};")
           }
         }
-      }else{
+      } else {
         CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
           for (table <- tables) {
             session.execute(s"ALTER TABLE $cassandra_keyspace_name.$table " +
@@ -308,16 +309,30 @@ class ApacheCassandraConnector extends DBConnector {
     val previousSingle = read_single_table(metaData)
     val combined = combine_single_table(singleRDD, previousSingle)
     val transformed = ApacheCassandraTransformations.transformSingleToWrite(combined)
-//      .repartition(SparkSession.builder().getOrCreate().sparkContext.defaultParallelism)
     transformed.persist(StorageLevel.MEMORY_AND_DISK)
     transformed
       .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("single"),
-        columns = SomeColumns("event_type", "occurrences"), writeConf = writeConf)
+        columns = SomeColumns("event_type", "trace_id", "occurrences" append), writeConf = writeConf)
     transformed.unpersist()
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Single Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+    read_single_table(metaData)
+  }
+
+  override def combine_single_table(newSingle: RDD[Structs.InvertedSingleFull], previousSingle: RDD[Structs.InvertedSingleFull]): RDD[Structs.InvertedSingleFull] = {
+    if (previousSingle == null) return newSingle
+    val combined = previousSingle.keyBy(x => (x.id, x.event_name))
+      .rightOuterJoin(newSingle.keyBy(x => (x.id, x.event_name)))
+      .map(x => {
+        val previous = x._2._1.getOrElse(Structs.InvertedSingleFull(-1, "", List(), List()))
+        val prevOc = previous.times.zip(previous.positions).toSet
+        val newOc = x._2._2.times.zip(x._2._2.positions)
+        val combine = newOc.filter(x=> !prevOc.contains(x)) //keep only the fresh ones
+        Structs.InvertedSingleFull(x._1._1, x._1._2, combine.map(_._1), combine.map(_._2))
+      })
     combined
   }
+
 
   /**
    * Read data as an rdd from the SingleTable
@@ -385,10 +400,10 @@ class ApacheCassandraConnector extends DBConnector {
     val interval_min = intervals.map(_.start).distinct.sortWith((x, y) => x.before(y)).head
     val interval_max = intervals.map(_.end).distinct.sortWith((x, y) => x.before(y)).last
     val parkSQL = spark.sql(s"""select * from IndexTable where (start>=to_timestamp('$interval_min') and end<=to_timestamp('$interval_max'))""")
-    if(parkSQL.isEmpty){
+    if (parkSQL.isEmpty) {
       return null
     }
-    ApacheCassandraTransformations.transformIndexToRDD(parkSQL,metaData)
+    ApacheCassandraTransformations.transformIndexToRDD(parkSQL, metaData)
   }
 
   /**
@@ -402,7 +417,7 @@ class ApacheCassandraConnector extends DBConnector {
     if (df.isEmpty) {
       return null
     }
-    ApacheCassandraTransformations.transformIndexToRDD(df,metaData)
+    ApacheCassandraTransformations.transformIndexToRDD(df, metaData)
   }
 
   /**
@@ -415,14 +430,14 @@ class ApacheCassandraConnector extends DBConnector {
   override def write_index_table(newPairs: RDD[Structs.PairFull], metaData: MetaData, intervals: List[Structs.Interval]): Unit = {
     Logger.getLogger("Index Table Write").log(Level.INFO, s"Start writing Index table")
     val start = System.currentTimeMillis()
-//    val previousIndexed = this.read_index_table(metaData, intervals)
-//    val combined = this.combine_index_table(newPairs, previousIndexed, metaData, intervals)
+    //    val previousIndexed = this.read_index_table(metaData, intervals)
+    //    val combined = this.combine_index_table(newPairs, previousIndexed, metaData, intervals)
     metaData.pairs += newPairs.count()
     val df = ApacheCassandraTransformations.transformIndexToWrite(newPairs, metaData)
     df.persist(StorageLevel.MEMORY_AND_DISK)
     df
       .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("index"),
-        columns = SomeColumns("event_a", "event_b","start","end", "occurrences" append), writeConf = writeConf)
+        columns = SomeColumns("event_a", "event_b", "start", "end", "occurrences" append), writeConf = writeConf)
     df.unpersist()
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Index Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")

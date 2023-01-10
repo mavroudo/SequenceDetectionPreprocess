@@ -8,20 +8,20 @@ import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.sql.SparkSession
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll}
 
-class TestSingleTable extends AnyFlatSpec with BeforeAndAfterAll {
-  @transient var dbConnector:DBConnector = new S3Connector()
-//  @transient var dbConnector:DBConnector = new ApacheCassandraConnector()
+class TestSingleTable extends AnyFlatSpec with BeforeAndAfter {
+//  @transient var dbConnector:DBConnector = new S3Connector()
+  @transient var dbConnector:DBConnector = new ApacheCassandraConnector()
   @transient var metaData:MetaData = null
   @transient var config:Config = null
 
-  override def beforeAll(): Unit = {
 
+  before{
     config = Config(delete_previous = true, log_name = "test")
     dbConnector.initialize_spark(config)
     this.dbConnector.initialize_db(config)
-    this.metaData=dbConnector.get_metadata(config)
+    this.metaData = dbConnector.get_metadata(config)
   }
 
   it should "Calculate correctly the single inverted index" in {
@@ -56,14 +56,15 @@ class TestSingleTable extends AnyFlatSpec with BeforeAndAfterAll {
     dbConnector.write_sequence_table(data,metaData)
 
     val data2 = spark.sparkContext.parallelize(CreateRDD.createRDD_2)
-    val combined = dbConnector.write_sequence_table(data2,metaData)
-    val invertedSingleFull2 = ExtractSingle.extractFull(combined)
+    dbConnector.write_sequence_table(data2,metaData)
+    val invertedSingleFull2 = ExtractSingle.extractFull(data2)
     val collected = dbConnector.write_single_table(invertedSingleFull2, metaData).collect()
     assert(collected.length==7)
     assert(collected.filter(x=>x.id==0 && x.event_name=="b").head.positions.size==3)
   }
 
-  override def afterAll(): Unit ={
+
+  after{
     this.dbConnector.closeSpark()
   }
 

@@ -40,27 +40,57 @@ object ApacheCassandraTransformations {
     })
   }
 
-  case class CassandraSingle(event_type: String, occurrences: List[String])
+//  case class CassandraSingle(event_type: String, occurrences: List[String])
+
+  case class CassandraSingle(event_type:String, trace_id: Long, occurrences:List[String])
+
+//  def transformSingleToRDD(df: DataFrame): RDD[Structs.InvertedSingleFull] = {
+//    df.rdd.flatMap(row => {
+//      val event_name = row.getAs[String]("event_type")
+//      row.getAs[Seq[String]]("occurrences").map(oc => {
+//        val s = oc.split("\\|\\|")
+//        Structs.InvertedSingleFull(s.head.toLong, event_name, s(1).split(",").toList, s(2).split(",").map(_.toInt).toList)
+//      })
+//    })
+//  }
 
   def transformSingleToRDD(df: DataFrame): RDD[Structs.InvertedSingleFull] = {
-    df.rdd.flatMap(row => {
+    df.rdd.flatMap(row=>{
       val event_name = row.getAs[String]("event_type")
+      val trace_id = row.getAs[Long]("trace_id")
       row.getAs[Seq[String]]("occurrences").map(oc => {
-        val s = oc.split("\\|\\|")
-        Structs.InvertedSingleFull(s.head.toLong, event_name, s(1).split(",").toList, s(2).split(",").map(_.toInt).toList)
+        val s = oc.split(",")
+        (event_name,trace_id,s(0).toInt,s(1))
       })
+        .groupBy(x=>(x._1,x._2))
+        .map(x=>{
+          val times = x._2.map(_._4).toList
+          val pos = x._2.map(_._3).toList
+          Structs.InvertedSingleFull(x._1._2,x._1._1,times,pos)
+        })
     })
   }
 
   def transformSingleToWrite(singleRDD: RDD[Structs.InvertedSingleFull]): RDD[CassandraSingle] = {
-    singleRDD.groupBy(_.event_name)
-      .map(x => {
-        val occurrences: List[String] = x._2.map(y => {
-          s"${y.id}||${y.times.mkString(",")}||${y.positions.mkString(",")}"
+    singleRDD
+      .groupBy(x=>(x.event_name,x.id))
+      .map(x=>{
+        val occurrences:List[String] = x._2.flatMap(y=>{
+          y.positions.zip(y.times).map(a=>s"${a._1},${a._2}")
         }).toList
-        CassandraSingle(x._1, occurrences)
+          CassandraSingle(x._1._1,x._1._2,occurrences)
       })
   }
+
+//  def transformSingleToWrite(singleRDD: RDD[Structs.InvertedSingleFull]): RDD[CassandraSingle] = {
+//    singleRDD.groupBy(_.event_name)
+//      .map(x => {
+//        val occurrences: List[String] = x._2.map(y => {
+//          s"${y.id}||${y.times.mkString(",")}||${y.positions.mkString(",")}"
+//        }).toList
+//        CassandraSingle(x._1, occurrences)
+//      })
+//  }
 
   case class CassandraLastChecked(event_a: String, event_b: String, occurrences: List[String])
 

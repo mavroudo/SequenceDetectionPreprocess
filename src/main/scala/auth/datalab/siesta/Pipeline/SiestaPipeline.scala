@@ -38,12 +38,12 @@ object SiestaPipeline {
       val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
 
       val combined = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence table and ignore the output
-      combined.persist(StorageLevel.MEMORY_AND_DISK)
+
       val intervals = Intervals.intervals(sequenceRDD, metadata.last_interval, metadata.split_every_days)
 
-      val invertedSingleFull = ExtractSingle.extractFull(combined) //calculates inverted single
-      combined.unpersist()
+      val invertedSingleFull = ExtractSingle.extractFull(combined)
       val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metadata)
+
       combinedInvertedFull.persist(StorageLevel.MEMORY_AND_DISK)
 
       //Up until now there should be no problem with the memory, or time-outs during writing. However creating n-tuples

@@ -2,6 +2,7 @@ package auth.datalab.siesta.BusinessLogic.ExtractSingle
 
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import org.apache.spark.rdd.RDD
+import org.apache.spark.storage.StorageLevel
 
 import scala.collection.mutable.ListBuffer
 
@@ -20,7 +21,8 @@ object ExtractSingle {
   }
 
   def extractFull(sequences: RDD[Structs.Sequence]): RDD[Structs.InvertedSingleFull] = {
-    sequences.flatMap(x => {
+    sequences.persist(StorageLevel.MEMORY_AND_DISK)
+    val rdd =sequences.flatMap(x => {
       x.events.zipWithIndex.map(e => {
         val event = e._1
         val position = e._2
@@ -33,6 +35,8 @@ object ExtractSingle {
         val positions = y._2.map(_._3)
         Structs.InvertedSingleFull(y._1._2, y._1._1, times = times.toList, positions = positions.toList)
       })
+    sequences.unpersist()
+    rdd
   }
 
   def combineTimes2(x: List[(String, Int)], y: List[(String, Int)]): List[(String, Int)] = {
