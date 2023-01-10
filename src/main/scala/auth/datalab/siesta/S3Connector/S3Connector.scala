@@ -230,7 +230,7 @@ class S3Connector extends DBConnector {
    * @param metaData    Containing all the necessary information for the storing
    * @return The combined last checked records
    */
-  override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData): RDD[Structs.LastChecked] = {
+  override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData) = {
     Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"Start writing LastChecked table")
     val start = System.currentTimeMillis()
     val previousLastChecked = this.read_last_checked_table(metaData)
@@ -241,7 +241,6 @@ class S3Connector extends DBConnector {
       .mode(SaveMode.Overwrite).parquet(last_checked_table)
     val total = System.currentTimeMillis() - start
     Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
-    combined
   }
 
   /**

@@ -92,26 +92,45 @@ object ApacheCassandraTransformations {
 //      })
 //  }
 
-  case class CassandraLastChecked(event_a: String, event_b: String, occurrences: List[String])
+//  case class CassandraLastChecked(event_a: String, event_b: String, occurrences: List[String])
+  case class CassandraLastChecked(event_a: String, event_b: String, trace_id :Long, timestamp: String)
 
-  def transformLastCheckedToRDD(df: DataFrame): RDD[Structs.LastChecked] = {
-    df.rdd.flatMap(r => {
-      val eventA = r.getAs[String]("event_a")
-      val eventB = r.getAs[String]("event_b")
-      r.getAs[Seq[String]]("occurrences").map(oc => {
-        val split = oc.split(",")
-        Structs.LastChecked(eventA, eventB, split(0).toLong, split(1))
+    def transformLastCheckedToRDD(df: DataFrame): RDD[Structs.LastChecked] = {
+      df.rdd.map(r => {
+        val eventA = r.getAs[String]("event_a")
+        val eventB = r.getAs[String]("event_b")
+        val trace_id = r.getAs[Long]("trace_id")
+        val timestamp = r.getAs[String]("timestamp")
+        Structs.LastChecked(eventA,eventB,trace_id,timestamp)
       })
+    }
+
+
+
+//  def transformLastCheckedToRDD(df: DataFrame): RDD[Structs.LastChecked] = {
+//    df.rdd.flatMap(r => {
+//      val eventA = r.getAs[String]("event_a")
+//      val eventB = r.getAs[String]("event_b")
+//      r.getAs[Seq[String]]("occurrences").map(oc => {
+//        val split = oc.split(",")
+//        Structs.LastChecked(eventA, eventB, split(0).toLong, split(1))
+//      })
+//    })
+//  }
+
+  def transformLastCheckedToWrite(lastChecked: RDD[Structs.LastChecked]): RDD[CassandraLastChecked] = {
+    lastChecked.map(x=>{
+      CassandraLastChecked(x.eventA,x.eventB,x.id,x.timestamp)
     })
   }
 
-  def transformLastCheckedToWrite(lastChecked: RDD[Structs.LastChecked]): RDD[CassandraLastChecked] = {
-    lastChecked.groupBy(x => (x.eventA, x.eventB))
-      .map(x => {
-        val occurrences = x._2.map(y => s"${y.id},${y.timestamp}")
-        CassandraLastChecked(x._1._1, x._1._2, occurrences.toList)
-      })
-  }
+//  def transformLastCheckedToWrite(lastChecked: RDD[Structs.LastChecked]): RDD[CassandraLastChecked] = {
+//    lastChecked.groupBy(x => (x.eventA, x.eventB))
+//      .map(x => {
+//        val occurrences = x._2.map(y => s"${y.id},${y.timestamp}")
+//        CassandraLastChecked(x._1._1, x._1._2, occurrences.toList)
+//      })
+//  }
 
   case class CassandraIndex(event_a: String, event_b: String, start: Timestamp, end: Timestamp, occurrences: List[String])
 

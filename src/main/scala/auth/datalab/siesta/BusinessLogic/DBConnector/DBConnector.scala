@@ -127,7 +127,7 @@ trait DBConnector {
    * @param metaData Containing all the necessary information for the storing
    * @return The combined last checked records
    */
-  def write_last_checked_table(lastChecked: RDD[LastChecked], metaData: MetaData):RDD[Structs.LastChecked]
+  def write_last_checked_table(lastChecked: RDD[LastChecked], metaData: MetaData)
 
   /**
    * Combines the new with the previous stored last checked
