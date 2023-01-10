@@ -307,8 +307,7 @@ class ApacheCassandraConnector extends DBConnector {
     val newEvents = singleRDD.map(x => x.times.size).reduce((x, y) => x + y)
     metaData.events += newEvents //count and update metadata
     val previousSingle = read_single_table(metaData)
-    val combined = combine_single_table(singleRDD.repartitionByCassandraReplica(keyspaceName = this.cassandra_keyspace_name,
-      tableName = this.tables("single")), previousSingle)
+    val combined = combine_single_table(singleRDD, previousSingle)
     val transformed = ApacheCassandraTransformations.transformSingleToWrite(combined)
       .repartition(SparkSession.builder().getOrCreate().sparkContext.defaultParallelism)
     transformed.persist(StorageLevel.MEMORY_AND_DISK)
