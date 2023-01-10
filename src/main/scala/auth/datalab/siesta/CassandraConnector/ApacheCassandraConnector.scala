@@ -34,7 +34,7 @@ class ApacheCassandraConnector extends DBConnector {
   var tables: Map[String, String] = Map[String, String]()
   var _configuration: SparkConf = _
   val DELIMITER = "¦delab¦"
-  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
+  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.LOCAL_ONE)
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
@@ -277,7 +277,6 @@ class ApacheCassandraConnector extends DBConnector {
     Logger.getLogger("Sequence Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
     combined
   }
-
 
   private def readTable(name: String): DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
