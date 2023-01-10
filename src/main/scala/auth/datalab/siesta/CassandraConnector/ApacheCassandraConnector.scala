@@ -34,7 +34,7 @@ class ApacheCassandraConnector extends DBConnector {
   var tables: Map[String, String] = Map[String, String]()
   var _configuration: SparkConf = _
   val DELIMITER = "¦delab¦"
-  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)
+  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE, parallelismLevel = 1)
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
@@ -65,6 +65,7 @@ class ApacheCassandraConnector extends DBConnector {
       .set("spark.cassandra.auth.password", cassandra_pass)
       .set("spark.cassandra.connection.port", cassandra_port)
       .set("spark.cassandra.output.consistency.level", cassandra_write_consistency_level)
+      .set("ark.cassandra.connection.timeout_ms", "20000")
 
 
     val spark = SparkSession.builder().config(_configuration).getOrCreate()
