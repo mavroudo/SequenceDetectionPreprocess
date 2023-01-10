@@ -65,7 +65,7 @@ class ApacheCassandraConnector extends DBConnector {
       .set("spark.cassandra.auth.password", cassandra_pass)
       .set("spark.cassandra.connection.port", cassandra_port)
       .set("spark.cassandra.output.consistency.level", cassandra_write_consistency_level)
-      .set("spark.cassandra.connection.timeout_ms", "20000")
+      .set("spark.cassandra.connection.timeoutMS", "20000")
 
 
     val spark = SparkSession.builder().config(_configuration).getOrCreate()
@@ -307,9 +307,10 @@ class ApacheCassandraConnector extends DBConnector {
     val newEvents = singleRDD.map(x => x.times.size).reduce((x, y) => x + y)
     metaData.events += newEvents //count and update metadata
     val previousSingle = read_single_table(metaData)
-    val combined = combine_single_table(singleRDD, previousSingle)
+    val combined = combine_single_table(singleRDD.repartitionByCassandraReplica(keyspaceName = this.cassandra_keyspace_name,
+      tableName = this.tables("single")), previousSingle)
     val transformed = ApacheCassandraTransformations.transformSingleToWrite(combined)
-    transformed.repartition(SparkSession.builder().getOrCreate().sparkContext.defaultParallelism)
+      .repartition(SparkSession.builder().getOrCreate().sparkContext.defaultParallelism)
     transformed.persist(StorageLevel.MEMORY_AND_DISK)
     transformed
       .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("single"),
