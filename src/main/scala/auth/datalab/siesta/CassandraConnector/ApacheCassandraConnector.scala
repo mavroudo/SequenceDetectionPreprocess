@@ -34,7 +34,7 @@ class ApacheCassandraConnector extends DBConnector {
   var tables: Map[String, String] = Map[String, String]()
   var _configuration: SparkConf = _
   val DELIMITER = "¦delab¦"
-  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.LOCAL_ONE)
+  val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.LOCAL_ONE,throughputMiBPS = Option(1))
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
@@ -308,7 +308,7 @@ class ApacheCassandraConnector extends DBConnector {
     val previousSingle = read_single_table(metaData)
     val combined = combine_single_table(singleRDD, previousSingle)
     val transformed = ApacheCassandraTransformations.transformSingleToWrite(combined)
-      .repartition(SparkSession.builder().getOrCreate().sparkContext.defaultParallelism)
+//      .repartition(SparkSession.builder().getOrCreate().sparkContext.defaultParallelism)
     transformed.persist(StorageLevel.MEMORY_AND_DISK)
     transformed
       .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("single"),
