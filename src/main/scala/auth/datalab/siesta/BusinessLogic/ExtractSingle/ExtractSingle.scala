@@ -2,6 +2,7 @@ package auth.datalab.siesta.BusinessLogic.ExtractSingle
 
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 
 import scala.collection.mutable.ListBuffer
@@ -20,44 +21,37 @@ object ExtractSingle {
       })
   }
 
-  def extractFull(sequences: RDD[Structs.Sequence]): RDD[Structs.InvertedSingleFull] = {
-    sequences.persist(StorageLevel.MEMORY_AND_DISK)
-    val rdd =sequences.flatMap(x => {
-      x.events.zipWithIndex.map(e => {
-        val event = e._1
-        val position = e._2
-        ((event.event, x.sequence_id), event.timestamp, position)
+  /**
+   * Creates the single inverted index, using the new events and the last positions per trace
+   * @param sequences The newly arrived events
+   * @param last_positions The last position of the events stored in the database
+   * @return
+   */
+  def extractFull(sequences: RDD[Structs.Sequence],last_positions:RDD[Structs.LastPosition]): RDD[Structs.InvertedSingleFull] = {
+    val rdd = sequences.keyBy(_.sequence_id)
+      .join(last_positions.keyBy(_.id))
+      .flatMap(x=>{
+        val starting = x._2._2.position-x._2._1.events.size
+        x._2._1.events.zipWithIndex.map(e=>{
+          val event = e._1
+          val position = e._2 + starting
+          ((event.event, x._1), event.timestamp, position)
+        })
       })
-    })
       .groupBy(_._1)
       .map(y => {
         val times = y._2.map(_._2)
         val positions = y._2.map(_._3)
         Structs.InvertedSingleFull(y._1._2, y._1._1, times = times.toList, positions = positions.toList)
       })
-    sequences.unpersist()
     rdd
   }
 
-  def combineTimes2(x: List[(String, Int)], y: List[(String, Int)]): List[(String, Int)] = {
+  def combineTimes(x: List[(String, Int)], y: List[(String, Int)]): List[(String, Int)] = {
     val z: ListBuffer[(String, Int)] = new ListBuffer[(String, Int)]()
     z ++= x
     z ++= y
     z.toList
-  }
-
-  def combineTimes(x: List[(String, Int)], y: List[(String, Int)]): List[(String, Int)] = {
-    (x, y) match {
-      case (Nil, Nil) => Nil
-      case (_ :: _, Nil) => x
-      case (Nil, _ :: _) => y
-      case (i :: _, j :: _) =>
-        //        if (Utilities.compareTimes(i, j))
-        if (i._2 < j._2)
-          i :: combineTimes(x.tail, y)
-        else
-          j :: combineTimes(x, y.tail)
-    }
   }
 
 }

@@ -15,8 +15,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 class TestExtractCount extends AnyFlatSpec with BeforeAndAfterAll{
 
-  @transient var dbConnector: DBConnector = new S3Connector()
-//  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
+//  @transient var dbConnector: DBConnector = new S3Connector()
+  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
   @transient var metaData: MetaData = null
   @transient var config: Config = null
 
@@ -34,7 +34,8 @@ class TestExtractCount extends AnyFlatSpec with BeforeAndAfterAll{
     this.metaData = dbConnector.get_metadata(config)
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
     val intervals = Intervals.intervals(data, "", 30)
-    val invertedSingleFull = ExtractSingle.extractFull(data)
+    val lp = dbConnector.write_sequence_table(data,metaData)
+    val invertedSingleFull = ExtractSingle.extractFull(data,lp)
     val x = ExtractPairs.extract(invertedSingleFull, null, intervals, 10)
     val counts = ExtractCounts.extract(x._1).collect()
     assert(counts.map(_.count).sum == 9)

@@ -11,8 +11,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll}
 
 class TestSingleTable extends AnyFlatSpec with BeforeAndAfter {
-//  @transient var dbConnector:DBConnector = new S3Connector()
-  @transient var dbConnector:DBConnector = new ApacheCassandraConnector()
+  @transient var dbConnector:DBConnector = new S3Connector()
+//  @transient var dbConnector:DBConnector = new ApacheCassandraConnector()
   @transient var metaData:MetaData = null
   @transient var config:Config = null
 
@@ -27,7 +27,8 @@ class TestSingleTable extends AnyFlatSpec with BeforeAndAfter {
   it should "Calculate correctly the single inverted index" in {
     val spark = SparkSession.builder().getOrCreate()
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
-    val invertedSingleFull = ExtractSingle.extractFull(data)
+    val lp = dbConnector.write_sequence_table(data,metaData)
+    val invertedSingleFull = ExtractSingle.extractFull(data,lp)
     val collected = invertedSingleFull.collect()
     assert(collected.length==7)
     assert(collected.count(_.positions.size != 1)==2)
@@ -36,7 +37,8 @@ class TestSingleTable extends AnyFlatSpec with BeforeAndAfter {
   it should "Write and read single inverted index (1)" in {
     val spark = SparkSession.builder().getOrCreate()
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
-    val invertedSingleFull = ExtractSingle.extractFull(data)
+    val lp = dbConnector.write_sequence_table(data, metaData)
+    val invertedSingleFull = ExtractSingle.extractFull(data, lp)
     val combined = dbConnector.write_single_table(invertedSingleFull,metaData)
     val collected = combined.collect()
     assert(collected.length == 7)
@@ -51,13 +53,13 @@ class TestSingleTable extends AnyFlatSpec with BeforeAndAfter {
   it should "Write and read single inverted index (2)" in {
     val spark = SparkSession.builder().getOrCreate()
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
-    val invertedSingleFull = ExtractSingle.extractFull(data)
+    val lp = dbConnector.write_sequence_table(data, metaData)
+    val invertedSingleFull = ExtractSingle.extractFull(data, lp)
     dbConnector.write_single_table(invertedSingleFull, metaData)
-    dbConnector.write_sequence_table(data,metaData)
 
     val data2 = spark.sparkContext.parallelize(CreateRDD.createRDD_2)
-    dbConnector.write_sequence_table(data2,metaData)
-    val invertedSingleFull2 = ExtractSingle.extractFull(data2)
+    val lp2 = dbConnector.write_sequence_table(data2,metaData)
+    val invertedSingleFull2 = ExtractSingle.extractFull(data2,lp2)
     val collected = dbConnector.write_single_table(invertedSingleFull2, metaData).collect()
     assert(collected.length==7)
     assert(collected.filter(x=>x.id==0 && x.event_name=="b").head.positions.size==3)

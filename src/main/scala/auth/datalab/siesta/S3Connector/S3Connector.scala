@@ -30,7 +30,7 @@ class S3Connector extends DBConnector {
   override def initialize_spark(config: Config): Unit = {
     lazy val spark = SparkSession.builder()
       .appName("SIESTA indexing")
-      .master("local[*]")
+//      .master("local[*]")
       .getOrCreate()
 
     //TODO: pass through environment vars
@@ -149,8 +149,9 @@ class S3Connector extends DBConnector {
    *
    * @param sequenceRDD RDD containing the traces
    * @param metaData    Containing all the necessary information for the storing
+   * @return the last position of the event stored per trace
    */
-  override def write_sequence_table(sequenceRDD: RDD[Structs.Sequence], metaData: MetaData): RDD[Structs.Sequence] = {
+  override def write_sequence_table(sequenceRDD: RDD[Structs.Sequence], metaData: MetaData): RDD[Structs.LastPosition] = {
     Logger.getLogger("Sequence Table Write").log(Level.INFO, s"Start writing sequence table")
     val start = System.currentTimeMillis()
     val previousSequences = this.read_sequence_table(metaData) //get previous
@@ -160,7 +161,7 @@ class S3Connector extends DBConnector {
     df.write.mode(SaveMode.Overwrite).parquet(seq_table)
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Sequence Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
-    combined
+    combined.map(x=>Structs.LastPosition(x.sequence_id,x.events.size))
   }
 
   /**
@@ -169,7 +170,7 @@ class S3Connector extends DBConnector {
    * This method should combine the results with previous ones and return the results to the main pipeline
    * Additionally updates metaData object
    *
-   * @param singleRDD Contains the single inverted index
+   * @param singleRDD Contains the newly indexed events in a form of single inverted index
    * @param metaData  Containing all the necessary information for the storing
    */
   override def write_single_table(singleRDD: RDD[Structs.InvertedSingleFull], metaData: MetaData): RDD[Structs.InvertedSingleFull] = {

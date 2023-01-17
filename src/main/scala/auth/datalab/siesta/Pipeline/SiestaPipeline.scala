@@ -1,16 +1,13 @@
 package auth.datalab.siesta.Pipeline
 
-import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
 import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
 import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
-//import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
-import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
@@ -36,14 +33,16 @@ object SiestaPipeline {
 
       //Main pipeline starts here:
       val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
-
-      val combined = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence table and ignore the output
+      sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)
+      val last_positions:RDD[Structs.LastPosition] = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence t
+      last_positions.persist(StorageLevel.MEMORY_AND_DISK)
 
       val intervals = Intervals.intervals(sequenceRDD, metadata.last_interval, metadata.split_every_days)
+      val invertedSingleFull = ExtractSingle.extractFull(sequenceRDD,last_positions)
+      sequenceRDD.unpersist()
+      last_positions.unpersist()
 
-      val invertedSingleFull = ExtractSingle.extractFull(combined)
       val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metadata)
-
       combinedInvertedFull.persist(StorageLevel.MEMORY_AND_DISK)
 
       //Up until now there should be no problem with the memory, or time-outs during writing. However creating n-tuples
