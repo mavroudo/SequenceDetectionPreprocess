@@ -8,8 +8,8 @@ object CassandraTables {
     val tableMap:mutable.HashMap[String,String] = new mutable.HashMap[String,String]()
     tableMap+=((logname+"_meta","key text, value text, PRIMARY KEY (key)"))
     tableMap+=((logname+"_seq","sequence_id text, events list<text>, PRIMARY KEY (sequence_id)"))
-    tableMap+=((logname+"_single","event_type text, occurrences list<text>, PRIMARY KEY (event_type)"))
-    tableMap+=((logname+"_lastchecked","event_a text, event_b text, occurrences list<text>, PRIMARY KEY ((event_a,event_b))"))
+    tableMap+=((logname+"_single","event_type text, trace_id bigint, occurrences list<text>, PRIMARY KEY (event_type,trace_id)"))
+    tableMap+=((logname+"_lastchecked","event_a text, event_b text, trace_id bigint, timestamp text, PRIMARY KEY ((event_a,event_b),trace_id)"))
     tableMap+=((logname+"_count","event_a text, times list<text>, PRIMARY KEY (event_a)"))
     tableMap+=((logname+"_index","event_a text, event_b text, start timestamp, end timestamp, occurrences list<text>, PRIMARY KEY ((event_a,event_b), start,end)"))
     tableMap.toMap

@@ -16,8 +16,8 @@ import java.sql.Timestamp
 
 class TestIndexTable extends AnyFlatSpec with BeforeAndAfterAll{
 
-  @transient var dbConnector: DBConnector = new S3Connector()
-//  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
+//  @transient var dbConnector: DBConnector = new S3Connector()
+  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
   @transient var metaData: MetaData = null
   @transient var config: Config = null
 
@@ -29,7 +29,8 @@ class TestIndexTable extends AnyFlatSpec with BeforeAndAfterAll{
     this.metaData = dbConnector.get_metadata(config)
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
     val intervals = Intervals.intervals(data, "", 30)
-    val invertedSingleFull = ExtractSingle.extractFull(data)
+    val lp = dbConnector.write_sequence_table(data,metaData)
+    val invertedSingleFull = ExtractSingle.extractFull(data,last_positions = lp)
     val x = ExtractPairs.extract(invertedSingleFull, null, intervals, 10)
     dbConnector.write_index_table(x._1, metaData, intervals)
     val collected = dbConnector.read_index_table(metaData, intervals).collect()
@@ -48,7 +49,8 @@ class TestIndexTable extends AnyFlatSpec with BeforeAndAfterAll{
     this.metaData = dbConnector.get_metadata(config)
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
     val intervals = Intervals.intervals(data, "", 30)
-    val invertedSingleFull = ExtractSingle.extractFull(data)
+    val lp = dbConnector.write_sequence_table(data, metaData)
+    val invertedSingleFull = ExtractSingle.extractFull(data, last_positions = lp)
     val x = ExtractPairs.extract(invertedSingleFull, null, intervals, 10)
     dbConnector.write_index_table(x._1, metaData, intervals)
     val collected = dbConnector.read_index_table(metaData, intervals).collect()
@@ -66,10 +68,10 @@ class TestIndexTable extends AnyFlatSpec with BeforeAndAfterAll{
     this.dbConnector.initialize_db(config)
     this.metaData = dbConnector.get_metadata(config)
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
-    dbConnector.write_sequence_table(data, metaData)
+    val lp = dbConnector.write_sequence_table(data, metaData)
     val intervals = Intervals.intervals(data, "", config.split_every_days)
     metaData.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
-    val invertedSingleFull = ExtractSingle.extractFull(data)
+    val invertedSingleFull = ExtractSingle.extractFull(data,lp)
     val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metaData)
     val x = ExtractPairs.extract(combinedInvertedFull, null, intervals, config.lookback_days)
     dbConnector.write_last_checked_table(x._2, metaData)
@@ -81,7 +83,7 @@ class TestIndexTable extends AnyFlatSpec with BeforeAndAfterAll{
     //index the second one
     val data2 = spark.sparkContext.parallelize(CreateRDD.createRDD_2)
     val d = dbConnector.write_sequence_table(data2, metaData)
-    val invertedSingleFull2 = ExtractSingle.extractFull(d)
+    val invertedSingleFull2 = ExtractSingle.extractFull(data2,d)
     val intervals2 = Intervals.intervals(data2, metaData.last_interval, config.split_every_days)
     val combinedInvertedFull2 = dbConnector.write_single_table(invertedSingleFull2, metaData)
     val last_checked = dbConnector.read_last_checked_table(metaData)
@@ -93,8 +95,9 @@ class TestIndexTable extends AnyFlatSpec with BeforeAndAfterAll{
     dbConnector.write_metadata(metaData)
     val collected = dbConnector.read_index_table(metaData).collect()
     assert(collected.length==18)
-    val collected2 = dbConnector.read_index_table(metaData,intervals2).collect()
-    assert(collected2.length==9)
+    val lastInterval = List(intervals2.last)
+    val collected2 = dbConnector.read_index_table(metaData,lastInterval).collect()
+    assert(collected2.length==6)
   }
 
   override def afterAll(): Unit = {

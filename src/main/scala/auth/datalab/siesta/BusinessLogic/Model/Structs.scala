@@ -18,6 +18,7 @@ object Structs {
   //For the single inverted table
   case class InvertedSingle(event_name: String, times: List[IdTimePositionList])
   case class InvertedSingleFull(id: Long, event_name: String, times:List[String], positions:List[Int])
+  case class LastPosition (id:Long, position:Int)
 
   //For last_checked
   case class LastChecked (eventA:String,eventB:String, id: Long, timestamp:String)

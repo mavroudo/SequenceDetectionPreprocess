@@ -14,8 +14,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.BeforeAndAfterAll
 
 class TestMetaData extends AnyFlatSpec with BeforeAndAfterAll {
-  @transient var dbConnector = new S3Connector()
-//  @transient var dbConnector = new ApacheCassandraConnector()
+//  @transient var dbConnector = new S3Connector()
+  @transient var dbConnector = new ApacheCassandraConnector()
 
   it should "Get metadata for the first time" in {
     val c = Config(delete_previous = true, log_name = "test")
@@ -40,12 +40,10 @@ class TestMetaData extends AnyFlatSpec with BeforeAndAfterAll {
     val sequenceRDD: RDD[Structs.Sequence] = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
 
     val combined = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence table and ignore the output
-    combined.persist(StorageLevel.MEMORY_AND_DISK)
     val intervals = Intervals.intervals(sequenceRDD, metadata.last_interval, metadata.split_every_days)
     metadata.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
 
-    val invertedSingleFull = ExtractSingle.extractFull(combined) //calculates inverted single
-    combined.unpersist()
+    val invertedSingleFull = ExtractSingle.extractFull(sequenceRDD,combined) //calculates inverted single
     val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metadata)
     combinedInvertedFull.persist(StorageLevel.MEMORY_AND_DISK)
 

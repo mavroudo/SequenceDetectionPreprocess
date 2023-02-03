@@ -43,10 +43,11 @@ class TestSequenceTable extends AnyFlatSpec with BeforeAndAfterAll{
     val seq1 = dbConnector.write_sequence_table(data, metaData)
     val data2 = spark.sparkContext.parallelize(CreateRDD.createRDD_2)
     val seq2 = dbConnector.write_sequence_table(data2, metaData).collect()
-    assert(seq2.length==3)
-    assert(seq2.filter(_.sequence_id==0).head.events.size==6)
-    assert(seq2.filter(_.sequence_id==1).head.events.size==3)
-    assert(seq2.filter(_.sequence_id==2).head.events.size==5)
+    val finalResults = dbConnector.read_sequence_table(metaData).collect()
+    assert(finalResults.length==3)
+    assert(finalResults.filter(_.sequence_id==0).head.events.size==6)
+    assert(finalResults.filter(_.sequence_id==1).head.events.size==3)
+    assert(finalResults.filter(_.sequence_id==2).head.events.size==5)
 
   }
 

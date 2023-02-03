@@ -54,8 +54,9 @@ trait DBConnector {
    * Additionally updates metaData object
    * @param sequenceRDD RDD containing the traces
    * @param metaData Containing all the necessary information for the storing
+   * @return the last position of the event stored per trace
    */
-  def write_sequence_table(sequenceRDD:RDD[Structs.Sequence],metaData: MetaData): RDD[Structs.Sequence]
+  def write_sequence_table(sequenceRDD:RDD[Structs.Sequence],metaData: MetaData): RDD[Structs.LastPosition]
 
   /**
    * This method is responsible to combine results with the previous stored, in order to support incremental indexing
@@ -80,7 +81,7 @@ trait DBConnector {
    * Database should persist it before store it and not persist it at the end.
    * This method should combine the results with previous ones and return the results to the main pipeline
    * Additionally updates metaData object
-   * @param singleRDD Contains the single inverted index
+   * @param singleRDD Contains the newly indexed events in a form of single inverted index
    * @param metaData Containing all the necessary information for the storing
    */
   def write_single_table(singleRDD:RDD[Structs.InvertedSingleFull],metaData: MetaData): RDD[Structs.InvertedSingleFull]
@@ -100,19 +101,33 @@ trait DBConnector {
    * @param previousSingle Previous events stored in single table
    * @return the combined lists
    */
-  def combine_single_table(newSingle:RDD[Structs.InvertedSingleFull],previousSingle:RDD[Structs.InvertedSingleFull]):RDD[Structs.InvertedSingleFull]= {
+  def combine_single_table(newSingle: RDD[Structs.InvertedSingleFull], previousSingle: RDD[Structs.InvertedSingleFull]): RDD[Structs.InvertedSingleFull] = {
     if (previousSingle == null) return newSingle
-    val combined = previousSingle.keyBy(x => (x.id, x.event_name))
-      .rightOuterJoin(newSingle.keyBy(x => (x.id, x.event_name)))
+    val combined = previousSingle.keyBy(x => (x.id, x.event_name)).fullOuterJoin(newSingle.keyBy(x => (x.id, x.event_name)))
       .map(x => {
         val previous = x._2._1.getOrElse(Structs.InvertedSingleFull(-1, "", List(), List()))
         val prevOc = previous.times.zip(previous.positions)
-        val newOc = x._2._2.times.zip(x._2._2.positions)
-        val combine = ExtractSingle.combineTimes2(prevOc, newOc).distinct
-        Structs.InvertedSingleFull(x._1._1, x._1._2, combine.map(_._1), combine.map(_._2))
+        val newly = x._2._2.getOrElse(Structs.InvertedSingleFull(-1, "", List(), List()))
+        val newOc = newly.times.zip(newly.positions)
+        val combine = (prevOc ++ newOc).distinct
+        val event = if (previous.event_name == "") newly.event_name else previous.event_name
+        Structs.InvertedSingleFull(x._1._1, event, combine.map(_._1), combine.map(_._2))
       })
     combined
   }
+//  def combine_single_table(newSingle:RDD[Structs.InvertedSingleFull],previousSingle:RDD[Structs.InvertedSingleFull]):RDD[Structs.InvertedSingleFull]= {
+//    if (previousSingle == null) return newSingle
+//    val combined = previousSingle.keyBy(x => (x.id, x.event_name))
+//      .rightOuterJoin(newSingle.keyBy(x => (x.id, x.event_name)))
+//      .map(x => {
+//        val previous = x._2._1.getOrElse(Structs.InvertedSingleFull(-1, "", List(), List()))
+//        val prevOc = previous.times.zip(previous.positions)
+//        val newOc = x._2._2.times.zip(x._2._2.positions)
+//        val combine = ExtractSingle.combineTimes(prevOc, newOc)
+//        Structs.InvertedSingleFull(x._1._1, x._1._2, combine.map(_._1), combine.map(_._2))
+//      })
+//    combined
+//  }
 
   /**
    * Returns data from LastChecked Table
@@ -127,7 +142,7 @@ trait DBConnector {
    * @param metaData Containing all the necessary information for the storing
    * @return The combined last checked records
    */
-  def write_last_checked_table(lastChecked: RDD[LastChecked], metaData: MetaData):RDD[Structs.LastChecked]
+  def write_last_checked_table(lastChecked: RDD[LastChecked], metaData: MetaData)
 
   /**
    * Combines the new with the previous stored last checked
