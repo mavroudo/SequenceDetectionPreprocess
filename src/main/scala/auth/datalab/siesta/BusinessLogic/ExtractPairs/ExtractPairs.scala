@@ -37,7 +37,7 @@ object ExtractPairs {
 
   def calculate_ntuples_stnm(single: Iterable[Structs.InvertedSingleFull], last: Iterable[Structs.LastChecked],
                              lookback: Int, intervals: Broadcast[List[Structs.Interval]]):(List[Structs.PairFull],List[Structs.LastChecked]) = {
-    val singleMap = single.groupBy(_.event_name)
+    val singleMap: Map[String, Iterable[Structs.InvertedSingleFull]] = single.groupBy(_.event_name)
     val newLastChecked = new ListBuffer[Structs.PairFull]()
     val lastMap = if (last != null) last.groupBy(x => (x.eventA, x.eventB)) else null
     val all_events = single.map(_.event_name).toList.distinct
@@ -73,7 +73,7 @@ object ExtractPairs {
     val nextEvents = this.startAfterLastChecked(timestamps.head, timestamps(1), last_checked)
     while (e != null) {
       val l = timestamps(list_id)
-      val x = this.getNextEvent(events(list_id), l, nextEvents(list_id), if(oc.nonEmpty) oc.last.timestamp else null)
+      val x = this.getNextEvent(events(list_id), l, nextEvents(list_id), if(oc.nonEmpty) oc.last.timestamp else null,oc.size)
       nextEvents(list_id) = x._1
       e = x._2
       if (e != null) {
@@ -87,7 +87,13 @@ object ExtractPairs {
       val e2=x(1)
       val interval:Structs.Interval = this.chooseInterval(bintervals,e2.timestamp)
       Structs.PairFull(events.head,events(1),id,e1.timestamp,e2.timestamp,e1.position,e2.position,interval)
-    }).filter(p=>{
+    })
+//      .filter(p=>{
+//        // when we have AA, might create all event pair with itself
+//        (p.timeA!=null && p.timeB!=null && p.timeA!=p.timeB) ||
+//          (p.positionA != -1 && p.positionB!= -1 && p.positionA!=p.positionB)
+//      })
+      .filter(p=>{
       ChronoUnit.DAYS.between(p.timeA.toInstant,p.timeB.toInstant)<=lookback
     })
     pairsInit
@@ -103,18 +109,21 @@ object ExtractPairs {
     null
   }
 
-  private def getNextEvent(event: String, ts: List[(String, Int)], start: Int, timestamp: Timestamp): (Int, Structs.EventWithPosition) = {
+  private def getNextEvent(event: String, ts: List[(String, Int)], start: Int, timestamp: Timestamp, ocs_size: Int): (Int, Structs.EventWithPosition) = {
     var i = start
-    if(i>=ts.size){
+    if(i>=ts.size){ //terminate
       return (i,null)
     }
     if(timestamp==null){
       return (start+1,Structs.EventWithPosition(event, Timestamp.valueOf(ts(i)._1), ts(i)._2))
     }
-    while (i < ts.size ) { //lookback take into consideration
-      if (Timestamp.valueOf(ts(i)._1).after(timestamp)) {
+    while (i < ts.size ) {
+      if (ocs_size%2==1 &&Timestamp.valueOf(ts(i)._1).after(timestamp)) {
         return (i + 1, Structs.EventWithPosition(event, Timestamp.valueOf(ts(i)._1), ts(i)._2))
-      } else {
+      } else if(ocs_size%2==0 && !Timestamp.valueOf(ts(i)._1).before(timestamp)){
+        return (i + 1, Structs.EventWithPosition(event, Timestamp.valueOf(ts(i)._1), ts(i)._2))
+      }
+      else {
         i += 1
       }
     }
@@ -131,11 +140,11 @@ object ExtractPairs {
     }
     else {
       var p1 = 0
-      while (p1 < ts1.size && !Timestamp.valueOf(ts1(p1)._1).after(Timestamp.valueOf(lastChecked.timestamp))) {
+      while (p1 < ts1.size && Timestamp.valueOf(ts1(p1)._1).before(Timestamp.valueOf(lastChecked.timestamp))) {
         p1 += 1
       }
       var p2 = 0
-      while (p2<ts2.size && !Timestamp.valueOf(ts2(p2)._1).after(Timestamp.valueOf(lastChecked.timestamp))) {
+      while (p2<ts2.size && Timestamp.valueOf(ts2(p2)._1).before(Timestamp.valueOf(lastChecked.timestamp))) {
         p2 += 1
       }
       k+=p1

@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   cassandra:
-    image: 'cassandra:latest'
+    image: 'cassandra:4.0'
     container_name: fa_cassandra
     ports:
       - '7000:7000'
