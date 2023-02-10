@@ -88,11 +88,6 @@ object ExtractPairs {
       val interval:Structs.Interval = this.chooseInterval(bintervals,e2.timestamp)
       Structs.PairFull(events.head,events(1),id,e1.timestamp,e2.timestamp,e1.position,e2.position,interval)
     })
-//      .filter(p=>{
-//        // when we have AA, might create all event pair with itself
-//        (p.timeA!=null && p.timeB!=null && p.timeA!=p.timeB) ||
-//          (p.positionA != -1 && p.positionB!= -1 && p.positionA!=p.positionB)
-//      })
       .filter(p=>{
       ChronoUnit.DAYS.between(p.timeA.toInstant,p.timeB.toInstant)<=lookback
     })
