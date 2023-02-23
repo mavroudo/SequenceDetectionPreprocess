@@ -1,6 +1,7 @@
 package auth.datalab.siesta.CommandLineParser
 
 case class Config(
+                   system: String = "siesta",
                    database: String = "s3",
                    mode: String = "positions",
                    filename: String = "synthetic",
