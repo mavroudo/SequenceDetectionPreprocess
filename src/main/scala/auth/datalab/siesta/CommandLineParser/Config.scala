@@ -1,6 +1,7 @@
 package auth.datalab.siesta.CommandLineParser
 
 case class Config(
+                   system: String = "siesta",
                    database: String = "s3",
                    mode: String = "positions",
                    filename: String = "synthetic",
@@ -18,5 +19,5 @@ case class Config(
                    length_max: Int = 90,
                    iterations: Int = -1,
                    //                   n: Int = 2, Has been removed after proved to be the most efficient
-                   k: Int = -1
+                   k: Int = 10
                  )

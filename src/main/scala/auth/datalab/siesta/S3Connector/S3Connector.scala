@@ -30,7 +30,7 @@ class S3Connector extends DBConnector {
   override def initialize_spark(config: Config): Unit = {
     lazy val spark = SparkSession.builder()
       .appName("SIESTA indexing")
-//      .master("local[*]")
+      .master("local[*]")
       .getOrCreate()
 
     //TODO: pass through environment vars
@@ -158,7 +158,10 @@ class S3Connector extends DBConnector {
     val combined = this.combine_sequence_table(sequenceRDD, previousSequences) //combine them
     val df = S3Transformations.transformSeqToDF(combined) //write them back
     metaData.traces = df.count()
-    df.write.mode(SaveMode.Overwrite).parquet(seq_table)
+    df.repartition(col("trace_id")).write
+      .partitionBy("trace_id")
+      .mode(SaveMode.Overwrite)
+      .parquet(seq_table)
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Sequence Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
     combined.map(x=>Structs.LastPosition(x.sequence_id,x.events.size))
@@ -183,8 +186,9 @@ class S3Connector extends DBConnector {
     metaData.events += newEvents //count and update metadata
     df.persist(StorageLevel.MEMORY_AND_DISK)
     df
-      .repartition(col("event_type"))
-      .write.partitionBy("event_type")
+    .repartition(col("event_type"))
+      .write
+      .partitionBy("event_type")
       .mode(SaveMode.Overwrite).parquet(single_table) //store to s3
     df.unpersist()
     val total = System.currentTimeMillis() - start

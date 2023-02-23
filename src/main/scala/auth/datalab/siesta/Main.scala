@@ -11,13 +11,21 @@ object Main {
   def main(args: Array[String]): Unit = {
     Logger.getLogger("org").setLevel(Level.ERROR)
     val conf: Option[Config] = ParsingArguments.parseArguments(args)
+
     var config: Config = null
     if (conf.isEmpty) {
       System.exit(2)
     } else {
       config = conf.get
     }
-    SiestaPipeline.execute(config)
+    if(config.system=="signatures"){
+      Singatures.Signatures.execute(config)
+    }else if(config.system=="set-containment"){
+      SetContainment.SetContainment.execute(config)
+    }else{
+      SiestaPipeline.execute(config)
+    }
+
   }
 
 }

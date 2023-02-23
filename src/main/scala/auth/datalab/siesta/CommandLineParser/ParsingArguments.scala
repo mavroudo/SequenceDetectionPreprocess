@@ -11,6 +11,17 @@ object ParsingArguments {
     OParser.sequence(
       programName("preprocess.jar"),
       head("SIESTA preprocess"),
+      opt[String]( "system")
+        .action((x, c) => c.copy(system = x))
+        .valueName("<system>")
+        .validate(x => {
+          if (x.equals("siesta") || x.equals("signatures") || x.equals("set-containment")) {
+            success
+          } else {
+            failure("Supported values for <system> are siesta, signatures or set-containment")
+          }
+        })
+        .text("System refers to the system that will be used for indexing"),
       opt[String]('d', "database")
         .action((x, c) => c.copy(database = x))
         .valueName("<database>")
