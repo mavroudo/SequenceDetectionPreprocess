@@ -19,5 +19,5 @@ case class Config(
                    length_max: Int = 90,
                    iterations: Int = -1,
                    //                   n: Int = 2, Has been removed after proved to be the most efficient
-                   k: Int = 10
+                   k: Int = -1
                  )
