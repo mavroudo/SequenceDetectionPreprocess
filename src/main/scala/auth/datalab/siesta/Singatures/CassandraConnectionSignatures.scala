@@ -4,16 +4,14 @@ import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.Utils.Utilities
 import com.datastax.oss.driver.api.core.ConsistencyLevel
 import com.datastax.oss.driver.api.core.cql.PreparedStatement
+import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.toRDDFunctions
 import com.datastax.spark.connector.writer.WriteConf
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
-import com.datastax.spark.connector._
-import org.apache.log4j.{Level, Logger}
 
-import java.net.InetSocketAddress
 import scala.collection.JavaConverters._
 
 
@@ -101,7 +99,7 @@ class CassandraConnectionSignatures extends Serializable {
             "WITH GC_GRACE_SECONDS=" + cassandra_gc_grace_seconds +
             ";")
         }
-        session.execute(s"create index ${table_signatures}_index on ${this.cassandra_keyspace_name + "." + table_signatures} (entries( signature ));")
+        session.execute(s"create index if not exists ${table_signatures}_index on ${this.cassandra_keyspace_name + "." + table_signatures} (entries( signature ));")
       }
     } catch {
       case e: Exception =>
@@ -138,7 +136,34 @@ class CassandraConnectionSignatures extends Serializable {
 
   def writeTableSeq(table: RDD[Structs.Sequence], logName: String): Unit = {
     val table_seq = logName + "_sign_seq"
-    table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase, tableName = table_seq.toLowerCase(), writeConf = writeConf)
+    table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase,
+      tableName = table_seq.toLowerCase(),
+      columns = SomeColumns(
+        "events" append,
+        "sequence_id"
+      ),
+      writeConf = writeConf)
+  }
+
+  def readTableSeq(logName: String): RDD[Structs.Sequence] = {
+    val table_seq = logName + "_sign_seq"
+    val spark = SparkSession.builder().getOrCreate()
+    spark
+      .read
+      .format("org.apache.spark.sql.cassandra")
+      .options(Map(
+        "table" -> table_seq,
+        "keyspace" -> cassandra_keyspace_name.toLowerCase()
+      ))
+      .load()
+      .rdd.map(row => {
+      val sequence_id = row.getAs[String]("sequence_id").toLong
+      val events = row.getAs[Seq[String]]("events").map(e => {
+        val s = e.replace("Event(", "").replace(")", "").split(",")
+        Structs.Event(s(0), s(1))
+      }).toList
+      Structs.Sequence(events, sequence_id)
+    })
   }
 
   def writeTableSign(table: RDD[Signatures.Signatures], logName: String): Unit = {
@@ -156,7 +181,7 @@ class CassandraConnectionSignatures extends Serializable {
         columns = SomeColumns(
           "id",
           "signature",
-          "sequence_ids" append
+          "sequence_ids"
         ),
         writeConf = writeConf)
   }
@@ -178,6 +203,19 @@ class CassandraConnectionSignatures extends Serializable {
         spark.close()
         System.exit(1)
     }
+  }
+
+  def loadTableMetadata(logName: String) = {
+    val spark = SparkSession.builder().getOrCreate()
+    val table_meta = logName + "_sign_meta"
+    spark
+      .read
+      .format("org.apache.spark.sql.cassandra")
+      .options(Map(
+        "table" -> table_meta,
+        "keyspace" -> cassandra_keyspace_name.toLowerCase()
+      ))
+      .load()
   }
 
   def dropAlltables(): Unit = {

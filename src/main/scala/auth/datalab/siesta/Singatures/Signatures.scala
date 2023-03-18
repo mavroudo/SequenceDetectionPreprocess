@@ -33,24 +33,16 @@ object Signatures {
     try {
       val spark = SparkSession.builder.getOrCreate()
       val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c)
-      val events: List[String] = sequenceRDD.flatMap(_.events).map(_.event).distinct().collect().toList
-      val k: Int = if (c.k == -1) events.size else c.k
-      val topKfreqPairs = sequenceRDD.map(createPairs).flatMap(x => x.pairs)
-        .map(x => ((x.eventA, x.eventB), 1))
-        .reduceByKey(_ + _)
-        .sortBy(_._2, ascending = false)
-        .take(k)
-        .map(_._1)
-        .toList
-      cassandraConnection.writeTableMetadata(events, topKfreqPairs, c.log_name)
 
-      val bPairs = spark.sparkContext.broadcast(topKfreqPairs)
-      val bEvents = spark.sparkContext.broadcast(events)
+      val metadata = loadOrCreateSignature(c, sequenceRDD)
+      val bPairs = spark.sparkContext.broadcast(metadata._2)
+      val bEvents = spark.sparkContext.broadcast(metadata._1)
       var time = 0L
 
       val start = System.currentTimeMillis()
       cassandraConnection.writeTableSeq(sequenceRDD, c.log_name)
-      val signatures = sequenceRDD.map(x => createBSignature(x, bEvents, bPairs))
+      val combined:RDD[Structs.Sequence] = cassandraConnection.readTableSeq(c.log_name)
+      val signatures = combined.map(x => createBSignature(x, bEvents, bPairs))
         .groupBy(_.signature)
         .map(x => Signatures(x._1, x._2.map(_.sequence_id.toString).toList))
       signatures.persist(StorageLevel.MEMORY_AND_DISK)
@@ -100,5 +92,33 @@ object Signatures {
       }
       Signature(s.toString(), sequence.sequence_id)
     }
+
+    def loadOrCreateSignature(c: Config, sequenceRDD: RDD[Structs.Sequence]): (List[String], List[(String, String)]) = {
+      val df = cassandraConnection.loadTableMetadata(c.log_name)
+      if (df.count() == 0) {
+        val events: List[String] = sequenceRDD.flatMap(_.events).map(_.event).distinct().collect().toList
+        val k: Int = if (c.k == -1) events.size else c.k
+        val topKfreqPairs = sequenceRDD.map(createPairs).flatMap(x => x.pairs)
+          .map(x => ((x.eventA, x.eventB), 1))
+          .reduceByKey(_ + _)
+          .sortBy(_._2, ascending = false)
+          .take(k)
+          .map(_._1)
+          .toList
+        cassandraConnection.writeTableMetadata(events, topKfreqPairs, c.log_name)
+        (events, topKfreqPairs)
+      } else {
+        val pairs:List[(String,String)] = df.filter(row=>row.getAs[String]("object")=="pairs")
+          .head().getSeq[String](1).toList.map(x=>{
+          val s = x.split(",")
+          (s(0),s(1))
+        })
+        val events:List[String] = df.filter(row => row.getAs[String]("object") == "events")
+          .head().getSeq[String](1).toList
+        (events, pairs)
+      }
+
+    }
   }
+
 }
