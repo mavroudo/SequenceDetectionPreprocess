@@ -59,7 +59,7 @@ class ApacheCassandraConnector extends DBConnector {
     }
     _configuration = new SparkConf()
       .setAppName("SIESTA indexing")
-//      .setMaster("local[*]")
+      .setMaster("local[*]")
       .set("spark.cassandra.connection.host", cassandra_host)
       .set("spark.cassandra.auth.username", cassandra_user)
       .set("spark.cassandra.auth.password", cassandra_pass)
@@ -204,11 +204,16 @@ class ApacheCassandraConnector extends DBConnector {
     val start = System.currentTimeMillis()
     val spark = SparkSession.builder().getOrCreate()
     val prevMetaData = spark.read.cassandraFormat(tables("meta"), this.cassandra_keyspace_name, "").load()
-    val metaData = if (prevMetaData.count() == 0) { //has no previous record
-      SetMetadata.initialize_metadata(config)
-    } else {
-      this.load_metadata(prevMetaData, config)
-    }
+    var metaData:MetaData=null
+    try {
+        metaData = if (prevMetaData.count() == 0) { //has no previous record
+          SetMetadata.initialize_metadata(config)
+        } else {
+          this.load_metadata(prevMetaData, config)
+        }
+    } catch{
+    case _:java.util.NoSuchElementException  => metaData = SetMetadata.initialize_metadata(config)
+  }
     val total = System.currentTimeMillis() - start
     this.write_metadata(metaData) //persist this version back
     Logger.getLogger("Metadata").log(Level.INFO, s"finished in ${total / 1000} seconds")

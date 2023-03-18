@@ -36,8 +36,9 @@ object SetContainment {
           val sorted = x._2.toList.map(_._2).distinct.sortWith((a, b) => a < b)
           SetCInverted(x._1, sorted)
         })
-      cassandraConnection.writeTableSequenceIndex(inverted_index, c.log_name)
+//      cassandraConnection.readTableSeq(c.log_name)
       cassandraConnection.writeTableSeq(sequenceRDD, c.log_name)
+      cassandraConnection.writeTableSequenceIndex(inverted_index, c.log_name)
       inverted_index.unpersist()
       sequenceRDD.unpersist()
       val time = System.currentTimeMillis() - start

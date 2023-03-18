@@ -5,13 +5,13 @@ import auth.datalab.siesta.SetContainment.SetContainment.SetCInverted
 import auth.datalab.siesta.Utils.Utilities
 import com.datastax.oss.driver.api.core.ConsistencyLevel
 import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.{SomeColumns, toRDDFunctions}
 import com.datastax.spark.connector.writer.WriteConf
+import com.datastax.spark.connector._
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
-import com.datastax.spark.connector._
+
 import scala.collection.JavaConverters._
 
 class CassandraConnectionSetContainment extends Serializable {
@@ -130,19 +130,54 @@ class CassandraConnectionSetContainment extends Serializable {
 
   def writeTableSeq(table: RDD[Structs.Sequence], logName: String): Unit = {
     val name = logName + "_set_seq"
+//    val prevTable = this.readTableSeq(logName)
+
     table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase,
       tableName = name.toLowerCase(),
       columns = SomeColumns(
-        "events",
+        "events" append,
         "sequence_id"
       ),
       writeConf = writeConf)
   }
 
+  def readCombineSequenceIndex(newCombinations:RDD[SetCInverted], logName:String):RDD[SetCInverted] ={
+    val spark = SparkSession.builder().getOrCreate()
+    val table_idx = logName + "_set_idx"
+    val df = spark
+      .read
+      .format("org.apache.spark.sql.cassandra")
+      .options(Map(
+        "table" -> table_idx,
+        "keyspace" -> cassandra_keyspace_name.toLowerCase()
+      ))
+      .load()
+      .rdd.map(row=>{
+      val event = row.getAs[String]("event_name")
+      val ids:List[Long] = row.getAs[Seq[String]]("sequences").map(_.toLong).toList
+      SetCInverted(event,ids)
+    })
+      .keyBy(_.event)
+      .fullOuterJoin(newCombinations.keyBy(_.event))
+      .map(x=>{
+        val s1 = x._2._1.getOrElse(SetCInverted("",List()))
+        val s2 = x._2._2.getOrElse(SetCInverted("",List()))
+        val l:List[Long] = s1.ids++s2.ids
+        val event = if(s2.event==""){
+          s1.event
+        }else{
+          s2.event
+        }
+        SetCInverted(event,l.distinct)
+      })
+    df
+  }
+
   def writeTableSequenceIndex(combinations: RDD[SetCInverted], logName: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     val table_idx = logName + "_set_idx"
-    val table = combinations
+    val combined = this.readCombineSequenceIndex(combinations,logName)
+    val table = combined
       .map(r => {
         val formatted = cassandraFormat(r)
         CassandraSetIndex(formatted._1, formatted._2)
@@ -153,7 +188,7 @@ class CassandraConnectionSetContainment extends Serializable {
       tableName = table_idx.toLowerCase,
       columns = SomeColumns(
         "event_name",
-        "sequences" append
+        "sequences"
       ), writeConf
     )
   }
