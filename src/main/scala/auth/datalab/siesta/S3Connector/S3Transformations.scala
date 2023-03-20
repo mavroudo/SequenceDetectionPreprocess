@@ -22,7 +22,7 @@ object S3Transformations {
     df.rdd.map(x => {
       val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1)))
       val concat = pEvents.map(x => Structs.Event(x._2, x._1))
-      Structs.Sequence(concat.toList, x.getAs[Long]("trace_id"))
+      Structs.Sequence(concat.toList, x.getAs[Int]("trace_id").toLong)
     })
   }
 
