@@ -47,8 +47,8 @@ libraryDependencies += "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3
 libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.2.0"
 libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.2.0"
 libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.2.0" //3.0.3
-libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "3.2.0" //was 2.4.2
-
+//libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "3.2.0" //was 2.4.2
+libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector-assembly" % "3.2.0"
 
 assemblyMergeStrategy in assembly := {
   case manifest if manifest.contains("MANIFEST.MF") =>
