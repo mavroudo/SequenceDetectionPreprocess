@@ -158,8 +158,9 @@ class S3Connector extends DBConnector {
     val combined = this.combine_sequence_table(sequenceRDD, previousSequences) //combine them
     val df = S3Transformations.transformSeqToDF(combined) //write them back
     metaData.traces = df.count()
-    df.repartition(col("trace_id")).write
-      .partitionBy("trace_id")
+//    df.repartition(col("trace_id")).write
+//      .partitionBy("trace_id")
+      df.write
       .mode(SaveMode.Overwrite)
       .parquet(seq_table)
     val total = System.currentTimeMillis() - start
