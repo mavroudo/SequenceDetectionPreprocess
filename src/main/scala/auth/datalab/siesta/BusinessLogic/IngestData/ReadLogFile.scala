@@ -6,9 +6,12 @@ import org.apache.spark.sql.SparkSession
 import org.deckfour.xes.in.XParserRegistry
 import org.deckfour.xes.model.{XLog, XTrace}
 
-import java.io.{File, FileInputStream}
+import java.io.{BufferedReader, File, FileInputStream}
 import java.text.SimpleDateFormat
+import java.util.Scanner
+import java.util.stream.Collectors
 import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * This file defines the various formats that can be ingested in the system
@@ -69,24 +72,20 @@ object ReadLogFile {
 
   def readWithTimestamps(fileName: String, seperator: String, delimiter: String): RDD[Structs.Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
-    //    spark.sparkContext.textFile(fileName).map({ line =>
-    //      val index = line.split("::")(0).toInt
-    //      val events = line.split("::")(1)
-    //      val sequence = events.split(seperator).map(event => {
-    //        Structs.Event(event.split(delimiter)(1), event.split(delimiter)(0))
-    //      })
-    //      Structs.Sequence(sequence.toList, index)
-    //    })
 
-    spark.read.text(fileName).rdd.map(row => row.getString(0))
-      .map({ line =>
-        val index = line.split("::")(0).toInt
-        val events = line.split("::")(1)
-        val sequence = events.split(seperator).map(event => {
-          Structs.Event(event.split(delimiter)(1), event.split(delimiter)(0))
-        })
-        Structs.Sequence(sequence.toList, index)
+    val reader = new Scanner(new File(fileName))
+    val ar:ArrayBuffer[Structs.Sequence] = new ArrayBuffer[Structs.Sequence]()
+    while(reader.hasNextLine){
+      val line = reader.nextLine()
+      val index = line.split("::")(0).toInt
+      val events = line.split("::")(1)
+      val sequence = events.split(seperator).map(event => {
+        Structs.Event(event.split(delimiter)(1), event.split(delimiter)(0))
       })
+      ar.append(Structs.Sequence(sequence.toList, index))
+    }
+    val par = spark.sparkContext.parallelize(ar)
+    par
   }
 
 }
