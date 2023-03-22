@@ -69,14 +69,24 @@ object ReadLogFile {
 
   def readWithTimestamps(fileName: String, seperator: String, delimiter: String): RDD[Structs.Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
-    spark.sparkContext.textFile(fileName).map({ line =>
-      val index = line.split("::")(0).toInt
-      val events = line.split("::")(1)
-      val sequence = events.split(seperator).map(event => {
-        Structs.Event(event.split(delimiter)(1), event.split(delimiter)(0))
+    //    spark.sparkContext.textFile(fileName).map({ line =>
+    //      val index = line.split("::")(0).toInt
+    //      val events = line.split("::")(1)
+    //      val sequence = events.split(seperator).map(event => {
+    //        Structs.Event(event.split(delimiter)(1), event.split(delimiter)(0))
+    //      })
+    //      Structs.Sequence(sequence.toList, index)
+    //    })
+
+    spark.read.text(fileName).rdd.map(row => row.getString(0))
+      .map({ line =>
+        val index = line.split("::")(0).toInt
+        val events = line.split("::")(1)
+        val sequence = events.split(seperator).map(event => {
+          Structs.Event(event.split(delimiter)(1), event.split(delimiter)(0))
+        })
+        Structs.Sequence(sequence.toList, index)
       })
-      Structs.Sequence(sequence.toList, index)
-    })
   }
 
 }
