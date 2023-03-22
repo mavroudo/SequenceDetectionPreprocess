@@ -66,7 +66,7 @@ class ApacheCassandraConnector extends DBConnector {
       .set("spark.cassandra.connection.port", cassandra_port)
       .set("spark.cassandra.output.consistency.level", cassandra_write_consistency_level)
 //      .set("spark.cassandra.connection.timeoutMS", "20000")
-      .set("spark.cassandra.input.throughputMBPerSec","1")
+//      .set("spark.cassandra.input.throughputMBPerSec","1")
 
     val spark = SparkSession.builder().config(_configuration).getOrCreate()
 
