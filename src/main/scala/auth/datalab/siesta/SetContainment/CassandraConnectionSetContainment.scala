@@ -58,7 +58,7 @@ class CassandraConnectionSetContainment extends Serializable {
       .set("spark.cassandra.auth.password", cassandra_pass)
       .set("spark.cassandra.connection.port", cassandra_port)
       .set("spark.cassandra.output.consistency.level", cassandra_write_consistency_level)
-//      .set("spark.cassandra.connection.timeoutMS", "20000")
+      .set("spark.cassandra.connection.timeoutMS", "20000")
 
 
     val spark = SparkSession.builder().config(_configuration).getOrCreate()
