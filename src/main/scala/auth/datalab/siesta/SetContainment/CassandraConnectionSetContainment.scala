@@ -30,7 +30,7 @@ class CassandraConnectionSetContainment extends Serializable {
   private var cassandra_gc_grace_seconds: String = _
   private var _configuration: SparkConf = _
   private val DELIMITER = "¦delab¦"
-  private val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE, batchSize = 1, throughputMiBPS = Option(0.5))
+  private val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE)//batchSize = 1, throughputMiBPS = Option(0.5)
 
   def startSpark(): Unit = {
     try {
