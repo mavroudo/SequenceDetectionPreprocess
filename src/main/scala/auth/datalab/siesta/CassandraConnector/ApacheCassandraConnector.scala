@@ -34,7 +34,7 @@ class ApacheCassandraConnector extends DBConnector {
   private var cassandra_gc_grace_seconds: String = _
   private var tables: Map[String, String] = Map[String, String]()
   private var _configuration: SparkConf = _
-  private val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.LOCAL_ONE, throughputMiBPS = Option(0.8))
+  private val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.LOCAL_ONE) // throughputMiBPS = Option(0.8)
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
