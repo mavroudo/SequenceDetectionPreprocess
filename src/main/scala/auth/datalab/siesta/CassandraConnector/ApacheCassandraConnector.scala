@@ -271,7 +271,6 @@ class ApacheCassandraConnector extends DBConnector {
   override def write_sequence_table(sequenceRDD: RDD[Structs.Sequence], metaData: MetaData): RDD[Structs.LastPosition] = {
     Logger.getLogger("Sequence Table Write").log(Level.INFO, s"Start writing sequence table")
     val start = System.currentTimeMillis()
-//    val combined = this.combine_sequence_table(sequenceRDD, prevSeq)
     val rddCass = ApacheCassandraTransformations.transformSeqToWrite(sequenceRDD)
     rddCass.persist(StorageLevel.MEMORY_AND_DISK)
     metaData.traces = rddCass.count()

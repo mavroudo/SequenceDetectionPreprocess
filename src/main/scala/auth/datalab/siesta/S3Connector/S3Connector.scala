@@ -299,7 +299,7 @@ class S3Connector extends DBConnector {
     val start = System.currentTimeMillis()
     val previousIndexed = this.read_index_table(metaData, intervals)
     val combined = this.combine_index_table(newPairs, previousIndexed, metaData, intervals)
-    metaData.pairs += combined.count()
+    metaData.pairs += newPairs.count()
     val df = S3Transformations.transformIndexToDF(combined, metaData)
     df.repartition(col("interval"))
       .select("interval.start", "interval.end", "eventA", "eventB", "occurrences")

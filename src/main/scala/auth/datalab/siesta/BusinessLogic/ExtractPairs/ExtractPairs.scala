@@ -25,9 +25,10 @@ object ExtractPairs {
         })
       (full.flatMap(_._1),full.flatMap(_._2))
     } else {
-      val full =singleRDD.groupBy(_.id).join(last_checked.groupBy(_.id))
+      val full =singleRDD.groupBy(_.id).leftOuterJoin(last_checked.groupBy(_.id))
         .map(x => {
-          this.calculate_ntuples_stnm(x._2._1, x._2._2, lookback, bintervals)
+          val last = x._2._2.orNull
+          this.calculate_ntuples_stnm(x._2._1, last, lookback, bintervals)
         })
       (full.flatMap(_._1),full.flatMap(_._2))
     }
