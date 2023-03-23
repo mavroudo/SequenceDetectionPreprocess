@@ -273,7 +273,7 @@ class ApacheCassandraConnector extends DBConnector {
     val start = System.currentTimeMillis()
     val rddCass = ApacheCassandraTransformations.transformSeqToWrite(sequenceRDD)
     rddCass.persist(StorageLevel.MEMORY_AND_DISK)
-    metaData.traces = rddCass.count()
+    metaData.traces += rddCass.count()
     rddCass
       .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("seq"),
         columns = SomeColumns("events" append, "sequence_id"), writeConf = writeConf)
