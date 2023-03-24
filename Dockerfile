@@ -28,10 +28,10 @@ VOLUME /app/input
 RUN mkdir /app/output
 VOLUME /app/output
 
-ENV cassandra_host=rabbit.csd.auth.gr
-ENV cassandra_port=9042
-ENV cassandra_user=cassandra
-ENV cassandra_pass=cassandra
+ENV cassandra_host=
+ENV cassandra_port=
+ENV cassandra_user=
+ENV cassandra_pass=
 ENV cassandra_keyspace_name=sequenceDetection
 ENV cassandra_keyspace_name_set=setcontainment
 ENV cassandra_replication_class=SimpleStrategy
@@ -41,5 +41,5 @@ ENV cassandra_write_consistency_level=ONE
 ENV cassandra_gc_grace_seconds=864000
 
 
-ENTRYPOINT ["/opt/spark/bin/spark-submit","--master","local[*]","--executor-memory","16g","--driver-memory","2g","--conf","spark.executor.memoryOverhead=6g","--conf","spark.driver.memoryOverhead=6g","--conf","spark.cassandra.output.consistency.level=ONE","preprocess.jar"]
+ENTRYPOINT ["/opt/spark/bin/spark-submit","--master","local[*]","--conf","spark.cassandra.output.consistency.level=ONE","preprocess.jar"]
 CMD ["-t 200 "]
