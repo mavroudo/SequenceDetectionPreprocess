@@ -59,7 +59,6 @@ object SiestaPipeline {
       dbConnector.write_index_table(x._1, metadata, intervals)
       val counts = ExtractCounts.extract(x._1)
       counts.persist(StorageLevel.MEMORY_AND_DISK)
-      println("CountTable: "+counts.count().toString)
       dbConnector.write_count_table(counts, metadata)
       counts.unpersist()
       x._1.unpersist()
