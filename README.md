@@ -15,10 +15,17 @@ performance. Our complete work can be found [here](https://ieeexplore.ieee.org/d
 
 ## Execute program using docker
 1. In case a database is already deployed (either S3 or Cassandra) pass the configure parameters at the end of the Dockerfile.
-If that is not the case and a local instance of this databases needs to be deployed use the following commands:
+If that is not the case and a local instance of these databases needs to be deployed use the following commands:
 
-- ```docker-compose -f dockerbase/docker-compose-s3.yml up```  for the S3
-- ```docker-compose -f dockerbase/docker-compose-cassabdra.yml up```  for the Cassandra
+```
+docker-compose -f dockerbase/docker-compose-s3.yml up
+```  
+for the S3
+
+```
+docker-compose -f dockerbase/docker-compose-cassabdra.yml up
+```  
+for the Cassandra
 
 2. If a spark cluster is already running, its url can be defined in the ENTRYPOINT of the Dockerfile.
  Otherwise, it will deploy and use a local instance of Spark, using all the available cores.
