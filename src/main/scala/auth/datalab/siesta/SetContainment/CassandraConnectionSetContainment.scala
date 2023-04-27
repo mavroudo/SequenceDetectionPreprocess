@@ -169,7 +169,7 @@ class CassandraConnectionSetContainment extends Serializable {
         }else{
           s2.event
         }
-        SetCInverted(event,l.distinct)
+        SetCInverted(event,l.distinct.sortWith((l1,l2)=>l1<l2))
       })
     df
   }
