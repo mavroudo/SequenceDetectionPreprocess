@@ -21,17 +21,19 @@ COPY project /app/project
 RUN sbt clean assembly
 RUN mv target/scala-2.12/app-assembly-0.1.jar preprocess.jar
 
+# Install python dependencies
+RUN apt-get install -y python3-pip python
+COPY pythonAPI/requirements.txt /app/pythonAPI/
+RUN pip install -r /app/pythonAPI/requirements.txt
+WORKDIR /app/pythonAPI
+
 #Move python api folder here
 COPY pythonAPI/main.py /app/pythonAPI/
 COPY pythonAPI/EnvironmentVariables.py /app/pythonAPI/
 COPY pythonAPI/PreprocessItem.py /app/pythonAPI/
-COPY pythonAPI/requirements.txt /app/pythonAPI/
-RUN mkdir pythonAPI/uploadedfiles
+RUN mkdir uploadedfiles
 
-# Install python dependencies
-RUN apt-get install -y python3-pip python
-RUN pip install -r /app/pythonAPI/requirements.txt
-WORKDIR /app/pythonAPI
+
 
 # import default variables or can be changed here
 ENV cassandra_host=rabbit.csd.auth.gr

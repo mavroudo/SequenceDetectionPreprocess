@@ -3,6 +3,8 @@ from fastapi import File, UploadFile
 from EnvironmentVariables import EnvironmentVariables
 import uuid, os
 
+from PreprocessItem import PreprocessItem
+
 isFree: bool = True
 ALLOWED_EXTENSIONS = {'withTimestamp', 'xes', 'jpg', 'pdf'}
 env_vars = {"cassandra_host": "localhost", "cassandra_port": 9042, "cassandra_user": "cassandra",
@@ -22,9 +24,10 @@ async def isFreeToRun():
 async def getFileList():
     files = []
     for uidd in os.listdir("uploadedfiles"):
-        path = f"uploadedfiles/{uidd}/"
-        for file in os.listdir(path):
-            files.append({"uidd": uidd, "filename": file})
+        if uidd != ".gitkeep":
+            path = f"uploadedfiles/{uidd}/"
+            for file in os.listdir(path):
+                files.append({"uidd": uidd, "filename": file})
     return {"files": files}
 
 
@@ -53,9 +56,12 @@ def setEnvironmentalVariables(env: EnvironmentVariables):
     return {"status": "OK"}
 
 
-@app.post("/preprocess/{uid}")
-async def preprocessfile(uid: str):
-    return getEnvironmentalVariables()
+@app.post("/preprocess")
+async def preprocessfile(params: PreprocessItem):
+    spark_command = params.getAttributes()
+    print(spark_command)
+    isFree = False
+    return {"status": "OK"}
 
 
 @app.post("/upload/")
