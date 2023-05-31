@@ -4,7 +4,7 @@ to respond fast in pattern queries. Along with the generation of the SIESTA indi
 the preprocess step for both Signature and Set-Containment methods.
 
 This module is responsible to create the indices that will be then utilized by the 
-[query processor](https://github.com/mavroudo/SequenceDetectionQueryExecutor)to respond 
+[query processor](https://github.com/mavroudo/SequenceDetectionQueryExecutor) to respond 
 fast in pattern queries. The primary inverted index (named IndexTable) along with the other auxiliary tables
 are generated from the provided logfile combined with any previous already stored indices, utilizing Apache Spark,
 a framework designed for efficiently handling big data. Along with the generation of the SIESTA indices, we
@@ -29,7 +29,7 @@ for the Cassandra
 
 2. If a spark cluster is already running, its url can be defined in the ENTRYPOINT of the Dockerfile.
  Otherwise, it will deploy and use a local instance of Spark, using all the available cores.
-3. **Build docker image:** On the top level of the project execute the command ```docker build -t preprocess .```
+3. **Build docker image:** On the top level of the project execute the command ```docker build -t preprocess -f dockerbase/Dockerfile .```
 4. **Run image**: After image was built it can be run with ```docker run preprocess```
 The program provides a range of parameters that can be set as arguments during execution. 
 The default execution will generate 200 synthetic traces, using 10 different event types, and lengths that vary from 10 to 90 events.
@@ -69,5 +69,5 @@ The docker run command will be look something like
 ```
 docker run \
   --mount type=bind,source="$(pwd)"/experiments/input,target=/app/input \
-  preprocess -f /input/dataset.xes
+  preprocess -f /input/dataset.xes --logname log_database
 ```
