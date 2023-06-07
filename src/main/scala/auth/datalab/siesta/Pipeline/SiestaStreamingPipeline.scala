@@ -1,7 +1,8 @@
 package auth.datalab.siesta.Pipeline
 
+import auth.datalab.siesta.BusinessLogic.Model.Structs.EventStream
 import auth.datalab.siesta.CommandLineParser.Config
-import auth.datalab.siesta.S3ConnectorStreaming.S3ConnectorStreaming
+import auth.datalab.siesta.S3ConnectorStreaming.{EventDeserializer, S3ConnectorStreaming}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.streaming.kafka010._
@@ -20,13 +21,13 @@ object SiestaStreamingPipeline {
       ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG->"localhost:29092",
       ConsumerConfig.GROUP_ID_CONFIG->"1",
       ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG->classOf[StringDeserializer],
-      ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG->classOf[StringDeserializer]
+      ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG->classOf[EventDeserializer]
     )
     val kafkaStream = KafkaUtils.createDirectStream(sc,
       LocationStrategies.PreferConsistent,
-      ConsumerStrategies.Subscribe[String,String](topicSet,kafkaParams))
+      ConsumerStrategies.Subscribe[String,EventStream](topicSet,kafkaParams))
 
-    val lines = kafkaStream.map(_.value)
+    val lines = kafkaStream.map(x=>(x.key(),x.value()))
 //    val words = lines.flatMap(_.split(" "))
 //    val wordCounts = words.map(x => (x, 1L)).reduceByKey(_ + _)
     lines.print()

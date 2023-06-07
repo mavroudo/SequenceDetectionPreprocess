@@ -49,11 +49,11 @@ if __name__ == "__main__":
     file="experiments/input/test_small.withTimestamp"
     eventsPerSecond=2
     print("Streaming {} file, with {} events per second".format(file,eventsPerSecond))
-    producer = KafkaProducer(bootstrap_servers='localhost:29092',value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+    producer = KafkaProducer(bootstrap_servers='localhost:29092',value_serializer=lambda v: json.dumps(v).encode('utf-8'),key_serializer=lambda k: str(k).encode('utf-8'))
     data=read_file(file) 
     for event in reorder_events(data,eventsPerSecond):
         print("sending {}".format(str(event)))
-        producer.send('test',event)
+        producer.send('test',key=event["trace"], value=event)
     
     
     

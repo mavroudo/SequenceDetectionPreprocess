@@ -7,6 +7,9 @@ import java.util.Date
 
 object Structs {
 
+  //For streaming
+  case class EventStream(trace:Long, event_type:String, timestamp:Timestamp) extends Serializable
+
   //General Model
   case class Event(timestamp: String, event: String) extends Serializable
   case class EventWithPosition(event_name:String,timestamp:Timestamp,position:Int)
