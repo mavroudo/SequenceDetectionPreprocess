@@ -1,7 +1,7 @@
 package auth.datalab.siesta
 
 import auth.datalab.siesta.CommandLineParser.{Config, ParsingArguments}
-import auth.datalab.siesta.Pipeline.SiestaPipeline
+import auth.datalab.siesta.Pipeline.{SiestaPipeline, SiestaStreamingPipeline}
 import org.apache.log4j.{Level, Logger}
 //import org.apache.hadoop.io.compress.ZStandardCodec
 
@@ -22,6 +22,8 @@ object Main {
       Singatures.Signatures.execute(config)
     }else if(config.system=="set-containment"){
       SetContainment.SetContainment.execute(config)
+    } else if (config.system == "streaming") {
+      SiestaStreamingPipeline.execute(config)
     }else{
       SiestaPipeline.execute(config)
     }

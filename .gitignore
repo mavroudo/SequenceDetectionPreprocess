@@ -26,3 +26,4 @@ dockerbase/cassandra/data/*
 !experiments/input/test.withTimestamp
 
 dockerbase/spark-3.0.0-bin-hadoop3.2/*
+dockerbase/offsetexplorer.sh

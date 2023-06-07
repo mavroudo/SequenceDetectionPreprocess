@@ -26,6 +26,7 @@ libraryDependencies ++= Seq(
 
 
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion
+libraryDependencies += "org.apache.spark" %% "spark-streaming-kafka-0-10" % "2.4.0"
 
 dependencyOverrides ++= {
   Seq(
