@@ -18,7 +18,7 @@ object ParsingArguments {
           if (x.equals("siesta") || x.equals("signatures") || x.equals("set-containment") ||x.equals("streaming")) {
             success
           } else {
-            failure("Supported values for <system> are siesta, signatures or set-containment")
+            failure("Supported values for <system> are siesta, signatures, set-containment or streaming")
           }
         })
         .text("System refers to the system that will be used for indexing"),

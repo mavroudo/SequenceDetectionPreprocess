@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
 
 
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion
-libraryDependencies += "org.apache.spark" %% "spark-streaming-kafka-0-10" % "2.4.0"
+libraryDependencies += "org.apache.spark" %% "spark-sql-kafka-0-10" % "3.0.0"
 
 dependencyOverrides ++= {
   Seq(
@@ -43,6 +43,8 @@ libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.2.0"
 libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.2.0" //3.0.3
 
 libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector-assembly" % "3.2.0"
+//delta library
+libraryDependencies += "io.delta" %% "delta-core" % "0.8.0"
 
 assemblyMergeStrategy in assembly := {
   case manifest if manifest.contains("MANIFEST.MF") =>
