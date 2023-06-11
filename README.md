@@ -71,3 +71,20 @@ docker run \
   --mount type=bind,source="$(pwd)"/experiments/input,target=/app/input \
   preprocess -f /input/dataset.xes --logname log_database
 ```
+
+# Change Log
+
+### [2.1.0] - 2023-06-11
+- Added FastAPI to submit preprocessing jobs using api calls
+
+### [2.0.0] - 2023-05-24
+- Implement efficient incremental indexing, utilizing the previously indexed traces/pairs
+- Connection with S3, as an alternative to Cassandra
+- Optimize storage space, utilizing compression algorithms and avoiding storing timestamps
+
+### [1.0.0] - 2022-12-14
+- Building the appropriate inverted indices to support efficient pattern detection
+- Evaluate different indexing schemas
+- Integration of Signature method
+- Integration of Set-Containment method
+- Connection with Cassandra, where indices are stored
