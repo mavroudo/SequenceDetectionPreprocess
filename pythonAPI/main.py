@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from EnvironmentVariables import EnvironmentVariables
 import uuid, os
-
 from PreprocessItem import PreprocessItem
 from threading import Lock
 from fastapi.responses import JSONResponse
@@ -107,7 +106,7 @@ def set_Environmental_Variables(env: EnvironmentVariables):
     try:
         for key in env.dict():
             os.environ[key] = getattr(env, key)
-        return JSONResponse(content={"status": "ok"}, status_code=200)
+        return JSONResponse(content={"message": "Variables set successfully!"}, status_code=200)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
@@ -141,7 +140,7 @@ async def preprocess_file(params: PreprocessItem):
         with lock:
             try:
                 process = os.popen(spark_command)
-                # TODO: redirect standar output and error to capture them and send them to the user
+                # TODO: redirect standar output and error to capture them and send them to the use
                 output = process.read()
                 return JSONResponse(content={"output": output}, status_code=200)
             except Exception as e:
