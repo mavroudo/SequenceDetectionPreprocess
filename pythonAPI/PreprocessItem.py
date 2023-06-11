@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class PreprocessItem(BaseModel):
-    spark_master: Optional[str] = "master[*]"
+    spark_master: Optional[str] = "local[*]"
     database: Optional[str] = "s3"
     mode: Optional[str] = "positions"
     compression: Optional[str] = "snappy"
@@ -19,7 +19,7 @@ class PreprocessItem(BaseModel):
     def getAttributes(self):
         s = f" --master {self.spark_master}"
         s += f" {self.spark_parameters}"
-        s += f" preprocess.jar "
+        s += f" /app/preprocess.jar"
         s += f" -d {self.database}"
         s += f" -m {self.mode}"
         s += f" -c {self.compression}"
