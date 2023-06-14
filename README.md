@@ -4,7 +4,7 @@
 #### SIESTA is a highly scalable infrastructure designed for performing pattern analysis in large volumes of event logs.
 
 ### Architecture overview
-<img src='experiments/architecture.jpg' width='400'>
+<img src='experiments/architecture.jpg' width='700'>
 
 The architecture of SIESTA consists of two main components: the preprocessing component and the query processor.
 The preprocessing component (implemented in this repo) is responsible for handling continuously arriving logs and 
