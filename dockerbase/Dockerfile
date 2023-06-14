@@ -24,7 +24,7 @@ RUN curl -O https://archive.apache.org/dist/spark/spark-3.0.0/spark-3.0.0-bin-ha
 tar xvf spark-3.0.0-bin-hadoop3.2.tgz && mv spark-3.0.0-bin-hadoop3.2/ /opt/spark && rm spark-3.0.0-bin-hadoop3.2.tgz
 COPY --from=builder /app/preprocess.jar preprocess.jar
 
-ENV cassandra_host=localhost
+ENV cassandra_host=cassandra
 ENV cassandra_port=9042
 ENV cassandra_user=cassandra
 ENV cassandra_pass=cassandra
@@ -36,9 +36,9 @@ ENV cassandra_write_consistency_level=ONE
 ENV cassandra_gc_grace_seconds=864000
 ENV s3accessKeyAws=minioadmin
 ENV s3ConnectionTimeout=600000
-ENV s3endPointLoc=http://localhost:9000
+ENV s3endPointLoc=http://minio-contact:9000
 ENV s3secretKeyAws=minioadmin
 
 
 ENTRYPOINT ["/opt/spark/bin/spark-submit","--master","local[*]","preprocess.jar"]
-CMD ["--logname","test","-t","200","--delete_prev"]
+CMD ["--logname","test","--delete_prev"]
