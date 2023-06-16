@@ -26,6 +26,8 @@ services:
     volumes:
       - data1-1:/data1
       - data1-2:/data2
+    networks:
+      - siesta-net
 
   minio2:
     <<: *minio-common
@@ -33,6 +35,8 @@ services:
     volumes:
       - data2-1:/data1
       - data2-2:/data2
+    networks:
+      - siesta-net
 
   minio3:
     <<: *minio-common
@@ -40,6 +44,8 @@ services:
     volumes:
       - data3-1:/data1
       - data3-2:/data2
+    networks:
+      - siesta-net
 
   minio4:
     <<: *minio-common
@@ -47,8 +53,10 @@ services:
     volumes:
       - data4-1:/data1
       - data4-2:/data2
+    networks:
+      - siesta-net
 
-  nginx:
+  minio-contact:
     image: nginx:1.19.2-alpine
     hostname: nginx
     volumes:
@@ -61,6 +69,8 @@ services:
       - minio2
       - minio3
       - minio4
+    networks:
+      - siesta-net
 
 ## By default this config uses default local driver,
 ## For custom volumes replace with volume driver configuration.
@@ -73,3 +83,8 @@ volumes:
   data3-2:
   data4-1:
   data4-2:
+
+networks:
+  siesta-net:
+    external:
+      name: siesta-net

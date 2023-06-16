@@ -11,7 +11,9 @@ services:
     env_file:
       - .env
     networks:
-      - net
+      - siesta-net
 
 networks:
-  net:
+  siesta-net:
+    external:
+      name: siesta-net
