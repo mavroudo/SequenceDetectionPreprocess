@@ -59,7 +59,7 @@ object Signatures {
    * events are appended in a trace and not the other way around. For an example how the signature is calculated
    * check the case class [[Signature]].
    *
-   * @param c The configuration object passed by the Main function.
+   * @param c The configuration object passed by the [[auth.datalab.siesta.Main]].
    */
   def execute(c: Config): Unit = {
     val cassandraConnection = new CassandraConnectionSignatures()

@@ -52,7 +52,7 @@ class CassandraConnectionSignatures extends Serializable {
       cassandra_replication_rack = Utilities.readEnvVariable("cassandra_replication_rack")
       cassandra_replication_factor = Utilities.readEnvVariable("cassandra_replication_factor")
       cassandra_write_consistency_level = Utilities.readEnvVariable("cassandra_write_consistency_level")
-      println(cassandra_host, cassandra_keyspace_name, cassandra_keyspace_name)
+      Logger.getLogger("Initialize Spark").log(Level.INFO, s"$cassandra_host, $cassandra_port, $cassandra_keyspace_name")
     } catch {
       case e: NullPointerException =>
         e.printStackTrace()
@@ -60,7 +60,7 @@ class CassandraConnectionSignatures extends Serializable {
     }
     _configuration = new SparkConf()
       .setAppName("FA Indexing")
-//      .setMaster("local[*]")
+      //      .setMaster("local[*]")
       .set("spark.cassandra.connection.host", cassandra_host)
       .set("spark.cassandra.auth.username", cassandra_user)
       .set("spark.cassandra.auth.password", cassandra_pass)
@@ -70,7 +70,6 @@ class CassandraConnectionSignatures extends Serializable {
 
 
     val spark = SparkSession.builder().config(_configuration).getOrCreate()
-    println(s"Starting Spark version ${spark.version}")
 
     //create the siesta keyspace if this does not already exists
     try {
@@ -95,6 +94,7 @@ class CassandraConnectionSignatures extends Serializable {
    *  - Metadata Table: Maintains the metadata for the log database
    *  - Sequence Table : Contains the traces
    *  - Signature Table : Is the main index with the signatures
+   *
    * @param logName The name of the log database
    */
 
@@ -130,6 +130,7 @@ class CassandraConnectionSignatures extends Serializable {
 
   /**
    * Delete all 3 tables from a specific log database
+   *
    * @param logName The name of the log database
    */
   def dropTables(logName: String): Unit = {
@@ -155,6 +156,12 @@ class CassandraConnectionSignatures extends Serializable {
     }
   }
 
+  /**
+   * Stores the sequence table in Cassandra
+   *
+   * @param table   The rdd containing the traces
+   * @param logName The name of the log database
+   */
   def writeTableSeq(table: RDD[Structs.Sequence], logName: String): Unit = {
     val table_seq = logName + "_sign_seq"
     table.saveToCassandra(keyspaceName = this.cassandra_keyspace_name.toLowerCase,
@@ -168,6 +175,7 @@ class CassandraConnectionSignatures extends Serializable {
 
   /**
    * Retrieves the already stored traces from the Sequence Table in Cassandra.
+   *
    * @param logName The log database name
    * @return The already indexed traces
    */
@@ -194,7 +202,8 @@ class CassandraConnectionSignatures extends Serializable {
 
   /**
    * Stores the index based on signature in Cassandra
-   * @param table The RDD containing the traces grouped based on their signatures
+   *
+   * @param table   The RDD containing the traces grouped based on their signatures
    * @param logName The name of the log database
    */
   def writeTableSign(table: RDD[Signatures.Signatures], logName: String): Unit = {
@@ -220,9 +229,10 @@ class CassandraConnectionSignatures extends Serializable {
 
   /**
    * Stores metadata for a specific log database in Cassandra
-   * @param events The available event types in the traces
+   *
+   * @param events        The available event types in the traces
    * @param topKfreqPairs The most frequent event type pairs
-   * @param logName The name of the log database
+   * @param logName       The name of the log database
    */
   def writeTableMetadata(events: List[String], topKfreqPairs: List[(String, String)], logName: String): Unit = {
     val table_meta = logName + "_sign_meta"
@@ -245,6 +255,7 @@ class CassandraConnectionSignatures extends Serializable {
 
   /**
    * Retrieves metadata from Cassandra
+   *
    * @param logName The log database name
    * @return The metadata
    */
@@ -280,7 +291,7 @@ class CassandraConnectionSignatures extends Serializable {
       }
     } catch {
       case e: Exception =>
-        Logger.getLogger("Initialization db").log(Level.ERROR, s"A problem occurred dropping tables tables")
+        Logger.getLogger("Drop tables").log(Level.ERROR, s"A problem occurred dropping tables tables")
         e.printStackTrace()
         spark.close()
         System.exit(1)
