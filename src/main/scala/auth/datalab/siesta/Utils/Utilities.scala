@@ -9,11 +9,12 @@ object Utilities {
 
 
   /**
-   * Return if a is less than b
+   * Compare two values of strings. Since the both positions and timestamp can be used, first compare them
+   * as if they were integers and if that fails compare them as timestamps.
    *
    * @param timeA first time
    * @param timeB second time
-   * @return
+   * @return Return if timeA is less (or before) than timeB
    */
   def compareTimes(timeA: String, timeB: String): Boolean = {
     if (timeA == "") {
@@ -29,38 +30,11 @@ object Utilities {
   }
 
   /**
-   * Method for sorting entries based on their timestamps
-   *
-   * @param s1 Timestamp in string format
-   * @param s2 Timestamp in string format
-   * @return True or false based on order
-   */
-  def sortByTime(s1: String, s2: String): Boolean = {
-    val time1 = Timestamp.valueOf(s1)
-    val time2 = Timestamp.valueOf(s2)
-    time1.before(time2)
-  }
-
-
-  /**
-   * Method to return the difference in milliseconds between timestamps
-   *
-   * @param pr_time  The 1st timestamp in string format
-   * @param new_time The 2nd timestamp in string format
-   * @return The difference in long format
-   */
-  def getDifferenceTime(pr_time: String, new_time: String): Long = {
-    val time_pr = Timestamp.valueOf(pr_time)
-    val time_new = Timestamp.valueOf(new_time)
-    val res = Math.abs(time_new.getTime - time_pr.getTime)
-    res
-  }
-
-  /**
-   * Method to read environment variables
-   *
+   * Read environment variable
+   *p
    * @param key The key of the variable
    * @return The variable
+   * @throws NullPointerException if the variable does not exist
    */
   @throws[NullPointerException]
   def readEnvVariable(key: String): String = {

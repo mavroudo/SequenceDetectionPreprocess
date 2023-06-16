@@ -8,13 +8,18 @@ import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.WriteConf
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.SparkConf
+import org.apache.spark.{SparkConf, sql}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
 import scala.collection.JavaConverters._
 
 
+/**
+ * This class contains all the communication between preprocessing component of Signature and Cassandra.
+ * It is responsible to achieve communication with Cassandra through spark, write and combine the traces with the new
+ * ones, store and retrieve metadata and finally store and merge the signatures.
+ */
 class CassandraConnectionSignatures extends Serializable {
   case class withList(id: String, signature: Map[Int, String], sequence_ids: List[String])
 
@@ -32,6 +37,9 @@ class CassandraConnectionSignatures extends Serializable {
   private val DELIMITER = "¦delab¦"
   private val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) // batchSize = 1, throughputMiBPS = Option(0.5)
 
+  /**
+   * Initializes communication between spark and Cassandra using environmental variables
+   */
   def startSpark(): Unit = {
     try {
       cassandra_host = Utilities.readEnvVariable("cassandra_host")
@@ -64,6 +72,7 @@ class CassandraConnectionSignatures extends Serializable {
     val spark = SparkSession.builder().config(_configuration).getOrCreate()
     println(s"Starting Spark version ${spark.version}")
 
+    //create the siesta keyspace if this does not already exists
     try {
       CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
         session.execute("create keyspace if not exists " + cassandra_keyspace_name + " WITH replication = "
@@ -72,15 +81,22 @@ class CassandraConnectionSignatures extends Serializable {
       }
     } catch {
       case e: Exception =>
-        System.out.println("A problem occurred creating the keyspace")
+        Logger.getLogger("Creating keyspace").log(Level.ERROR, s"A problem occurred while creating the keyspace")
         print(e.printStackTrace())
-        //Stop Spark
         spark.close()
         System.exit(1)
     }
 
   }
 
+
+  /**
+   * Creates the tables (if they are not already exist) in Cassandra for a given log database. The tables are
+   *  - Metadata Table: Maintains the metadata for the log database
+   *  - Sequence Table : Contains the traces
+   *  - Signature Table : Is the main index with the signatures
+   * @param logName The name of the log database
+   */
 
   def createTables(logName: String): Unit = {
     val spark = SparkSession.builder.getOrCreate()
@@ -105,13 +121,17 @@ class CassandraConnectionSignatures extends Serializable {
     } catch {
       case e: Exception =>
         e.printStackTrace()
-        System.out.println("A problem occurred creating the table")
+        Logger.getLogger("Create tables").log(Level.ERROR, s"A problem occurred while creating the tables")
         //Stop Spark
         spark.close()
         System.exit(1)
     }
   }
 
+  /**
+   * Delete all 3 tables from a specific log database
+   * @param logName The name of the log database
+   */
   def dropTables(logName: String): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     val table_seq = logName + "_sign_seq"
@@ -128,7 +148,7 @@ class CassandraConnectionSignatures extends Serializable {
     }
     catch {
       case e: Exception =>
-        System.out.println("A problem occurred dropping the tables")
+        Logger.getLogger("Drop tables").log(Level.ERROR, s"A problem occurred while dropping the tables")
         e.printStackTrace()
         spark.close()
         System.exit(1)
@@ -146,6 +166,11 @@ class CassandraConnectionSignatures extends Serializable {
       writeConf = writeConf)
   }
 
+  /**
+   * Retrieves the already stored traces from the Sequence Table in Cassandra.
+   * @param logName The log database name
+   * @return The already indexed traces
+   */
   def readTableSeq(logName: String): RDD[Structs.Sequence] = {
     val table_seq = logName + "_sign_seq"
     val spark = SparkSession.builder().getOrCreate()
@@ -157,7 +182,7 @@ class CassandraConnectionSignatures extends Serializable {
         "keyspace" -> cassandra_keyspace_name.toLowerCase()
       ))
       .load()
-      .rdd.map(row => {
+      .rdd.map(row => { //creates the RDD of Sequences
       val sequence_id = row.getAs[String]("sequence_id").toLong
       val events = row.getAs[Seq[String]]("events").map(e => {
         val s = e.replace("Event(", "").replace(")", "").split(",")
@@ -167,11 +192,17 @@ class CassandraConnectionSignatures extends Serializable {
     })
   }
 
+  /**
+   * Stores the index based on signature in Cassandra
+   * @param table The RDD containing the traces grouped based on their signatures
+   * @param logName The name of the log database
+   */
   def writeTableSign(table: RDD[Signatures.Signatures], logName: String): Unit = {
     val table_signatures = logName + "_sign_idx"
     table
       .map(x => {
         var n = Map[Int, String]()
+        //extracts the bitmap from the string in order to use Cassandra's indexing mechanisms for faster queries
         for (i <- 0 until x.signature.length) {
           n += (i -> x.signature(i).toString)
         }
@@ -187,6 +218,12 @@ class CassandraConnectionSignatures extends Serializable {
         writeConf = writeConf)
   }
 
+  /**
+   * Stores metadata for a specific log database in Cassandra
+   * @param events The available event types in the traces
+   * @param topKfreqPairs The most frequent event type pairs
+   * @param logName The name of the log database
+   */
   def writeTableMetadata(events: List[String], topKfreqPairs: List[(String, String)], logName: String): Unit = {
     val table_meta = logName + "_sign_meta"
     val spark = SparkSession.builder().getOrCreate()
@@ -199,14 +236,19 @@ class CassandraConnectionSignatures extends Serializable {
     }
     catch {
       case e: Exception =>
-        System.out.println("A problem occurred while saving metadata")
+        Logger.getLogger("Metadata").log(Level.ERROR, s"A problem occurred while saving metadata")
         e.printStackTrace()
         spark.close()
         System.exit(1)
     }
   }
 
-  def loadTableMetadata(logName: String) = {
+  /**
+   * Retrieves metadata from Cassandra
+   * @param logName The log database name
+   * @return The metadata
+   */
+  def loadTableMetadata(logName: String): sql.DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
     val table_meta = logName + "_sign_meta"
     spark
@@ -219,6 +261,9 @@ class CassandraConnectionSignatures extends Serializable {
       .load()
   }
 
+  /**
+   * Delete all tables in the defined keyspace
+   */
   def dropAlltables(): Unit = {
 
     val spark = SparkSession.builder().getOrCreate()
@@ -242,9 +287,12 @@ class CassandraConnectionSignatures extends Serializable {
     }
   }
 
+  /**
+   * Close spark connection
+   */
   def closeSpark(): Unit = {
     val spark = SparkSession.builder().getOrCreate()
-    println("Closing Spark")
+    Logger.getLogger("Spark").log(Level.INFO, s"Closing spark")
     spark.close()
 
   }

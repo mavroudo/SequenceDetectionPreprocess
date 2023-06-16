@@ -12,6 +12,16 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
+/**
+ * This class is responsible to generate random traces of random event types. All the trace will have length
+ * randomly picked (using uniform distribution) between minTraceSize and maxTraceSize It can be used to evaluate the
+ * performance of SIESTA in throughput and correctness.
+ *
+ * @param numberOfTraces The number of traces to be produced
+ * @param numberOfDifferentActivities The number of different event types
+ * @param minTraceSize The minimum trace length
+ * @param maxTraceSize The maximum trace length
+ */
 class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:Int, val minTraceSize:Int, val maxTraceSize:Int) extends Serializable {
   private def gen: Stream[Char] = Random.alphanumeric
 
@@ -19,6 +29,12 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
   private val activities: mutable.HashSet[String] = new mutable.HashSet[String]()
   this.findActivities()
 
+  /**
+   * Utilizes the [[createSequence]] function to generate random traces and then use spark to parallelize distribute
+   * them
+   *
+   * @return An RDD that contains the randomly generated traces
+   */
   def produce(): RDD[Structs.Sequence] = {
     val traces = List.fill(numberOfTraces)(minTraceSize + Random.nextInt((maxTraceSize - minTraceSize) + 1))
     val spark = SparkSession.builder().getOrCreate()
@@ -29,20 +45,23 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
     })
   }
 
+  /**
+   *
+   * @return The event types that is used in the random generation of traces
+   */
   def getActivities: mutable.Set[String] = {
     this.activities
   }
 
-  def produce(t: List[Int]): RDD[Structs.Sequence] = {
-    val traces = List.fill(t.size)(minTraceSize + Random.nextInt((maxTraceSize - minTraceSize) + 1))
-    val spark = SparkSession.builder().getOrCreate()
-    val parallelized = spark.sparkContext.parallelize(traces.zip(t))
-    val bac = spark.sparkContext.broadcast(activities.toList)
-    parallelized.map(x => {
-      createSequence(bac, x._1, x._2)
-    })
-  }
 
+  /**
+   * Utilizes the [[createSequence]] function to generate random traces and then use spark to parallelize distribute
+   * them. The difference with the produce() function, is that this one generate traces with ids that are passed as
+   * parameters
+   *
+   * @param t A list with the trace ids
+   * @return An RDD that contains the randomly generated traces
+   */
   def produce(t: Iterable[Long]): RDD[Structs.Sequence] = {
     val traces = List.fill(t.size)(minTraceSize + Random.nextInt((maxTraceSize - minTraceSize) + 1))
     val spark = SparkSession.builder().getOrCreate()
@@ -51,16 +70,31 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
     parallelized.map(x => {
       createSequence(bac, x._1, x._2)
     })
-
-  }
-  def estimate_size(): Structs.Sequence = {
-    val spark = SparkSession.builder().getOrCreate()
-    val bac = spark.sparkContext.broadcast(activities.toList)
-    createSequence(bac, (minTraceSize + maxTraceSize) / 2, 1)
-
   }
 
+  /**
+   * Utilizes the [[createSequence]] function to generate random traces and then use spark to parallelize distribute
+   * them. The difference with the produce() function, is that this one generate traces with ids that are passed as
+   * parameters
+   *
+   * @param t A list with the trace ids
+   * @return An RDD that contains the randomly generated traces
+   */
+  def produce(t: List[Int]): RDD[Structs.Sequence] = {
+    produce(t.map(_.toLong))
+  }
 
+
+  /**
+   * Based on the Broadcasted List with the event types it generates a random trace. The generated timestamps start
+   * from a hardcoded timestamp "1600086941" and the difference between two consecutive timestamps can be up to
+   * 2 hours (picked randomly using uniform distribution)
+   *
+   * @param ac The broadcasted event types
+   * @param events The trace length
+   * @param id The id of the generated trace
+   * @return The generated trace
+   */
   private def createSequence(ac:Broadcast[List[String]], events:Int, id:Long):Structs.Sequence={
     val df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss") //final format
     var starting_date = 1600086941
@@ -76,6 +110,10 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
     Structs.Sequence(listevents.toList,id)
   }
 
+  /**
+   * Generates N random event types and stores them in the [[activities]] variable, where n is the
+   * [[numberOfDifferentActivities]]
+   */
   private def findActivities(): Unit ={
     val length:Int = math.round(math.sqrt(numberOfDifferentActivities)).toInt
     while(activities.size<numberOfDifferentActivities){
@@ -86,13 +124,17 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
     }
   }
 
+  /**
+   * Generates a single event type, utilizing the [[gen]]
+   * @param len The number of letters in the event type name
+   * @return An event type
+   */
   private def get(len: Int): String = {
     @tailrec
     def build(acc: String, s: Stream[Char]): String = {
       if (s.isEmpty) acc
       else build(acc + s.head, s.tail)
     }
-
     build("", gen take len)
   }
 }
