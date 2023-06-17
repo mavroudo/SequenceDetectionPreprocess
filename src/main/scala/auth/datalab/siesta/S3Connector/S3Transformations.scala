@@ -9,9 +9,9 @@ import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import java.sql.Timestamp
 
 /**
- * This class is responsible to transform the loaded data from S3 into RDDs of objects and then transform the RDDs
- * to Dataframes in order to utilize the spark api and store them in S3. Therefore there are 2 transformations for
- * each table, one to load data and one to write them back.
+ * This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline.
+ * Then transform the RDDs back to Dataframes, in order to utilize the spark api to store them back in S3.
+ * Therefore there are 2 transformations for each table, one to load data and one to write them back.
  */
 object S3Transformations {
 
