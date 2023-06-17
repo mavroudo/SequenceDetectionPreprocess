@@ -4,8 +4,8 @@ ThisBuild / name := "Siesta"
 ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.12.17"
 ThisBuild / organization := "auth.datalab"
-ThisBuild / parallelExecution in Test := false
-test in assembly :={}
+ThisBuild / Test / parallelExecution := false
+assembly / test := {}
 assembly / mainClass := Some("auth.datalab.siesta.Main")
 scalacOptions += "-deprecation"
 javacOptions ++= Seq("-source","11","-target","11")
@@ -38,7 +38,7 @@ libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.2.0" //3.0.3
 
 libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector-assembly" % "3.2.0"
 
-assemblyMergeStrategy in assembly := {
+assembly / assemblyMergeStrategy:= {
   case manifest if manifest.contains("MANIFEST.MF") =>
     MergeStrategy.discard
   case referenceOverrides if referenceOverrides.contains("reference-overrides.conf") =>

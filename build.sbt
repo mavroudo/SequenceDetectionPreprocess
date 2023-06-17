@@ -61,28 +61,3 @@ assembly / assemblyMergeStrategy:= {
   case x =>
     MergeStrategy.last
 }
-
-//lazy val root = (project in file("."))
-//  .settings(
-//    //test
-//
-//  )
-
-
-//lazy val cassandra = (project in file("."))
-//  .dependsOn(root)
-//  .settings(
-//    libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "2.4.2"
-//  )
-//
-//lazy val s3 = (project in file("."))
-//  .dependsOn(root)
-//  .settings(
-//    //minio
-//    libraryDependencies += "io.minio" % "spark-select_2.11" % "2.1",
-//    libraryDependencies += "io.minio" % "minio" % "3.0.12",
-//    libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.0.3",
-//    libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.0.3",
-//    libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.0.3"
-//  )
-//
