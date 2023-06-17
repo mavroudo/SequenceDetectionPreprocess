@@ -8,17 +8,23 @@ import org.deckfour.xes.model.{XLog, XTrace}
 
 
 
-import java.io.{BufferedReader, File, FileInputStream}
+import java.io.{File, FileInputStream}
 import java.text.SimpleDateFormat
 import java.util.Scanner
-import java.util.stream.Collectors
 import scala.collection.JavaConversions.asScalaBuffer
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * This file defines the various formats that can be ingested in the system
+ * This class defines the various formats that can be ingested in the system
  */
 object ReadLogFile {
+  /**
+   * This class combines all the different parsing methods and chooses the one that corresponds to the extension of the
+   * logfile
+   * @param fileName The name of the log file
+   * @param separator Defines how the events are separated (can be changed to match new txt format)
+   * @return The RDD that contains the parsed traces
+   */
   def readLog(fileName: String, separator: String = ","): RDD[Structs.Sequence] = {
     if (fileName.split('.')(1) == "txt") { //there is no time limitations
       this.readFromTxt(fileName, separator)
@@ -32,6 +38,14 @@ object ReadLogFile {
 
   }
 
+  /**
+   * This is the simplest file extension. Each line contains information for a particular event. The events are separated
+   * by the separator. The trace index is the index of the line. Instead of using the timestamp for each event the index
+   * of the event in the trace is utilized.
+   * @param fileName The name of the log file
+   * @param seperator The separator of the events that belongs in the same trace
+   * @return The RDD that contains the parsed traces
+   */
   private def readFromTxt(fileName: String, seperator: String): RDD[Structs.Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
     spark.sparkContext.textFile(fileName).zipWithIndex map { case (line, index) =>
@@ -42,6 +56,12 @@ object ReadLogFile {
     }
   }
 
+  /**
+   * Xes files are standard for the Business Process Management. They use an XML format with predefined field names.
+   * In order to parse such a file, the [[org.deckfour.xes.in.XParserRegistry]] is utilized.
+   * @param fileName The name of the log file
+   * @return The RDD that contains the parsed traces
+   */
   private def readFromXes(fileName: String): RDD[Structs.Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
     val file_Object = new File(fileName)
@@ -73,6 +93,14 @@ object ReadLogFile {
   }
 
 
+  /**
+   * WithTimestamps is a custom file format that was used to evaluate the performance of SIESTA as it can be easily
+   * transformed to csv files that can be ingested in ELK stack
+   * @param fileName The name of the log file
+   * @param seperator The separator of the events for a specific trace
+   * @param delimiter The separator between the event_type and the event timestamp
+   * @return The RDD that contains the parsed traces
+   */
   private def readWithTimestamps(fileName: String, seperator: String, delimiter: String): RDD[Structs.Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
 
