@@ -42,7 +42,6 @@ class S3Connector extends DBConnector {
       //      .master("local[*]")
       .getOrCreate()
 
-    //TODO: pass through environment vars
     val s3accessKeyAws = Utilities.readEnvVariable("s3accessKeyAws")
     val s3secretKeyAws = Utilities.readEnvVariable("s3secretKeyAws")
     val s3ConnectionTimeout = Utilities.readEnvVariable("s3ConnectionTimeout")
