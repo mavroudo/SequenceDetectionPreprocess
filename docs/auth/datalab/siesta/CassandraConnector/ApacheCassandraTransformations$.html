@@ -135,16 +135,16 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="auth.datalab.siesta">siesta</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="ApacheCassandraConnector.html" title=""></a>
-                        <a href="ApacheCassandraConnector.html" title="">ApacheCassandraConnector</a>
+                        <a class="class" href="ApacheCassandraConnector.html" title="This class handles the communication between between SIESTA and Cassandra."></a>
+                        <a href="ApacheCassandraConnector.html" title="This class handles the communication between between SIESTA and Cassandra.">ApacheCassandraConnector</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">ApacheCassandraTransformations</a>
+                        <a class="object" href="" title="This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline."></a>
+                        <a href="" title="This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline.">ApacheCassandraTransformations</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="CassandraTables$.html" title=""></a>
-                        <a href="CassandraTables$.html" title="">CassandraTables</a>
+                        <a class="object" href="CassandraTables$.html" title="This class contains the structure and the names of the tables in Cassandra for a given log database name."></a>
+                        <a href="CassandraTables$.html" title="This class contains the structure and the names of the tables in Cassandra for a given log database name.">CassandraTables</a>
                       </li>
               </ul>
             </div>
@@ -173,7 +173,10 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline.
+Then transform the RDDs to RDDs with specific types, in order to utilize the spark api to store them back in Cassandra.
+Therefore there are 2 transformations for each table, one to load data and one to write them back.
+</p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -225,7 +228,7 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraCount" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraCount" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CassandraCountextendsProductwithSerializable"></a><a id="CassandraCount:CassandraCount"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$$CassandraCount.html" title="Permalink">
@@ -237,11 +240,14 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="ApacheCassandraTransformations$$CassandraCount.html"><span class="name">CassandraCount</span></a><span class="params">(<span name="event_a">event_a: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="times">times: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="This class holds the structure of the CountTable." href="ApacheCassandraTransformations$$CassandraCount.html"><span class="name">CassandraCount</span></a><span class="params">(<span name="event_a">event_a: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="times">times: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraIndex" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">This class holds the structure of the CountTable.</p><div class="fullcomment"><div class="comment cmt"><p>This class holds the structure of the CountTable. Data in this format can be written in Cassandra
+using the spark api. That is because this format is the same as the structure of the CountTable table
+that is defined in <a href="CassandraTables$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.CassandraTables">CassandraTables</a>.
+</p></div><dl class="paramcmts block"><dt class="param">event_a</dt><dd class="cmt"><p>The first event type</p></dd><dt class="param">times</dt><dd class="cmt"><p>The list of all the second event types along with the corresponding statistics</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraIndex" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CassandraIndexextendsProductwithSerializable"></a><a id="CassandraIndex:CassandraIndex"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$$CassandraIndex.html" title="Permalink">
@@ -253,11 +259,15 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="ApacheCassandraTransformations$$CassandraIndex.html"><span class="name">CassandraIndex</span></a><span class="params">(<span name="event_a">event_a: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="event_b">event_b: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="start">start: <span class="extype" name="java.sql.Timestamp">Timestamp</span></span>, <span name="end">end: <span class="extype" name="java.sql.Timestamp">Timestamp</span></span>, <span name="occurrences">occurrences: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="This class holds the structure of the IndexTable." href="ApacheCassandraTransformations$$CassandraIndex.html"><span class="name">CassandraIndex</span></a><span class="params">(<span name="event_a">event_a: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="event_b">event_b: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="start">start: <span class="extype" name="java.sql.Timestamp">Timestamp</span></span>, <span name="end">end: <span class="extype" name="java.sql.Timestamp">Timestamp</span></span>, <span name="occurrences">occurrences: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraLastChecked" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">This class holds the structure of the IndexTable.</p><div class="fullcomment"><div class="comment cmt"><p>This class holds the structure of the IndexTable. Data in this format can be written in Cassandra
+using the spark api. That is because this format is the same as the structure of the IndexTable table
+that is defined in <a href="CassandraTables$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.CassandraTables">CassandraTables</a>.
+</p></div><dl class="paramcmts block"><dt class="param">event_a</dt><dd class="cmt"><p>The first event type</p></dd><dt class="param">event_b</dt><dd class="cmt"><p>The second event time</p></dd><dt class="param">start</dt><dd class="cmt"><p>The start of the interval</p></dd><dt class="param">end</dt><dd class="cmt"><p>The end of the interval</p></dd><dt class="param">occurrences</dt><dd class="cmt"><p>The list of all the occurrences of this event type pair, grouped for each different
+                   trace</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraLastChecked" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CassandraLastCheckedextendsProductwithSerializable"></a><a id="CassandraLastChecked:CassandraLastChecked"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$$CassandraLastChecked.html" title="Permalink">
@@ -269,11 +279,14 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="ApacheCassandraTransformations$$CassandraLastChecked.html"><span class="name">CassandraLastChecked</span></a><span class="params">(<span name="event_a">event_a: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="event_b">event_b: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="trace_id">trace_id: <span class="extype" name="scala.Long">Long</span></span>, <span name="timestamp">timestamp: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="This class holds the structure of the LastChecked table." href="ApacheCassandraTransformations$$CassandraLastChecked.html"><span class="name">CassandraLastChecked</span></a><span class="params">(<span name="event_a">event_a: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="event_b">event_b: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="trace_id">trace_id: <span class="extype" name="scala.Long">Long</span></span>, <span name="timestamp">timestamp: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSequence" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">This class holds the structure of the LastChecked table.</p><div class="fullcomment"><div class="comment cmt"><p>This class holds the structure of the LastChecked table. Data in this format can be written in Cassandra
+using the spark api. That is because this format is the same as the structure of the LastChecked table
+that is defined in <a href="CassandraTables$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.CassandraTables">CassandraTables</a>.
+</p></div><dl class="paramcmts block"><dt class="param">event_a</dt><dd class="cmt"><p>The first event type</p></dd><dt class="param">event_b</dt><dd class="cmt"><p>The second event type</p></dd><dt class="param">trace_id</dt><dd class="cmt"><p>The id of the trace</p></dd><dt class="param">timestamp</dt><dd class="cmt"><p>The last timestamp that these pair of event types occurred in this particular trace</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSequence" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CassandraSequenceextendsProductwithSerializable"></a><a id="CassandraSequence:CassandraSequence"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$$CassandraSequence.html" title="Permalink">
@@ -285,11 +298,14 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="ApacheCassandraTransformations$$CassandraSequence.html"><span class="name">CassandraSequence</span></a><span class="params">(<span name="events">events: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="sequence_id">sequence_id: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="This class holds the structure of the SequenceTable." href="ApacheCassandraTransformations$$CassandraSequence.html"><span class="name">CassandraSequence</span></a><span class="params">(<span name="events">events: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="sequence_id">sequence_id: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSingle" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">This class holds the structure of the SequenceTable.</p><div class="fullcomment"><div class="comment cmt"><p>This class holds the structure of the SequenceTable. Data in this format can be written in Cassandra
+using the spark api. That is because this format is the same as the structure of the Sequence Table
+that is defined in <a href="CassandraTables$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.CassandraTables">CassandraTables</a>.
+</p></div><dl class="paramcmts block"><dt class="param">events</dt><dd class="cmt"><p>The list of events as strings &quot;event_type,timestamp&quot;</p></dd><dt class="param">sequence_id</dt><dd class="cmt"><p>The trace id</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSingle" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CassandraSingleextendsProductwithSerializable"></a><a id="CassandraSingle:CassandraSingle"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$$CassandraSingle.html" title="Permalink">
@@ -301,10 +317,13 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="ApacheCassandraTransformations$$CassandraSingle.html"><span class="name">CassandraSingle</span></a><span class="params">(<span name="event_type">event_type: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="trace_id">trace_id: <span class="extype" name="scala.Long">Long</span></span>, <span name="occurrences">occurrences: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="This class holds the structure of the SingleTable." href="ApacheCassandraTransformations$$CassandraSingle.html"><span class="name">CassandraSingle</span></a><span class="params">(<span name="event_type">event_type: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="trace_id">trace_id: <span class="extype" name="scala.Long">Long</span></span>, <span name="occurrences">occurrences: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      
+      <p class="shortcomment cmt">This class holds the structure of the SingleTable.</p><div class="fullcomment"><div class="comment cmt"><p>This class holds the structure of the SingleTable. Data in this format can be written in Cassandra
+using the spark api. That is because this format is the same as the structure of the Single Table
+that is defined in <a href="CassandraTables$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.CassandraTables">CassandraTables</a>.
+</p></div><dl class="paramcmts block"><dt class="param">event_type</dt><dd class="cmt"><p>The event_type</p></dd><dt class="param">trace_id</dt><dd class="cmt"><p>The id of the trace</p></dd><dt class="param">occurrences</dt><dd class="cmt"><p>The list of occurrences of this event type in this particular trace</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -583,7 +602,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformCountToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformCountToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformCountToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count]"></a><a id="transformCountToRDD(DataFrame):RDD[Count]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html#transformCountToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count]" title="Permalink">
@@ -598,8 +617,11 @@
         <span class="name">transformCountToRDD</span><span class="params">(<span name="df">df: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Count.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Count">Count</a>]</span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformCountToWrite" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">The stored format is (event_typeA) -&gt; List of statistics, each statistic has the structure:
+[event_typeB, total_duration, total_completions, min_duration, max_duration].</p><div class="fullcomment"><div class="comment cmt"><p>The stored format is (event_typeA) -&gt; List of statistics, each statistic has the structure:
+[event_typeB, total_duration, total_completions, min_duration, max_duration].</p><p>That is for each event type pair the four above statistics are maintained and updated. The
+stats are grouped based on the first event type.</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded data from CountTable</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformCountToWrite" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformCountToWrite(counts:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count]):org.apache.spark.rdd.RDD[auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraCount]"></a><a id="transformCountToWrite(RDD[Count]):RDD[CassandraCount]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html#transformCountToWrite(counts:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count]):org.apache.spark.rdd.RDD[auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraCount]" title="Permalink">
@@ -614,8 +636,8 @@
         <span class="name">transformCountToWrite</span><span class="params">(<span name="counts">counts: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Count.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Count">Count</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="ApacheCassandraTransformations$$CassandraCount.html" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraCount">CassandraCount</a>]</span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformIndexToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Transform the RDD that contains the statistics for each event type pair to CassandraCount objects</p><div class="fullcomment"><div class="comment cmt"><p>Transform the RDD that contains the statistics for each event type pair to CassandraCount objects</p></div><dl class="paramcmts block"><dt class="param">counts</dt><dd class="cmt"><p>The calculated statistics for each event type pair</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD in Cassandra compatible format</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformIndexToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformIndexToRDD(df:org.apache.spark.sql.DataFrame,metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]"></a><a id="transformIndexToRDD(DataFrame,MetaData):RDD[PairFull]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html#transformIndexToRDD(df:org.apache.spark.sql.DataFrame,metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]" title="Permalink">
@@ -630,8 +652,13 @@
         <span class="name">transformIndexToRDD</span><span class="params">(<span name="df">df: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformIndexToWrite" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">The stored format is (event_typeA, event_typeB)(interval_start, interval_end)-&gt; List of occurrences, where each
+occurrence is a string &quot; trace<sub>id</sub> || timestampA<sub>1</sub>|timestampB<sub>2</sub> , timestampA<sub>2</sub>|timestampB<sub>2</sub> &quot;
+if mode = &quot;timestamps&quot;.</p><div class="fullcomment"><div class="comment cmt"><p>The stored format is (event_typeA, event_typeB)(interval_start, interval_end)-&gt; List of occurrences, where each
+occurrence is a string &quot; trace<sub>id</sub> || timestampA<sub>1</sub>|timestampB<sub>2</sub> , timestampA<sub>2</sub>|timestampB<sub>2</sub> &quot;
+if mode = &quot;timestamps&quot;. If mode = &quot;positions&quot; the positions of the events would be stored instead.
+</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded data from Cassandra</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed rdd</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformIndexToWrite" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformIndexToWrite(pairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraIndex]"></a><a id="transformIndexToWrite(RDD[PairFull],MetaData):RDD[CassandraIndex]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html#transformIndexToWrite(pairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraIndex]" title="Permalink">
@@ -646,8 +673,10 @@
         <span class="name">transformIndexToWrite</span><span class="params">(<span name="pairs">pairs: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="ApacheCassandraTransformations$$CassandraIndex.html" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraIndex">CassandraIndex</a>]</span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformLastCheckedToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Transforms the RDD containing the IndexTable into CassandraIndex
+</p><div class="fullcomment"><div class="comment cmt"><p>Transforms the RDD containing the IndexTable into CassandraIndex
+</p></div><dl class="paramcmts block"><dt class="param">pairs</dt><dd class="cmt"><p>The RDD with the inverted index based on the event type pairs</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD in Cassandra compatible format</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformLastCheckedToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformLastCheckedToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]"></a><a id="transformLastCheckedToRDD(DataFrame):RDD[LastChecked]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html#transformLastCheckedToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]" title="Permalink">
@@ -662,8 +691,8 @@
         <span class="name">transformLastCheckedToRDD</span><span class="params">(<span name="df">df: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformLastCheckedToWrite" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">The stored format is [event_typeA, event_typeB, trace_id, timestamp]</p><div class="fullcomment"><div class="comment cmt"><p>The stored format is [event_typeA, event_typeB, trace_id, timestamp]</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded data from the LastChecked table</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformLastCheckedToWrite" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformLastCheckedToWrite(lastChecked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]):org.apache.spark.rdd.RDD[auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraLastChecked]"></a><a id="transformLastCheckedToWrite(RDD[LastChecked]):RDD[CassandraLastChecked]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html#transformLastCheckedToWrite(lastChecked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]):org.apache.spark.rdd.RDD[auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraLastChecked]" title="Permalink">
@@ -678,8 +707,8 @@
         <span class="name">transformLastCheckedToWrite</span><span class="params">(<span name="lastChecked">lastChecked: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="ApacheCassandraTransformations$$CassandraLastChecked.html" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraLastChecked">CassandraLastChecked</a>]</span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformMetaToDF" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Transforms the LastChecked rdd into CassandraLastChecked</p><div class="fullcomment"><div class="comment cmt"><p>Transforms the LastChecked rdd into CassandraLastChecked</p></div><dl class="paramcmts block"><dt class="param">lastChecked</dt><dd class="cmt"><p>The calculated LastChecked RDD</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD into Cassandra compatible format</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformMetaToDF" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformMetaToDF(metadata:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.sql.DataFrame"></a><a id="transformMetaToDF(MetaData):DataFrame"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html#transformMetaToDF(metadata:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.sql.DataFrame" title="Permalink">
@@ -694,8 +723,10 @@
         <span class="name">transformMetaToDF</span><span class="params">(<span name="metadata">metadata: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformSeqToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">The required format is (key) -&gt; value, where key is the name of the property and value is its value
+</p><div class="fullcomment"><div class="comment cmt"><p>The required format is (key) -&gt; value, where key is the name of the property and value is its value
+</p></div><dl class="paramcmts block"><dt class="param">metadata</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed Dataframe</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformSeqToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformSeqToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]"></a><a id="transformSeqToRDD(DataFrame):RDD[Sequence]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html#transformSeqToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]" title="Permalink">
@@ -710,8 +741,10 @@
         <span class="name">transformSeqToRDD</span><span class="params">(<span name="df">df: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformSeqToWrite" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">The stored format is [sequence_id, List of events], where each event is [event_type, timestamp]
+</p><div class="fullcomment"><div class="comment cmt"><p>The stored format is [sequence_id, List of events], where each event is [event_type, timestamp]
+</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded traces from Cassandra</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD of traces</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformSeqToWrite" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformSeqToWrite(data:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]):org.apache.spark.rdd.RDD[auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSequence]"></a><a id="transformSeqToWrite(RDD[Sequence]):RDD[CassandraSequence]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html#transformSeqToWrite(data:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]):org.apache.spark.rdd.RDD[auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSequence]" title="Permalink">
@@ -726,8 +759,10 @@
         <span class="name">transformSeqToWrite</span><span class="params">(<span name="data">data: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="ApacheCassandraTransformations$$CassandraSequence.html" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSequence">CassandraSequence</a>]</span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformSingleToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Transform traces from Structs.Sequence to the specific types CassandraSequence
+</p><div class="fullcomment"><div class="comment cmt"><p>Transform traces from Structs.Sequence to the specific types CassandraSequence
+</p></div><dl class="paramcmts block"><dt class="param">data</dt><dd class="cmt"><p>The RDD containing traces in the Sequence format</p></dd><dt>returns</dt><dd class="cmt"><p>The RDD containing the traces in Cassandra compatible format</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformSingleToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformSingleToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]"></a><a id="transformSingleToRDD(DataFrame):RDD[InvertedSingleFull]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html#transformSingleToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]" title="Permalink">
@@ -742,8 +777,11 @@
         <span class="name">transformSingleToRDD</span><span class="params">(<span name="df">df: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformSingleToWrite" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">The stored format is (event_type)-&gt;[trace<sub>id</sub> , List of occurrences], where each occurrence has the structure:
+&quot;position,timestamp&quot;.</p><div class="fullcomment"><div class="comment cmt"><p>The stored format is (event_type)-&gt;[trace<sub>id</sub> , List of occurrences], where each occurrence has the structure:
+&quot;position,timestamp&quot;. This represent the position and timestamp of each occurrence of the event_type in the trace
+</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded single inverted index</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations#transformSingleToWrite" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformSingleToWrite(singleRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]):org.apache.spark.rdd.RDD[auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSingle]"></a><a id="transformSingleToWrite(RDD[InvertedSingleFull]):RDD[CassandraSingle]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html#transformSingleToWrite(singleRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]):org.apache.spark.rdd.RDD[auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSingle]" title="Permalink">
@@ -758,7 +796,9 @@
         <span class="name">transformSingleToWrite</span><span class="params">(<span name="singleRDD">singleRDD: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="ApacheCassandraTransformations$$CassandraSingle.html" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSingle">CassandraSingle</a>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">Transforms the single inverted index into CassandraSingle
+</p><div class="fullcomment"><div class="comment cmt"><p>Transforms the single inverted index into CassandraSingle
+</p></div><dl class="paramcmts block"><dt class="param">singleRDD</dt><dd class="cmt"><p>The RDD with the single inverted index</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD into Cassandra compatible format</p></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">

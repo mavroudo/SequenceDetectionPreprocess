@@ -151,16 +151,16 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="auth.datalab.siesta">siesta</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="ApacheCassandraConnector.html" title=""></a>
-                        <a href="ApacheCassandraConnector.html" title="">ApacheCassandraConnector</a>
+                        <a class="class" href="ApacheCassandraConnector.html" title="This class handles the communication between between SIESTA and Cassandra."></a>
+                        <a href="ApacheCassandraConnector.html" title="This class handles the communication between between SIESTA and Cassandra.">ApacheCassandraConnector</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="ApacheCassandraTransformations$.html" title=""></a>
-                        <a href="ApacheCassandraTransformations$.html" title="">ApacheCassandraTransformations</a>
+                        <a class="object" href="ApacheCassandraTransformations$.html" title="This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline."></a>
+                        <a href="ApacheCassandraTransformations$.html" title="This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline.">ApacheCassandraTransformations</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="CassandraTables$.html" title=""></a>
-                        <a href="CassandraTables$.html" title="">CassandraTables</a>
+                        <a class="object" href="CassandraTables$.html" title="This class contains the structure and the names of the tables in Cassandra for a given log database name."></a>
+                        <a href="CassandraTables$.html" title="This class contains the structure and the names of the tables in Cassandra for a given log database name.">CassandraTables</a>
                       </li><li name="auth.datalab.siesta.CommandLineParser" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CommandLineParser"></a><a id="CommandLineParser:CommandLineParser"></a>
       <span class="permalink">
@@ -336,7 +336,7 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ApacheCassandraConnectorextendsDBConnector"></a><a id="ApacheCassandraConnector:ApacheCassandraConnector"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraConnector.html" title="Permalink">
@@ -348,10 +348,14 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="" href="ApacheCassandraConnector.html"><span class="name">ApacheCassandraConnector</span></a><span class="result"> extends <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></span>
+        <a title="This class handles the communication between between SIESTA and Cassandra." href="ApacheCassandraConnector.html"><span class="name">ApacheCassandraConnector</span></a><span class="result"> extends <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></span>
       </span>
       
-      
+      <p class="shortcomment cmt">This class handles the communication between between SIESTA and Cassandra.</p><div class="fullcomment"><div class="comment cmt"><p>This class handles the communication between between SIESTA and Cassandra. It inherits all the signatures of the methods
+from <a href="../BusinessLogic/DBConnector/index.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector">auth.datalab.siesta.BusinessLogic.DBConnector</a> and overrides the reads and writes to match Cassandra properties.
+Cassandra is a distributed key-value database. Therefore each record should have a key (either single or complex key).
+</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="CassandraTables$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.CassandraTables">CassandraTables</a>, <a href="ApacheCassandraTransformations$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations">ApacheCassandraTransformations</a>, where the structure of the tables is described in the first
+     and the transformations between RDDs and Dataframes in the second.</p></span></dd></dl></div>
     </li></ol>
             </div>
 
@@ -360,7 +364,7 @@
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+                <li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ApacheCassandraTransformations"></a><a id="ApacheCassandraTransformations:ApacheCassandraTransformations"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$.html" title="Permalink">
@@ -372,11 +376,14 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="ApacheCassandraTransformations$.html"><span class="name">ApacheCassandraTransformations</span></a>
+        <a title="This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline." href="ApacheCassandraTransformations$.html"><span class="name">ApacheCassandraTransformations</span></a>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.CassandraTables" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline.</p><div class="fullcomment"><div class="comment cmt"><p>This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline.
+Then transform the RDDs to RDDs with specific types, in order to utilize the spark api to store them back in Cassandra.
+Therefore there are 2 transformations for each table, one to load data and one to write them back.
+</p></div></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.CassandraTables" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CassandraTables"></a><a id="CassandraTables:CassandraTables"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/CassandraTables$.html" title="Permalink">
@@ -388,10 +395,13 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="CassandraTables$.html"><span class="name">CassandraTables</span></a>
+        <a title="This class contains the structure and the names of the tables in Cassandra for a given log database name." href="CassandraTables$.html"><span class="name">CassandraTables</span></a>
       </span>
       
-      
+      <p class="shortcomment cmt">This class contains the structure and the names of the tables in Cassandra for a given log database name.</p><div class="fullcomment"><div class="comment cmt"><p>This class contains the structure and the names of the tables in Cassandra for a given log database name.
+Additionally it contains the match between the compression algorithms set to the parameters and the compression
+classes tht needs to be set in Cassandra in order to facilitate compression
+</p></div></div>
     </li>
               </ol>
             </div>

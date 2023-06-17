@@ -203,8 +203,8 @@
                         <a href="S3Connector.html" title="This class handles the communication between SIESTA and S3.">S3Connector</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="S3Transformations$.html" title="This class is responsible to transform the loaded data from S3 into RDDs of objects and then transform the RDDs to Dataframes in order to utilize the spark api and store them in S3."></a>
-                        <a href="S3Transformations$.html" title="This class is responsible to transform the loaded data from S3 into RDDs of objects and then transform the RDDs to Dataframes in order to utilize the spark api and store them in S3.">S3Transformations</a>
+                        <a class="object" href="S3Transformations$.html" title="This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline."></a>
+                        <a href="S3Transformations$.html" title="This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline.">S3Transformations</a>
                       </li><li name="auth.datalab.siesta.SetContainment" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="SetContainment"></a><a id="SetContainment:SetContainment"></a>
       <span class="permalink">
@@ -372,13 +372,12 @@ file we have to rewrite the whole file.</p></div></div>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="This class is responsible to transform the loaded data from S3 into RDDs of objects and then transform the RDDs to Dataframes in order to utilize the spark api and store them in S3." href="S3Transformations$.html"><span class="name">S3Transformations</span></a>
+        <a title="This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline." href="S3Transformations$.html"><span class="name">S3Transformations</span></a>
       </span>
       
-      <p class="shortcomment cmt">This class is responsible to transform the loaded data from S3 into RDDs of objects and then transform the RDDs
-to Dataframes in order to utilize the spark api and store them in S3.</p><div class="fullcomment"><div class="comment cmt"><p>This class is responsible to transform the loaded data from S3 into RDDs of objects and then transform the RDDs
-to Dataframes in order to utilize the spark api and store them in S3. Therefore there are 2 transformations for
-each table, one to load data and one to write them back.
+      <p class="shortcomment cmt">This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline.</p><div class="fullcomment"><div class="comment cmt"><p>This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline.
+Then transform the RDDs back to Dataframes, in order to utilize the spark api to store them back in S3.
+Therefore there are 2 transformations for each table, one to load data and one to write them back.
 </p></div></div>
     </li>
               </ol>

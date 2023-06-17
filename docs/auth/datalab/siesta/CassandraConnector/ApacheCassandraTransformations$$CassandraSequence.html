@@ -145,30 +145,33 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="ApacheCassandraTransformations$.html"><span class="name">ApacheCassandraTransformations</span></a>
+        <a title="This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline." href="ApacheCassandraTransformations$.html"><span class="name">ApacheCassandraTransformations</span></a>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="auth.datalab.siesta.CassandraConnector">CassandraConnector</a></dd></dl></div>
+      <p class="shortcomment cmt">This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline.</p><div class="fullcomment"><div class="comment cmt"><p>This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline.
+Then transform the RDDs to RDDs with specific types, in order to utilize the spark api to store them back in Cassandra.
+Therefore there are 2 transformations for each table, one to load data and one to write them back.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="auth.datalab.siesta.CassandraConnector">CassandraConnector</a></dd></dl></div>
     </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="class" href="ApacheCassandraTransformations$$CassandraCount.html" title=""></a>
-                        <a href="ApacheCassandraTransformations$$CassandraCount.html" title="">CassandraCount</a>
+                        <a class="class" href="ApacheCassandraTransformations$$CassandraCount.html" title="This class holds the structure of the CountTable."></a>
+                        <a href="ApacheCassandraTransformations$$CassandraCount.html" title="This class holds the structure of the CountTable.">CassandraCount</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="class" href="ApacheCassandraTransformations$$CassandraIndex.html" title=""></a>
-                        <a href="ApacheCassandraTransformations$$CassandraIndex.html" title="">CassandraIndex</a>
+                        <a class="class" href="ApacheCassandraTransformations$$CassandraIndex.html" title="This class holds the structure of the IndexTable."></a>
+                        <a href="ApacheCassandraTransformations$$CassandraIndex.html" title="This class holds the structure of the IndexTable.">CassandraIndex</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="class" href="ApacheCassandraTransformations$$CassandraLastChecked.html" title=""></a>
-                        <a href="ApacheCassandraTransformations$$CassandraLastChecked.html" title="">CassandraLastChecked</a>
+                        <a class="class" href="ApacheCassandraTransformations$$CassandraLastChecked.html" title="This class holds the structure of the LastChecked table."></a>
+                        <a href="ApacheCassandraTransformations$$CassandraLastChecked.html" title="This class holds the structure of the LastChecked table.">CassandraLastChecked</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="class" href="" title=""></a>
-                        <a href="" title="">CassandraSequence</a>
+                        <a class="class" href="" title="This class holds the structure of the SequenceTable."></a>
+                        <a href="" title="This class holds the structure of the SequenceTable.">CassandraSequence</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="class" href="ApacheCassandraTransformations$$CassandraSingle.html" title=""></a>
-                        <a href="ApacheCassandraTransformations$$CassandraSingle.html" title="">CassandraSingle</a>
+                        <a class="class" href="ApacheCassandraTransformations$$CassandraSingle.html" title="This class holds the structure of the SingleTable."></a>
+                        <a href="ApacheCassandraTransformations$$CassandraSingle.html" title="This class holds the structure of the SingleTable.">CassandraSingle</a>
                       </li>
               </ul>
             </div>
@@ -197,7 +200,10 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class holds the structure of the SequenceTable. Data in this format can be written in Cassandra
+using the spark api. That is because this format is the same as the structure of the Sequence Table
+that is defined in <a href="CassandraTables$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.CassandraTables">CassandraTables</a>.
+</p></div><dl class="paramcmts block"><dt class="param">events</dt><dd class="cmt"><p>The list of events as strings &quot;event_type,timestamp&quot;</p></dd><dt class="param">sequence_id</dt><dd class="cmt"><p>The trace id</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -247,7 +253,7 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSequence#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSequence#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="&lt;init&gt;(events:List[String],sequence_id:Long):auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSequence"></a><a id="&lt;init&gt;:CassandraSequence"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraTransformations$$CassandraSequence.html#&lt;init&gt;(events:List[String],sequence_id:Long):auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations.CassandraSequence" title="Permalink">
@@ -262,7 +268,7 @@
         <span class="name">CassandraSequence</span><span class="params">(<span name="events">events: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="sequence_id">sequence_id: <span class="extype" name="scala.Long">Long</span></span>)</span>
       </span>
       
-      
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">events</dt><dd class="cmt"><p>The list of events as strings &quot;event_type,timestamp&quot;</p></dd><dt class="param">sequence_id</dt><dd class="cmt"><p>The trace id</p></dd></dl></div>
     </li></ol>
             </div>
 

@@ -151,12 +151,12 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="auth.datalab.siesta.BusinessLogic">BusinessLogic</a></dd></dl></div>
     </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="object" href="IngestingProcess$.html" title=""></a>
-                        <a href="IngestingProcess$.html" title="">IngestingProcess</a>
+                        <a class="object" href="IngestingProcess$.html" title="Creates the RDD containing the traces either based on an input file or based on randomly generated traces"></a>
+                        <a href="IngestingProcess$.html" title="Creates the RDD containing the traces either based on an input file or based on randomly generated traces">IngestingProcess</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="object" href="" title="This file defines the various formats that can be ingested in the system"></a>
-                        <a href="" title="This file defines the various formats that can be ingested in the system">ReadLogFile</a>
+                        <a class="object" href="" title="This class defines the various formats that can be ingested in the system"></a>
+                        <a href="" title="This class defines the various formats that can be ingested in the system">ReadLogFile</a>
                       </li>
               </ul>
             </div>
@@ -185,7 +185,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This file defines the various formats that can be ingested in the system
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class defines the various formats that can be ingested in the system
 </p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
@@ -481,7 +481,7 @@
                 <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.IngestData.ReadLogFile#readLog" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="auth.datalab.siesta.BusinessLogic.IngestData.ReadLogFile#readLog" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="readLog(fileName:String,separator:String):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]"></a><a id="readLog(String,String):RDD[Sequence]"></a>
       <span class="permalink">
       <a href="../../../../../auth/datalab/siesta/BusinessLogic/IngestData/ReadLogFile$.html#readLog(fileName:String,separator:String):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]" title="Permalink">
@@ -496,7 +496,9 @@
         <span class="name">readLog</span><span class="params">(<span name="fileName">fileName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="separator">separator: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;,&quot;</span></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">This class combines all the different parsing methods and chooses the one that corresponds to the extension of the
+logfile</p><div class="fullcomment"><div class="comment cmt"><p>This class combines all the different parsing methods and chooses the one that corresponds to the extension of the
+logfile</p></div><dl class="paramcmts block"><dt class="param">fileName</dt><dd class="cmt"><p>The name of the log file</p></dd><dt class="param">separator</dt><dd class="cmt"><p>Defines how the events are separated (can be changed to match new txt format)</p></dd><dt>returns</dt><dd class="cmt"><p>The RDD that contains the parsed traces</p></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">

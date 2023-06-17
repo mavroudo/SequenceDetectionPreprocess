@@ -135,16 +135,16 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="auth.datalab.siesta">siesta</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="ApacheCassandraConnector.html" title=""></a>
-                        <a href="ApacheCassandraConnector.html" title="">ApacheCassandraConnector</a>
+                        <a class="class" href="ApacheCassandraConnector.html" title="This class handles the communication between between SIESTA and Cassandra."></a>
+                        <a href="ApacheCassandraConnector.html" title="This class handles the communication between between SIESTA and Cassandra.">ApacheCassandraConnector</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="ApacheCassandraTransformations$.html" title=""></a>
-                        <a href="ApacheCassandraTransformations$.html" title="">ApacheCassandraTransformations</a>
+                        <a class="object" href="ApacheCassandraTransformations$.html" title="This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline."></a>
+                        <a href="ApacheCassandraTransformations$.html" title="This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline.">ApacheCassandraTransformations</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">CassandraTables</a>
+                        <a class="object" href="" title="This class contains the structure and the names of the tables in Cassandra for a given log database name."></a>
+                        <a href="" title="This class contains the structure and the names of the tables in Cassandra for a given log database name.">CassandraTables</a>
                       </li>
               </ul>
             </div>
@@ -173,7 +173,10 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class contains the structure and the names of the tables in Cassandra for a given log database name.
+Additionally it contains the match between the compression algorithms set to the parameters and the compression
+classes tht needs to be set in Cassandra in order to facilitate compression
+</p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -373,7 +376,7 @@
                 <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="auth.datalab.siesta.CassandraConnector.CassandraTables#getCompression" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="auth.datalab.siesta.CassandraConnector.CassandraTables#getCompression" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getCompression(compressionString:String):String"></a><a id="getCompression(String):String"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/CassandraTables$.html#getCompression(compressionString:String):String" title="Permalink">
@@ -388,8 +391,8 @@
         <span class="name">getCompression</span><span class="params">(<span name="compressionString">compressionString: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.CassandraTables#getTableNames" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Contains the mapping between the compression parameters and the compression classes that utilized in Cassandra</p><div class="fullcomment"><div class="comment cmt"><p>Contains the mapping between the compression parameters and the compression classes that utilized in Cassandra</p></div><dl class="paramcmts block"><dt class="param">compressionString</dt><dd class="cmt"><p>The compression parameters</p></dd><dt>returns</dt><dd class="cmt"><p>The class that will be utilized by Cassandra for compression</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.CassandraTables#getTableNames" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getTableNames(logname:String):Map[String,String]"></a><a id="getTableNames(String):Map[String,String]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/CassandraTables$.html#getTableNames(logname:String):Map[String,String]" title="Permalink">
@@ -404,8 +407,10 @@
         <span class="name">getTableNames</span><span class="params">(<span name="logname">logname: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      
-    </li><li name="auth.datalab.siesta.CassandraConnector.CassandraTables#getTablesStructures" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Returns a map, between an abbreviation of the table name and its actual name.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a map, between an abbreviation of the table name and its actual name. This method assist in making
+code in <a href="ApacheCassandraTransformations$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations">ApacheCassandraTransformations</a> easier to read and understand. The names of the tables (values here)
+are the same as the keys of the above method</p></div><dl class="paramcmts block"><dt class="param">logname</dt><dd class="cmt"><p>The log database name</p></dd><dt>returns</dt><dd class="cmt"><p>The map between table abbreviations and the actual table names</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.CassandraConnector.CassandraTables#getTablesStructures" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getTablesStructures(logname:String):Map[String,String]"></a><a id="getTablesStructures(String):Map[String,String]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/CassandraTables$.html#getTablesStructures(logname:String):Map[String,String]" title="Permalink">
@@ -420,7 +425,9 @@
         <span class="name">getTablesStructures</span><span class="params">(<span name="logname">logname: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">Returns the structure of the 6 tables that will be created in Cassandra.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the structure of the 6 tables that will be created in Cassandra. For each table (except Metadata) a
+case class has been created in <a href="ApacheCassandraTransformations$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations">ApacheCassandraTransformations</a>. That is, if data are transformed into these
+objects they can be directly stored in Cassandra using the spark api.</p></div><dl class="paramcmts block"><dt class="param">logname</dt><dd class="cmt"><p>The log database name</p></dd><dt>returns</dt><dd class="cmt"><p>The map of table names and the command to create them in Cassandra.</p></dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">

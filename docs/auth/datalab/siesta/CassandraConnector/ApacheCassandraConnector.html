@@ -135,16 +135,16 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="auth.datalab.siesta">siesta</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="" title=""></a>
-                        <a href="" title="">ApacheCassandraConnector</a>
+                        <a class="class" href="" title="This class handles the communication between between SIESTA and Cassandra."></a>
+                        <a href="" title="This class handles the communication between between SIESTA and Cassandra.">ApacheCassandraConnector</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="ApacheCassandraTransformations$.html" title=""></a>
-                        <a href="ApacheCassandraTransformations$.html" title="">ApacheCassandraTransformations</a>
+                        <a class="object" href="ApacheCassandraTransformations$.html" title="This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline."></a>
+                        <a href="ApacheCassandraTransformations$.html" title="This class is responsible to transform the loaded data from Cassandra into RDDs to processed by the main pipeline.">ApacheCassandraTransformations</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="CassandraTables$.html" title=""></a>
-                        <a href="CassandraTables$.html" title="">CassandraTables</a>
+                        <a class="object" href="CassandraTables$.html" title="This class contains the structure and the names of the tables in Cassandra for a given log database name."></a>
+                        <a href="CassandraTables$.html" title="This class contains the structure and the names of the tables in Cassandra for a given log database name.">CassandraTables</a>
                       </li>
               </ul>
             </div>
@@ -173,7 +173,11 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class handles the communication between between SIESTA and Cassandra. It inherits all the signatures of the methods
+from <a href="../BusinessLogic/DBConnector/index.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector">auth.datalab.siesta.BusinessLogic.DBConnector</a> and overrides the reads and writes to match Cassandra properties.
+Cassandra is a distributed key-value database. Therefore each record should have a key (either single or complex key).
+</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="CassandraTables$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.CassandraTables">CassandraTables</a>, <a href="ApacheCassandraTransformations$.html" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraTransformations">ApacheCassandraTransformations</a>, where the structure of the tables is described in the first
+     and the transformations between RDDs and Dataframes in the second.</p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -425,7 +429,7 @@
       <p class="shortcomment cmt">This method is responsible to combine the newly arrived events with the ones previously stored,
 in order to support incremental indexing.</p><div class="fullcomment"><div class="comment cmt"><p>This method is responsible to combine the newly arrived events with the ones previously stored,
 in order to support incremental indexing.</p></div><dl class="paramcmts block"><dt class="param">newSequences</dt><dd class="cmt"><p>The new sequences to be indexed</p></dd><dt class="param">previousSequences</dt><dd class="cmt"><p>The previous sequences that are already indexed</p></dd><dt>returns</dt><dd class="cmt"><p>A combined rdd with all the traces combined</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
-    </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector#combine_single_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector#combine_single_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="combine_single_table(newSingle:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull],previousSingle:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]"></a><a id="combine_single_table(RDD[InvertedSingleFull],RDD[InvertedSingleFull]):RDD[InvertedSingleFull]"></a>
       <span class="permalink">
       <a href="../../../../auth/datalab/siesta/CassandraConnector/ApacheCassandraConnector.html#combine_single_table(newSingle:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull],previousSingle:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]" title="Permalink">
@@ -440,7 +444,7 @@ in order to support incremental indexing.</p></div><dl class="paramcmts block"><
         <span class="name">combine_single_table</span><span class="params">(<span name="newSingle">newSingle: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>, <span name="previousSingle">previousSingle: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Combine new and previous entries in the Single table</p><div class="fullcomment"><div class="comment cmt"><p>Combine new and previous entries in the Single table</p></div><dl class="paramcmts block"><dt class="param">newSingle</dt><dd class="cmt"><p>New events in single table</p></dd><dt class="param">previousSingle</dt><dd class="cmt"><p>Previous events stored in single table</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the combined entries</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+      <p class="shortcomment cmt">Combine new and previous entries in the Single table</p><div class="fullcomment"><div class="comment cmt"><p>Combine new and previous entries in the Single table</p></div><dl class="paramcmts block"><dt class="param">newSingle</dt><dd class="cmt"><p>New events in single table</p></dd><dt class="param">previousSingle</dt><dd class="cmt"><p>Previous events stored in single table</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the combined entries</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -568,8 +572,9 @@ new presented in the config object
         <span class="name">initialize_spark</span><span class="params">(<span name="config">config: <a href="../CommandLineParser/Config.html" class="extype" name="auth.datalab.siesta.CommandLineParser.Config">Config</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <p class="shortcomment cmt">Depending on the different database, each connector has to initialize the spark context
-</p><div class="fullcomment"><div class="comment cmt"><p>Depending on the different database, each connector has to initialize the spark context
+      <p class="shortcomment cmt">Spark initilizes the connection to s3 utilizing cassandra properties, that are available through the
+cassandra-connector library.</p><div class="fullcomment"><div class="comment cmt"><p>Spark initilizes the connection to s3 utilizing cassandra properties, that are available through the
+cassandra-connector library.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -660,9 +665,9 @@ new presented in the config object
         <span class="name">read_count_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Count.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Count">Count</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Read previously stored data in the count table
-</p><div class="fullcomment"><div class="comment cmt"><p>Read previously stored data in the count table
-</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Containing all the necessary information for the storing</p></dd><dt>returns</dt><dd class="cmt"><p>The count data stored in the count table</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+      <p class="shortcomment cmt">Loads previously stored data in the CountTable
+</p><div class="fullcomment"><div class="comment cmt"><p>Loads previously stored data in the CountTable
+</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>The data stored in the count table</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector#read_index_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="read_index_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]"></a><a id="read_index_table(MetaData):RDD[PairFull]"></a>
       <span class="permalink">
@@ -678,9 +683,9 @@ new presented in the config object
         <span class="name">read_index_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Reads the all the indexed pairs (mainly for testing reasons) advice to use the above method
-</p><div class="fullcomment"><div class="comment cmt"><p>Reads the all the indexed pairs (mainly for testing reasons) advice to use the above method
-</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Containing all the necessary information for the storing</p></dd><dt>returns</dt><dd class="cmt"><p>All the indexed pairs</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+      <p class="shortcomment cmt">Loads all the indexed pairs from the IndexTable.</p><div class="fullcomment"><div class="comment cmt"><p>Loads all the indexed pairs from the IndexTable. Mainly used for testing reasons.
+Advice: use the above method.
+</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>Loaded indexed pairs from IndexTable</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector#read_index_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="read_index_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,intervals:List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]"></a><a id="read_index_table(MetaData,List[Interval]):RDD[PairFull]"></a>
       <span class="permalink">
@@ -696,10 +701,10 @@ new presented in the config object
         <span class="name">read_index_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>, <span name="intervals">intervals: <span class="extype" name="scala.List">List</span>[<a href="../BusinessLogic/Model/Structs$$Interval.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Interval">Interval</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Read data previously stored data that correspond to the intervals, in order to be merged
-</p><div class="fullcomment"><div class="comment cmt"><p>Read data previously stored data that correspond to the intervals, in order to be merged
-</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Containing all the necessary information for the storing</p></dd><dt class="param">intervals</dt><dd class="cmt"><p>The period of times that the pairs will be splitted (thus require to combine with previous pairs,
-                 if there are any in these periods)</p></dd><dt>returns</dt><dd class="cmt"><p>combined record of pairs during the interval periods</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+      <p class="shortcomment cmt">Loads data from the IndexTable that correspond to the given intervals.</p><div class="fullcomment"><div class="comment cmt"><p>Loads data from the IndexTable that correspond to the given intervals. These data will be merged with
+the newly calculated pairs, before written back to the database.
+</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt class="param">intervals</dt><dd class="cmt"><p>The period of times that the pairs will be splitted (thus require to combine with previous pairs,
+                 if there are any in these periods)</p></dd><dt>returns</dt><dd class="cmt"><p>Loaded records from IndexTable for the given intervals</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector#read_last_checked_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="read_last_checked_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]"></a><a id="read_last_checked_table(MetaData):RDD[LastChecked]"></a>
       <span class="permalink">
@@ -716,8 +721,11 @@ new presented in the config object
       </span>
       
       <p class="shortcomment cmt">Returns data from LastChecked Table
-</p><div class="fullcomment"><div class="comment cmt"><p>Returns data from LastChecked Table
-</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Containing all the necessary information for the storing</p></dd><dt>returns</dt><dd class="cmt"><p>LastChecked records</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+Loads data from the LastChecked Table, which contains the  information of the last timestamp per event type pair
+per trace.</p><div class="fullcomment"><div class="comment cmt"><p>Returns data from LastChecked Table
+Loads data from the LastChecked Table, which contains the  information of the last timestamp per event type pair
+per trace.
+</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the last timestamps per event type pair per trace</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector#read_sequence_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="read_sequence_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]"></a><a id="read_sequence_table(MetaData):RDD[Sequence]"></a>
       <span class="permalink">
@@ -735,7 +743,7 @@ new presented in the config object
       
       <p class="shortcomment cmt">Read data as an rdd from the SeqTable
 </p><div class="fullcomment"><div class="comment cmt"><p>Read data as an rdd from the SeqTable
-</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Containing all the necessary information for the storing</p></dd><dt>returns</dt><dd class="cmt"><p>In RDD the stored data</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector#read_single_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="read_single_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]"></a><a id="read_single_table(MetaData):RDD[InvertedSingleFull]"></a>
       <span class="permalink">
@@ -751,9 +759,9 @@ new presented in the config object
         <span class="name">read_single_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Read data as an rdd from the SingleTable
-</p><div class="fullcomment"><div class="comment cmt"><p>Read data as an rdd from the SingleTable
-</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Containing all the necessary information for the storing</p></dd><dt>returns</dt><dd class="cmt"><p>In RDD the stored data</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+      <p class="shortcomment cmt">Loads the single inverted index from Cassandra, stored in the SingleTable
+</p><div class="fullcomment"><div class="comment cmt"><p>Loads the single inverted index from Cassandra, stored in the SingleTable
+</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>In RDD the stored data</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -869,9 +877,9 @@ new presented in the config object
         <span class="name">write_count_table</span><span class="params">(<span name="counts">counts: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Count.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Count">Count</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <p class="shortcomment cmt">Write count to countTable
-</p><div class="fullcomment"><div class="comment cmt"><p>Write count to countTable
-</p></div><dl class="paramcmts block"><dt class="param">counts</dt><dd class="cmt"><p>Calculated basic statistics in order to be stored in the count table</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Containing all the necessary information for the storing</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+      <p class="shortcomment cmt">Writes count to countTable
+</p><div class="fullcomment"><div class="comment cmt"><p>Writes count to countTable
+</p></div><dl class="paramcmts block"><dt class="param">counts</dt><dd class="cmt"><p>Calculated basic statistics per event type pair in order to be stored in the count table</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector#write_index_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="write_index_table(newPairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,intervals:List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval]):Unit"></a><a id="write_index_table(RDD[PairFull],MetaData,List[Interval]):Unit"></a>
       <span class="permalink">
@@ -889,7 +897,7 @@ new presented in the config object
       
       <p class="shortcomment cmt">Write the combined pairs back to the S3, grouped by the interval and the first event
 </p><div class="fullcomment"><div class="comment cmt"><p>Write the combined pairs back to the S3, grouped by the interval and the first event
-</p></div><dl class="paramcmts block"><dt class="param">newPairs</dt><dd class="cmt"><p>The newly generated pairs</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Containing all the necessary information for the storing</p></dd><dt class="param">intervals</dt><dd class="cmt"><p>The period of times that the pairs will be splitted</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">newPairs</dt><dd class="cmt"><p>The newly generated pairs</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt class="param">intervals</dt><dd class="cmt"><p>The period of times that the pairs will be splitted</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector#write_last_checked_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="write_last_checked_table(lastChecked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):Unit"></a><a id="write_last_checked_table(RDD[LastChecked],MetaData):Unit"></a>
       <span class="permalink">
@@ -905,9 +913,9 @@ new presented in the config object
         <span class="name">write_last_checked_table</span><span class="params">(<span name="lastChecked">lastChecked: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <p class="shortcomment cmt">Writes new records for last checked back in the database and return the combined records with the
-</p><div class="fullcomment"><div class="comment cmt"><p>Writes new records for last checked back in the database and return the combined records with the
-</p></div><dl class="paramcmts block"><dt class="param">lastChecked</dt><dd class="cmt"><p>records containing the timestamp of last completion for each different n-tuple</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Containing all the necessary information for the storing</p></dd><dt>returns</dt><dd class="cmt"><p>The combined last checked records</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+      <p class="shortcomment cmt">Stores new records for last checked back in the database
+</p><div class="fullcomment"><div class="comment cmt"><p>Stores new records for last checked back in the database
+</p></div><dl class="paramcmts block"><dt class="param">lastChecked</dt><dd class="cmt"><p>Records containing the timestamp of last completion for each event type pair for each trace</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector#write_metadata" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="write_metadata(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):Unit"></a><a id="write_metadata(MetaData):Unit"></a>
       <span class="permalink">
@@ -925,7 +933,7 @@ new presented in the config object
       
       <p class="shortcomment cmt">Persists metadata
 </p><div class="fullcomment"><div class="comment cmt"><p>Persists metadata
-</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>metadata of the execution and the database</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector#write_sequence_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="write_sequence_table(sequenceRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastPosition]"></a><a id="write_sequence_table(RDD[Sequence],MetaData):RDD[LastPosition]"></a>
       <span class="permalink">
@@ -942,11 +950,10 @@ new presented in the config object
       </span>
       
       <p class="shortcomment cmt">This method writes traces to the auxiliary SeqTable.</p><div class="fullcomment"><div class="comment cmt"><p>This method writes traces to the auxiliary SeqTable. Since RDD will be used as intermediate results it is already persisted
-and should not be modify that.
-If states in the metadata, this method should combine the new traces with the previous ones
-This method should combine the results with previous ones and return the results to the main pipeline
+and should not be modified.
+This method should combine the results with previous ones and return them to the main pipeline.
 Additionally updates metaData object
-</p></div><dl class="paramcmts block"><dt class="param">sequenceRDD</dt><dd class="cmt"><p>RDD containing the traces</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Containing all the necessary information for the storing</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the last position of the event stored per trace</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">sequenceRDD</dt><dd class="cmt"><p>The RDD containing the traces</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the last position of the event stored per trace</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector#write_single_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="write_single_table(singleRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]"></a><a id="write_single_table(RDD[InvertedSingleFull],MetaData):RDD[InvertedSingleFull]"></a>
       <span class="permalink">
@@ -963,10 +970,10 @@ Additionally updates metaData object
       </span>
       
       <p class="shortcomment cmt">This method writes traces to the auxiliary SingleTable.</p><div class="fullcomment"><div class="comment cmt"><p>This method writes traces to the auxiliary SingleTable. The rdd that comes to this method is not persisted.
-Database should persist it before store it and not persist it at the end.
-This method should combine the results with previous ones and return the results to the main pipeline
-Additionally updates metaData object
-</p></div><dl class="paramcmts block"><dt class="param">singleRDD</dt><dd class="cmt"><p>Contains the single inverted index</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Containing all the necessary information for the storing</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+Database should persist it before store it and unpersist it at the end.
+This method should combine the results with the ones previously stored and return them to the main pipeline.
+Additionally updates metaData object.
+</p></div><dl class="paramcmts block"><dt class="param">singleRDD</dt><dd class="cmt"><p>Contains the newly indexed events in a form of single inverted index</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector">ApacheCassandraConnector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li>
               </ol>
             </div>

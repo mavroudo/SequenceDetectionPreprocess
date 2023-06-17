@@ -151,12 +151,12 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="auth.datalab.siesta.BusinessLogic">BusinessLogic</a></dd></dl></div>
     </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="class" href="MetaData.html" title=""></a>
-                        <a href="MetaData.html" title="">MetaData</a>
+                        <a class="class" href="MetaData.html" title="This class describes the metadata object."></a>
+                        <a href="MetaData.html" title="This class describes the metadata object.">MetaData</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">SetMetadata</a>
+                        <a class="object" href="" title="This class facilitates the initialization and loading of the Metadata object"></a>
+                        <a href="" title="This class facilitates the initialization and loading of the Metadata object">SetMetadata</a>
                       </li>
               </ul>
             </div>
@@ -185,7 +185,8 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class facilitates the initialization and loading of the Metadata object
+</p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -406,7 +407,7 @@
                 <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.SetMetadata#initialize_metadata" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.SetMetadata#initialize_metadata" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="initialize_metadata(config:auth.datalab.siesta.CommandLineParser.Config):auth.datalab.siesta.BusinessLogic.Metadata.MetaData"></a><a id="initialize_metadata(Config):MetaData"></a>
       <span class="permalink">
       <a href="../../../../../auth/datalab/siesta/BusinessLogic/Metadata/SetMetadata$.html#initialize_metadata(config:auth.datalab.siesta.CommandLineParser.Config):auth.datalab.siesta.BusinessLogic.Metadata.MetaData" title="Permalink">
@@ -421,7 +422,8 @@
         <span class="name">initialize_metadata</span><span class="params">(<span name="config">config: <a href="../../CommandLineParser/Config.html" class="extype" name="auth.datalab.siesta.CommandLineParser.Config">Config</a></span>)</span><span class="result">: <a href="MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>
       </span>
       
-      
+      <p class="shortcomment cmt">Create a new metadata object based on the given configuration object (passed from the <a href="../../Main$.html" class="extype" name="auth.datalab.siesta.Main">auth.datalab.siesta.Main</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Create a new metadata object based on the given configuration object (passed from the <a href="../../Main$.html" class="extype" name="auth.datalab.siesta.Main">auth.datalab.siesta.Main</a>.
+This method is called if there are no previous records indexed, i.e. it is a new log database</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>The configuration file with the command line parameters</p></dd><dt>returns</dt><dd class="cmt"><p>A new Metadata object</p></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -438,7 +440,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.SetMetadata#load_metadata" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.SetMetadata#load_metadata" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="load_metadata(metaDataObj:org.apache.spark.sql.DataFrame):auth.datalab.siesta.BusinessLogic.Metadata.MetaData"></a><a id="load_metadata(DataFrame):MetaData"></a>
       <span class="permalink">
       <a href="../../../../../auth/datalab/siesta/BusinessLogic/Metadata/SetMetadata$.html#load_metadata(metaDataObj:org.apache.spark.sql.DataFrame):auth.datalab.siesta.BusinessLogic.Metadata.MetaData" title="Permalink">
@@ -453,7 +455,7 @@
         <span class="name">load_metadata</span><span class="params">(<span name="metaDataObj">metaDataObj: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>)</span><span class="result">: <a href="MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>
       </span>
       
-      
+      <p class="shortcomment cmt">Loads the previously stored metadata from the database into a Metadata object</p><div class="fullcomment"><div class="comment cmt"><p>Loads the previously stored metadata from the database into a Metadata object</p></div><dl class="paramcmts block"><dt class="param">metaDataObj</dt><dd class="cmt"><p>The laoded metadata from the Database</p></dd><dt>returns</dt><dd class="cmt"><p>The metadata object</p></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">

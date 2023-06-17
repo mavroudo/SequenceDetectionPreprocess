@@ -139,8 +139,8 @@
                         <a href="" title="This class handles the communication between SIESTA and S3.">S3Connector</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="S3Transformations$.html" title="This class is responsible to transform the loaded data from S3 into RDDs of objects and then transform the RDDs to Dataframes in order to utilize the spark api and store them in S3."></a>
-                        <a href="S3Transformations$.html" title="This class is responsible to transform the loaded data from S3 into RDDs of objects and then transform the RDDs to Dataframes in order to utilize the spark api and store them in S3.">S3Transformations</a>
+                        <a class="object" href="S3Transformations$.html" title="This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline."></a>
+                        <a href="S3Transformations$.html" title="This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline.">S3Transformations</a>
                       </li>
               </ul>
             </div>
@@ -568,8 +568,8 @@ new presented in the config object
         <span class="name">initialize_spark</span><span class="params">(<span name="config">config: <a href="../CommandLineParser/Config.html" class="extype" name="auth.datalab.siesta.CommandLineParser.Config">Config</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <p class="shortcomment cmt">Depending on the different database, each connector has to initialize the spark context
-</p><div class="fullcomment"><div class="comment cmt"><p>Depending on the different database, each connector has to initialize the spark context
+      <p class="shortcomment cmt">Spark initializes the connection to S3 utilizing the hadoop properties and the aws-bundle library
+</p><div class="fullcomment"><div class="comment cmt"><p>Spark initializes the connection to S3 utilizing the hadoop properties and the aws-bundle library
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -754,8 +754,8 @@ per trace.
         <span class="name">read_single_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Loads the single inverted index from Cassandra, stored in the SingleTable
-</p><div class="fullcomment"><div class="comment cmt"><p>Loads the single inverted index from Cassandra, stored in the SingleTable
+      <p class="shortcomment cmt">Loads the single inverted index from S3, stored in the SingleTable
+</p><div class="fullcomment"><div class="comment cmt"><p>Loads the single inverted index from S3, stored in the SingleTable
 </p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>In RDD the stored data</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
@@ -872,8 +872,8 @@ per trace.
         <span class="name">write_count_table</span><span class="params">(<span name="counts">counts: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Count.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Count">Count</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <p class="shortcomment cmt">Write count to countTable
-</p><div class="fullcomment"><div class="comment cmt"><p>Write count to countTable
+      <p class="shortcomment cmt">Writes count to countTable
+</p><div class="fullcomment"><div class="comment cmt"><p>Writes count to countTable
 </p></div><dl class="paramcmts block"><dt class="param">counts</dt><dd class="cmt"><p>Calculated basic statistics per event type pair in order to be stored in the count table</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#write_index_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="write_index_table(newPairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,intervals:List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval]):Unit"></a><a id="write_index_table(RDD[PairFull],MetaData,List[Interval]):Unit"></a>
