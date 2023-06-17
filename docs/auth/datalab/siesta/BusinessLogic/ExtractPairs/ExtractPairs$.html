@@ -151,12 +151,12 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="auth.datalab.siesta.BusinessLogic">BusinessLogic</a></dd></dl></div>
     </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">ExtractPairs</a>
+                        <a class="object" href="" title="This class describes how the event type pairs are extracted from the traces."></a>
+                        <a href="" title="This class describes how the event type pairs are extracted from the traces.">ExtractPairs</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="object" href="Intervals$.html" title=""></a>
-                        <a href="Intervals$.html" title="">Intervals</a>
+                        <a class="object" href="Intervals$.html" title="Intervals are used to divide the IndexTable into smaller segments, where the duration of each segment is equal to the split_every_days parameter (described in auth.datalab.siesta.CommandLineParser.Config)."></a>
+                        <a href="Intervals$.html" title="Intervals are used to divide the IndexTable into smaller segments, where the duration of each segment is equal to the split_every_days parameter (described in auth.datalab.siesta.CommandLineParser.Config).">Intervals</a>
                       </li>
               </ul>
             </div>
@@ -185,7 +185,8 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class describes how the event type pairs are extracted from the traces.
+</p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -364,7 +365,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.ExtractPairs.ExtractPairs#extract" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="auth.datalab.siesta.BusinessLogic.ExtractPairs.ExtractPairs#extract" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="extract(singleRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull],last_checked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked],intervals:List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval],lookback:Int):(org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked])"></a><a id="extract(RDD[InvertedSingleFull],RDD[LastChecked],List[Interval],Int):(RDD[PairFull],RDD[LastChecked])"></a>
       <span class="permalink">
       <a href="../../../../../auth/datalab/siesta/BusinessLogic/ExtractPairs/ExtractPairs$.html#extract(singleRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull],last_checked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked],intervals:List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval],lookback:Int):(org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked])" title="Permalink">
@@ -379,7 +380,17 @@
         <span class="name">extract</span><span class="params">(<span name="singleRDD">singleRDD: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>, <span name="last_checked">last_checked: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>, <span name="intervals">intervals: <span class="extype" name="scala.List">List</span>[<a href="../Model/Structs$$Interval.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Interval">Interval</a>]</span>, <span name="lookback">lookback: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: (<span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>], <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>])</span>
       </span>
       
-      
+      <p class="shortcomment cmt">Extracts the event type pairs from an RDD that contains the complete traces.</p><div class="fullcomment"><div class="comment cmt"><p>Extracts the event type pairs from an RDD that contains the complete traces. If there are previously indexed pairs
+this process will only calculate the new event type pairs by utilizing the information stored in the LastChecked
+table. Additionally, there will be no event type pair where the two events will have greater time difference than
+the one described by the parameter lookback.</p><p>The generated pairs follow a Skip-till-next-match policy without overlapping in time. That is, in order to be two
+occurrences of the same event type pair in a trace, the second one must start after the first one has ended.
+For example: the trace t<sub>1</sub> = (a,b,c,a,b) contains 2 occurrences of the event type (a,b). However, the trace
+t<sub>2</sub> = (a,a,c,b,b) only contains one occurrence of the previous event type pair.
+</p></div><dl class="paramcmts block"><dt class="param">singleRDD</dt><dd class="cmt"><p>The RDD that contains the complete single inverted index</p></dd><dt class="param">last_checked</dt><dd class="cmt"><p>The loaded values from the LastChecked table (it should be null if it is the first time that
+                    events are indexed in this log database).</p></dd><dt class="param">intervals</dt><dd class="cmt"><p>The list of the intervals</p></dd><dt class="param">lookback</dt><dd class="cmt"><p>The parameter that describes the maximum time difference that two events can have in order to
+                create an event type pair.</p></dd><dt>returns</dt><dd class="cmt"><p>Two RDDs: (1) The first one that contains all the extracted event type pairs and (2) the second one contains
+        the last timestamp of each event type pair for each trace.</p></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">

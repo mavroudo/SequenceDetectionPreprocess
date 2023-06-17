@@ -244,7 +244,7 @@ class CassandraConnectionSetContainment extends Serializable {
   }
 
   /**
-   * Transform [[auth.datalab.siesta.SetContainment.SetContainment.SetCInverted]] -> [[CassandraSetIndex]]
+   * Transform SetCInverted to CassandraSetIndex
    *
    * @param line An SetCInverted index
    * @return The trace ids transformed to strings

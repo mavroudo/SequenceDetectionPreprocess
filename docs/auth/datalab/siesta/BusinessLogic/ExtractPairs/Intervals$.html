@@ -151,12 +151,12 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="auth.datalab.siesta.BusinessLogic">BusinessLogic</a></dd></dl></div>
     </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="object" href="ExtractPairs$.html" title=""></a>
-                        <a href="ExtractPairs$.html" title="">ExtractPairs</a>
+                        <a class="object" href="ExtractPairs$.html" title="This class describes how the event type pairs are extracted from the traces."></a>
+                        <a href="ExtractPairs$.html" title="This class describes how the event type pairs are extracted from the traces.">ExtractPairs</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">Intervals</a>
+                        <a class="object" href="" title="Intervals are used to divide the IndexTable into smaller segments, where the duration of each segment is equal to the split_every_days parameter (described in auth.datalab.siesta.CommandLineParser.Config)."></a>
+                        <a href="" title="Intervals are used to divide the IndexTable into smaller segments, where the duration of each segment is equal to the split_every_days parameter (described in auth.datalab.siesta.CommandLineParser.Config).">Intervals</a>
                       </li>
               </ul>
             </div>
@@ -185,7 +185,9 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Intervals are used to divide the IndexTable into smaller segments, where the duration of each segment is equal to the
+split_every_days parameter (described in <a href="../../CommandLineParser/Config.html" class="extype" name="auth.datalab.siesta.CommandLineParser.Config">auth.datalab.siesta.CommandLineParser.Config</a>).
+</p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -406,7 +408,7 @@
                 <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.ExtractPairs.Intervals#intervals" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="auth.datalab.siesta.BusinessLogic.ExtractPairs.Intervals#intervals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="intervals(sequenceRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence],last_interval:String,split_every_days:Int):List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval]"></a><a id="intervals(RDD[Sequence],String,Int):List[Interval]"></a>
       <span class="permalink">
       <a href="../../../../../auth/datalab/siesta/BusinessLogic/ExtractPairs/Intervals$.html#intervals(sequenceRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence],last_interval:String,split_every_days:Int):List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval]" title="Permalink">
@@ -421,7 +423,9 @@
         <span class="name">intervals</span><span class="params">(<span name="sequenceRDD">sequenceRDD: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>, <span name="last_interval">last_interval: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="split_every_days">split_every_days: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="../Model/Structs$$Interval.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Interval">Interval</a>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">The public method that returns the intervals based on a given RDD that contains the traces.</p><div class="fullcomment"><div class="comment cmt"><p>The public method that returns the intervals based on a given RDD that contains the traces. The process first
+calculates the minimum and maximum timestamp of the newly arrived events and then calls the calculateIntervals
+method.</p></div><dl class="paramcmts block"><dt class="param">sequenceRDD</dt><dd class="cmt"><p>The RDD that contains the newly arrived traces</p></dd><dt class="param">last_interval</dt><dd class="cmt"><p>The last interval stored in the database</p></dd><dt class="param">split_every_days</dt><dd class="cmt"><p>The parameter that describes the time window for each interval</p></dd><dt>returns</dt><dd class="cmt"><p>The list with the time intervals</p></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">

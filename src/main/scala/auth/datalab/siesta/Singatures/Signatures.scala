@@ -61,7 +61,7 @@ object Signatures {
    *
    * Incremental indexing works (even suboptimal) because the bit array of trace can only change from 0s to 1s as new
    * events are appended in a trace and not the other way around. For an example how the signature is calculated
-   * check the case class [[Signature]].
+   * check the case class Signature above.
    *
    * @param c The configuration object passed by the [[auth.datalab.siesta.Main]].
    */

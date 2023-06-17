@@ -151,8 +151,8 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="auth.datalab.siesta.BusinessLogic">BusinessLogic</a></dd></dl></div>
     </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">ExtractCounts</a>
+                        <a class="object" href="" title="This class extracts the statistics for each event type pair."></a>
+                        <a href="" title="This class extracts the statistics for each event type pair.">ExtractCounts</a>
                       </li>
               </ul>
             </div>
@@ -181,7 +181,8 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class extracts the statistics for each event type pair. The statistics are:</p><ul><li>total duration: sum of the time difference between every two events that create this event type pair</li><li>total completions: the total number that this event type pair occurred in the database</li><li>minimum duration : the minimum time difference between any two events that create this event type pair</li><li>maximum duration: the maximum time difference between any two events that create this event type pair
+</li></ul></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -360,7 +361,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts#extract" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts#extract" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="extract(pairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count]"></a><a id="extract(RDD[PairFull]):RDD[Count]"></a>
       <span class="permalink">
       <a href="../../../../../auth/datalab/siesta/BusinessLogic/ExtractCounts/ExtractCounts$.html#extract(pairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count]" title="Permalink">
@@ -375,7 +376,7 @@
         <span class="name">extract</span><span class="params">(<span name="pairs">pairs: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Structs$$Count.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Count">Count</a>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">Extracts the statistics for each event type pair</p><div class="fullcomment"><div class="comment cmt"><p>Extracts the statistics for each event type pair</p></div><dl class="paramcmts block"><dt class="param">pairs</dt><dd class="cmt"><p>The RDD that contains all the newly generated event type pairs</p></dd><dt>returns</dt><dd class="cmt"><p>The statistics for each event type pair in the RDD</p></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
