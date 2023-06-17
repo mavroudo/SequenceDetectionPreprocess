@@ -22,8 +22,7 @@ import java.net.URI
  * S3 stores data in parquet files. These files allow for objects to be stored and some indexing that enables efficient query.
  * The drawback is that parquet files are immutable and thus in order to append new records to a preexisting parquet
  * file we have to rewrite the whole file.
- *
- *
+
  */
 class S3Connector extends DBConnector {
   private var seq_table: String = _
@@ -34,7 +33,7 @@ class S3Connector extends DBConnector {
   private var count_table: String = _
 
   /**
-   * Depending on the different database, each connector has to initialize the spark context
+   * Spark initializes the connection to S3 utilizing the hadoop properties and the aws-bundle library
    */
   override def initialize_spark(config: Config): Unit = {
     lazy val spark = SparkSession.builder()
@@ -204,7 +203,7 @@ class S3Connector extends DBConnector {
   }
 
   /**
-   * Loads the single inverted index from Cassandra, stored in the SingleTable
+   * Loads the single inverted index from S3, stored in the SingleTable
    *
    * @param metaData Object containing the metadata
    * @return In RDD the stored data
@@ -338,7 +337,7 @@ class S3Connector extends DBConnector {
   }
 
   /**
-   * Write count to countTable
+   * Writes count to countTable
    *
    * @param counts   Calculated basic statistics per event type pair in order to be stored in the count table
    * @param metaData Object containing the metadata
