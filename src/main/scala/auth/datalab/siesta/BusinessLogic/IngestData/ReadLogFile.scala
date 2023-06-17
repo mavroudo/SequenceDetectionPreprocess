@@ -6,6 +6,8 @@ import org.apache.spark.sql.SparkSession
 import org.deckfour.xes.in.XParserRegistry
 import org.deckfour.xes.model.{XLog, XTrace}
 
+
+
 import java.io.{BufferedReader, File, FileInputStream}
 import java.text.SimpleDateFormat
 import java.util.Scanner
@@ -30,7 +32,7 @@ object ReadLogFile {
 
   }
 
-  def readFromTxt(fileName: String, seperator: String): RDD[Structs.Sequence] = {
+  private def readFromTxt(fileName: String, seperator: String): RDD[Structs.Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
     spark.sparkContext.textFile(fileName).zipWithIndex map { case (line, index) =>
       val sequence = line.split(seperator).zipWithIndex map { case (event, inner_index) =>
@@ -40,7 +42,7 @@ object ReadLogFile {
     }
   }
 
-  def readFromXes(fileName: String): RDD[Structs.Sequence] = {
+  private def readFromXes(fileName: String): RDD[Structs.Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
     val file_Object = new File(fileName)
     var parsed_logs: List[XLog] = null
@@ -52,8 +54,8 @@ object ReadLogFile {
       }
     }
 
-    val df = new SimpleDateFormat("MMM d, yyyy HH:mm:ss a") //read this pattern from xes
-    val df3 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    //val df = new SimpleDateFormat("MMM d, yyyy HH:mm:ss a") //read this pattern from xes
+    //val df3 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
     val df4 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
     val df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss") // transform it to this patter
 
@@ -70,7 +72,8 @@ object ReadLogFile {
     par
   }
 
-  def readWithTimestamps(fileName: String, seperator: String, delimiter: String): RDD[Structs.Sequence] = {
+
+  private def readWithTimestamps(fileName: String, seperator: String, delimiter: String): RDD[Structs.Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
 
     val reader = new Scanner(new File(fileName))

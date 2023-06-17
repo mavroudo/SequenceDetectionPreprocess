@@ -1,7 +1,5 @@
 package auth.datalab.siesta.Utils
 
-import auth.datalab.siesta.CommandLineParser.Config
-import auth.datalab.siesta.TraceGenerator.TraceGenerator
 
 import java.sql.Timestamp
 

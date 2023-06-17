@@ -19,6 +19,7 @@ import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
 import scala.collection.JavaConverters.mapAsScalaMapConverter
+import scala.language.postfixOps
 
 
 class ApacheCassandraConnector extends DBConnector {
@@ -68,7 +69,7 @@ class ApacheCassandraConnector extends DBConnector {
       .set("spark.cassandra.connection.timeoutMS", "20000")
 //      .set("spark.cassandra.input.throughputMBPerSec","1")
 
-    val spark = SparkSession.builder().config(_configuration).getOrCreate()
+    SparkSession.builder().config(_configuration).getOrCreate()
 
 
   }
@@ -209,7 +210,7 @@ class ApacheCassandraConnector extends DBConnector {
         metaData = if (prevMetaData.count() == 0) { //has no previous record
           SetMetadata.initialize_metadata(config)
         } else {
-          this.load_metadata(prevMetaData, config)
+          this.load_metadata(prevMetaData)
         }
     } catch{
     case _:java.util.NoSuchElementException  => metaData = SetMetadata.initialize_metadata(config)
@@ -220,7 +221,7 @@ class ApacheCassandraConnector extends DBConnector {
     metaData
   }
 
-  private def load_metadata(meta: DataFrame, config: Config): MetaData = {
+  private def load_metadata(meta: DataFrame): MetaData = {
     val m = meta.collect().map(r => (r.getAs[String]("key"), r.getAs[String]("value"))).toMap
     MetaData(traces = m("traces").toInt, events = m("events").toInt, pairs = m("pairs").toInt, lookback = m("lookback").toInt,
       split_every_days = m("split_every_days").toInt, last_interval = m("last_interval"),
@@ -374,7 +375,7 @@ class ApacheCassandraConnector extends DBConnector {
    * @param metaData    Containing all the necessary information for the storing
    * @return The combined last checked records
    */
-  override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData)= {
+  override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData):Unit= {
     Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"Start writing LastChecked table")
     val start = System.currentTimeMillis()
     val transformed = ApacheCassandraTransformations.transformLastCheckedToWrite(lastChecked)

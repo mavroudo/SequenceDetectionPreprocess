@@ -13,7 +13,20 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 
 /**
- * This class describes the main pipeline of the index building
+ * This class describes the main pipeline of the index building. The procedure includes the following steps:
+ *  - Initialize connection with db (configure spark, drop tables if needed, create the new ones)
+ *  - Create/Load Metadata object from the configuration object
+ *  - Load/Generate traces to be indexed (based on configuration passed)
+ *  - Store traces to the SequenceTable
+ *  - Extract single index and store it to SingleTable
+ *  - Calculate event type pairs and the last timestamp that they occurred per trace (based on the SingleTable data)
+ *  - Store inverted index using event type pairs in IndexTable
+ *  - Store the last timestamp for each event type per trace in LastChecked table
+ *  - Create/Load-merge statistics for each event type pair and store them in CountTable
+ *  - Store the updated Metadata object
+ * The methods that are used to perform the following procedures are described in
+ * [[auth.datalab.siesta.BusinessLogic.DBConnector]] so that SIESTA can be connected with a new database by simply
+ * extend this class and implement the corresponding methods.
  */
 object SiestaPipeline {
 
@@ -34,7 +47,7 @@ object SiestaPipeline {
       //Main pipeline starts here:
       val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
       sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)
-      //Extract the last positions of all the traces that were logged in
+      //Extract the last positions of all the traces that are already indexed
       val last_positions:RDD[Structs.LastPosition] = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence t
       last_positions.persist(StorageLevel.MEMORY_AND_DISK)
       //Calculate the intervals based on mix/max timestamp and the last used interval from metadata

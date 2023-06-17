@@ -6,11 +6,11 @@ import org.apache.log4j.{Level, Logger}
 
 /**
  * This is the main class. It is responsible to read the command line arguments using the
- * [[ParsingArguments.parseArguments()]] function. Then based on the defined system, pass the configuration object and
+ * [[CommandLineParser.ParsingArguments]] function. Then based on the defined system, pass the configuration object and
  * executes the corresponding pipeline:
  * - "signatures" => [[Singatures.Signatures]]
  * - "set-containment => [[SetContainment.SetContainment]]
- * - "siesta" -> [[SiestaPipeline]] (default)
+ * - "siesta" -> [[Pipeline.SiestaPipeline]] (default)
  */
 object Main {
 

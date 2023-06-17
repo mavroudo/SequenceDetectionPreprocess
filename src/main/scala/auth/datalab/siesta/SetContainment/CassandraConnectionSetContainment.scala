@@ -13,6 +13,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
 import scala.collection.JavaConverters._
+import scala.language.postfixOps
 
 /**
  * This class contains all the communication between preprocessing component of Set-Containment and Cassandra.
@@ -28,7 +29,7 @@ class CassandraConnectionSetContainment extends Serializable {
    * @param event_name The event type
    * @param sequences  The trace ids but in Strings
    */
-  case class CassandraSetIndex(event_name: String, sequences: List[String])
+  private case class CassandraSetIndex(event_name: String, sequences: List[String])
 
 
   private var cassandra_host: String = _
@@ -42,7 +43,6 @@ class CassandraConnectionSetContainment extends Serializable {
   private var cassandra_write_consistency_level: String = _
   private var cassandra_gc_grace_seconds: String = _
   private var _configuration: SparkConf = _
-  private val DELIMITER = "¦delab¦"
   private val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) //batchSize = 1, throughputMiBPS = Option(0.5)
 
   /**
@@ -179,11 +179,11 @@ class CassandraConnectionSetContainment extends Serializable {
    * the newly computed inverted index, making sure all the trace ids that correspond
    * to a specific event type are sorted in ascending order
    *
-   * @param newCombinations
-   * @param logName
-   * @return
+   * @param newCombinations The single inverted index for the input traces
+   * @param logName The log database name
+   * @return The previous inverted indexed merged with the new one
    */
-  def readCombineSequenceIndex(newCombinations: RDD[SetCInverted], logName: String): RDD[SetCInverted] = {
+  private def readCombineSequenceIndex(newCombinations: RDD[SetCInverted], logName: String): RDD[SetCInverted] = {
     val spark = SparkSession.builder().getOrCreate()
     val table_idx = logName + "_set_idx"
     val df = spark
@@ -219,7 +219,7 @@ class CassandraConnectionSetContainment extends Serializable {
   /**
    * Stores the inverted index in Cassandra
    *
-   * @param table   The RDD containing the newly computed
+   * @param combinations   The RDD containing the newly computed
    * @param logName The name of the log database
    */
   def writeTableSequenceIndex(combinations: RDD[SetCInverted], logName: String): Unit = {
@@ -244,10 +244,10 @@ class CassandraConnectionSetContainment extends Serializable {
   }
 
   /**
-   * Transform [[SetCInverted]] -> [[CassandraSetIndex]]
+   * Transform [[auth.datalab.siesta.SetContainment.SetContainment.SetCInverted]] -> [[CassandraSetIndex]]
    *
-   * @param line
-   * @return
+   * @param line An SetCInverted index
+   * @return The trace ids transformed to strings
    */
   def cassandraFormat(line: SetCInverted): (String, List[String]) = {
     (line.event, line.ids.map(x => x.toString))

@@ -8,7 +8,7 @@ import scala.collection.mutable.ListBuffer
 object ExtractSequence {
 
 
-  def combineSequences(x: List[Structs.Event], y: List[Structs.Event]): List[Structs.Event] = {
+  private def combineSequences(x: List[Structs.Event], y: List[Structs.Event]): List[Structs.Event] = {
     (x, y) match {
       case (Nil, Nil) => Nil
       case (_ :: _, Nil) => x
@@ -25,7 +25,6 @@ object ExtractSequence {
     val z: ListBuffer[Structs.Event] = new ListBuffer[Structs.Event]()
     z ++= x
     z ++= y
-//    z.sortWith((a, b) => Utilities.compareTimes(a.timestamp, b.timestamp))
     z.toList
   }
 

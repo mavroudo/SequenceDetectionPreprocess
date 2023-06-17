@@ -21,14 +21,14 @@ object ExtractPairs {
     if (last_checked == null) {
       val full = singleRDD.groupBy(_.id)
         .map(x => {
-          this.calculate_ntuples_stnm(x._2, null, lookback, bintervals)
+          this.calculate_pairs_stnm(x._2, null, lookback, bintervals)
         })
       (full.flatMap(_._1),full.flatMap(_._2))
     } else {
       val full =singleRDD.groupBy(_.id).leftOuterJoin(last_checked.groupBy(_.id))
         .map(x => {
           val last = x._2._2.orNull
-          this.calculate_ntuples_stnm(x._2._1, last, lookback, bintervals)
+          this.calculate_pairs_stnm(x._2._1, last, lookback, bintervals)
         })
       (full.flatMap(_._1),full.flatMap(_._2))
     }
@@ -36,8 +36,8 @@ object ExtractPairs {
 
   }
 
-  def calculate_ntuples_stnm(single: Iterable[Structs.InvertedSingleFull], last: Iterable[Structs.LastChecked],
-                             lookback: Int, intervals: Broadcast[List[Structs.Interval]]):(List[Structs.PairFull],List[Structs.LastChecked]) = {
+  private def calculate_pairs_stnm(single: Iterable[Structs.InvertedSingleFull], last: Iterable[Structs.LastChecked],
+                                     lookback: Int, intervals: Broadcast[List[Structs.Interval]]):(List[Structs.PairFull],List[Structs.LastChecked]) = {
     val singleMap: Map[String, Iterable[Structs.InvertedSingleFull]] = single.groupBy(_.event_name)
     val newLastChecked = new ListBuffer[Structs.PairFull]()
     val lastMap = if (last != null) last.groupBy(x => (x.eventA, x.eventB)) else null

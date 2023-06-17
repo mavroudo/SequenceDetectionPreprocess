@@ -6,7 +6,7 @@ import scala.language.postfixOps
 
 object ParsingArguments {
   val builder: OParserBuilder[Config] = OParser.builder[Config]
-  val parser: OParser[Unit, Config] = {
+  private val parser: OParser[Unit, Config] = {
     import builder._
     OParser.sequence(
       programName("preprocess.jar"),
@@ -85,13 +85,6 @@ object ParsingArguments {
         .validate(x => {
           if (x > 0) success else failure("Value <s> has to be a positive number")
         }),
-//      opt[Int]("n")
-//        .valueName("<n>")
-//        .text("Key size (n-tuples)")
-//        .validate(x => {
-//          if (x > 0 && x < 4) success else failure("Value <n> has to be between 1 and 3")
-//        })
-//        .action((x, c) => c.copy(n = x)),
       opt[Int]('i', "iterations")
         .valueName("<i>")
         .text("# iterations, if not set it will be determined by the system")

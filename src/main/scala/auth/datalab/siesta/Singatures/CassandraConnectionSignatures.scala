@@ -11,7 +11,7 @@ import org.apache.log4j.{Level, Logger}
 import org.apache.spark.{SparkConf, sql}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
-
+import scala.language.postfixOps //added that test if it works
 import scala.collection.JavaConverters._
 
 
@@ -21,7 +21,14 @@ import scala.collection.JavaConverters._
  * ones, store and retrieve metadata and finally store and merge the signatures.
  */
 class CassandraConnectionSignatures extends Serializable {
-  case class withList(id: String, signature: Map[Int, String], sequence_ids: List[String])
+  /**
+   * This class holds an intermediate structure that contains for a single signature, a list of all the trace ids
+   * that have this signature and also the signature as a bit array that will be latter indexed efficiently by Cassandra.
+   * @param id The signature in string format
+   * @param signature The signature in a map [position -> 0 or 1]
+   * @param sequence_ids The list with all the trace ids that have this singature, in sting format
+   */
+  private case class withList(id: String, signature: Map[Int, String], sequence_ids: List[String])
 
   private var cassandra_host: String = _
   private var cassandra_port: String = _
@@ -34,7 +41,6 @@ class CassandraConnectionSignatures extends Serializable {
   private var cassandra_write_consistency_level: String = _
   private var cassandra_gc_grace_seconds: String = _
   private var _configuration: SparkConf = _
-  private val DELIMITER = "¦delab¦"
   private val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.ONE) // batchSize = 1, throughputMiBPS = Option(0.5)
 
   /**

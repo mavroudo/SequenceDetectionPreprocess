@@ -30,7 +30,7 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
   this.findActivities()
 
   /**
-   * Utilizes the [[createSequence]] function to generate random traces and then use spark to parallelize distribute
+   * Utilizes the createSequence function (private) to generate random traces and then use spark to parallelize distribute
    * them
    *
    * @return An RDD that contains the randomly generated traces
@@ -45,17 +45,9 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
     })
   }
 
-  /**
-   *
-   * @return The event types that is used in the random generation of traces
-   */
-  def getActivities: mutable.Set[String] = {
-    this.activities
-  }
-
 
   /**
-   * Utilizes the [[createSequence]] function to generate random traces and then use spark to parallelize distribute
+   * Utilizes the createSequence function (private) to generate random traces and then use spark to parallelize distribute
    * them. The difference with the produce() function, is that this one generate traces with ids that are passed as
    * parameters
    *
@@ -73,7 +65,7 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
   }
 
   /**
-   * Utilizes the [[createSequence]] function to generate random traces and then use spark to parallelize distribute
+   * Utilizes the createSequence function (private) to generate random traces and then use spark to parallelize distribute
    * them. The difference with the produce() function, is that this one generate traces with ids that are passed as
    * parameters
    *

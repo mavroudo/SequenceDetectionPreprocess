@@ -4,11 +4,12 @@ ThisBuild / name := "Siesta"
 ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.12.17"
 ThisBuild / organization := "auth.datalab"
-ThisBuild / parallelExecution in Test := false
-test in assembly :={}
+ThisBuild / Test / parallelExecution := false
+
+assembly / test := {}
 assembly / mainClass := Some("auth.datalab.siesta.Main")
 scalacOptions += "-deprecation"
-javacOptions ++= Seq("-source","11","-target","11")
+javacOptions ++= Seq("-source", "11", "-target", "11")
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.14" % "test"
 //scala
@@ -24,9 +25,9 @@ libraryDependencies += "joda-time" % "joda-time" % "2.12.2"
 //to debug in IDE the '  "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion , //"2.0.0",' section must be in comments
 libraryDependencies ++= Seq(
   //      "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion, //"2.0.0"
-  "org.apache.spark" %% "spark-core" % sparkVersion , //% "provided"
+  "org.apache.spark" %% "spark-core" % sparkVersion, //% "provided"
   //      "org.apache.spark" %% "spark-mllib" % sparkVersion ,
-  "org.apache.spark" %% "spark-sql" % sparkVersion )
+  "org.apache.spark" %% "spark-sql" % sparkVersion)
 
 
 //
@@ -50,7 +51,7 @@ libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.2.0" //3.0.3
 //libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "3.2.0" //was 2.4.2
 libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector-assembly" % "3.2.0"
 
-assemblyMergeStrategy in assembly := {
+assembly / assemblyMergeStrategy:= {
   case manifest if manifest.contains("MANIFEST.MF") =>
     MergeStrategy.discard
   case referenceOverrides if referenceOverrides.contains("reference-overrides.conf") =>

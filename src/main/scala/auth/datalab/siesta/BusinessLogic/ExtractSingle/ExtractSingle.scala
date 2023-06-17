@@ -47,11 +47,4 @@ object ExtractSingle {
     rdd
   }
 
-  def combineTimes(x: List[(String, Int)], y: List[(String, Int)]): List[(String, Int)] = {
-    val z: ListBuffer[(String, Int)] = new ListBuffer[(String, Int)]()
-    z ++= x
-    z ++= y
-    z.toList
-  }
-
 }

@@ -18,19 +18,20 @@ import java.net.URI
 
 /**
  * This class handles the communication between SIESTA and S3. It inherits all the signatures of the methods from
- * [[DBConnector]] and overrides the reads and writes to match S3 properties. S3 stores data in parquet files. These
- * allow for objects to be stored and some indexing that enables efficient query. The drawback is that parquet files
- * are immutable and thus in order to append new records to a preexisting parquet file we have to rewrite the whole file.
+ * [[auth.datalab.siesta.BusinessLogic.DBConnector]] and overrides the reads and writes to match S3 properties.
+ * S3 stores data in parquet files. These files allow for objects to be stored and some indexing that enables efficient query.
+ * The drawback is that parquet files are immutable and thus in order to append new records to a preexisting parquet
+ * file we have to rewrite the whole file.
  *
  *
  */
 class S3Connector extends DBConnector {
-  var seq_table: String = _
-  var meta_table: String = _
-  var single_table: String = _
-  var last_checked_table: String = _
-  var index_table: String = _
-  var count_table: String = _
+  private var seq_table: String = _
+  private var meta_table: String = _
+  private var single_table: String = _
+  private var last_checked_table: String = _
+  private var index_table: String = _
+  private var count_table: String = _
 
   /**
    * Depending on the different database, each connector has to initialize the spark context
