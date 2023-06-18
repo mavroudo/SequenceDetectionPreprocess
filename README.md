@@ -52,7 +52,7 @@ docker-compose -f dockerbase/docker-compose-s3.yml up -d
 for the S3
 
 ```bash
-docker-compose -f dockerbase/docker-compose-cassabdra.yml up -d
+docker-compose -f dockerbase/docker-compose-cassandra.yml up -d
 ```  
 for the Cassandra. The database will be deployed locally, opening the default ports, and then it will be
 detached.
@@ -136,6 +136,11 @@ The parameters below are used if the file was not set and data will be randomly 
   --lmax <max length>
   --help                   prints this usage text
 ```
+
+### Execute preprocessing through API
+
+
+docker-compose -f dockerbase/docker-compose-preprocess-with-api.yml up
 
 # Change Log
 

@@ -9,3 +9,11 @@ services:
       - "8000:8000"
     volumes:
       - ../pythonAPI/uploadedfiles:/app/pythonAPI/uploadedfiles
+    networks:
+      - siesta-net
+
+networks:
+  siesta-net:
+    external:
+      name: siesta-net
+
