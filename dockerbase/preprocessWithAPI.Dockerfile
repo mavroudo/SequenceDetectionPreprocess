@@ -15,8 +15,8 @@ RUN sbt clean assembly
 RUN mv target/scala-2.12/app-assembly-0.1.jar preprocess.jar
 
 
-FROM python:3.8.17-alpine3.17
-RUN apk --no-cache add curl
+FROM openjdk:11-slim-buster AS execution
+RUN apt-get update && apt-get install -y gnupg2 curl python3.8
 # Install python dependencies
 
 RUN curl -O https://archive.apache.org/dist/spark/spark-3.0.0/spark-3.0.0-bin-hadoop3.2.tgz &&\
@@ -33,10 +33,8 @@ COPY pythonAPI/EnvironmentVariables.py /app/pythonAPI/
 COPY pythonAPI/PreprocessItem.py /app/pythonAPI/
 RUN mkdir uploadedfiles
 
-# install bash
-RUN apk add bash
 #Copy jar from the builder
-COPY --from=builder /app/preprocess.jar preprocess.jar
+COPY --from=builder /app/preprocess.jar /app/preprocess.jar
 
 # import default variables or can be changed here
 ENV cassandra_host=cassandra
