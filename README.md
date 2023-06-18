@@ -109,7 +109,20 @@ command from the root directory:
 docker run  --mount type=bind,source="$(pwd)"/experiments/input,target=/app/input \
   preprocess -f /input/log.xes --logname log
 ```
+### Execute preprocessing through API
 
+There is another way to execute the preprocess component and this is utilizing an API. To that end, 
+FastAPI was used. The process allows to upload log file, modify the environmental parameters (that 
+describe among others the connection properties to the databases) and execute the preprocessing.
+
+The same parameters used while executing the preprocessing jar can also be set here, as parameters
+in the request.
+
+To deploy the preprocess component with the api run the following command from the root directory:
+```bash
+docker-compose -f dockerbase/docker-compose-preprocess-with-api.yml up
+```
+and then access the docs (Swagger) from the http://localhost:8000/docs.
 
 ### Complete list of parameters:
 ```
@@ -137,15 +150,17 @@ The parameters below are used if the file was not set and data will be randomly 
   --help                   prints this usage text
 ```
 
-### Execute preprocessing through API
-
-
-docker-compose -f dockerbase/docker-compose-preprocess-with-api.yml up
+### Documentation
+The documentation for the latest version of the preprocess component can be accessed from 
+[here](https://mavroudo.github.io/SequenceDetectionPreprocess/auth/datalab/siesta/index.html).
+Otherwise, they are located in the **docs/** folder and you can access it by opening the index.html
+in a browser.
 
 # Change Log
 
 ### [2.1.0] - 2023-06-11
 - Added FastAPI to submit preprocessing jobs using api calls
+- Extensive documentation to the entire project
 
 ### [2.0.0] - 2023-05-24
 - Implement efficient incremental indexing, utilizing the previously indexed traces/pairs
