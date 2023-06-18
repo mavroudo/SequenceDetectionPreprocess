@@ -158,7 +158,7 @@ in a browser.
 
 # Change Log
 
-### [2.1.0] - 2023-06-11
+### [2.1.0] - 2023-06-18
 - Added FastAPI to submit preprocessing jobs using api calls
 - Extensive documentation to the entire project
 
