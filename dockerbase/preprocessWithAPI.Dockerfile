@@ -33,6 +33,8 @@ COPY pythonAPI/EnvironmentVariables.py /app/pythonAPI/
 COPY pythonAPI/PreprocessItem.py /app/pythonAPI/
 RUN mkdir uploadedfiles
 
+# install bash
+RUN apk add bash
 #Copy jar from the builder
 COPY --from=builder /app/preprocess.jar preprocess.jar
 
