@@ -8,10 +8,18 @@ import org.apache.spark.storage.StorageLevel
 import scala.collection.mutable.ListBuffer
 
 /**
- * This object describes how the single inverted index is creating
+ * This class describes how the single inverted index is creating
  */
 object ExtractSingle {
 
+  /**
+   * Creates the single inverted index based on solely the new events . Additionally this is a previous version
+   * when only the timestamps where handled and there was no account for positions of events in the trace.
+   *
+   * @param invertedSingleFull The newly arrived events
+   * @return The RDD containing a single inverted index with List of timestamps
+   * @deprecated
+   */
   def extract(invertedSingleFull: RDD[Structs.InvertedSingleFull]): RDD[Structs.InvertedSingle] = {
     invertedSingleFull
       .groupBy(_.event_name)
@@ -45,13 +53,6 @@ object ExtractSingle {
         Structs.InvertedSingleFull(y._1._2, y._1._1, times = times.toList, positions = positions.toList)
       })
     rdd
-  }
-
-  def combineTimes(x: List[(String, Int)], y: List[(String, Int)]): List[(String, Int)] = {
-    val z: ListBuffer[(String, Int)] = new ListBuffer[(String, Int)]()
-    z ++= x
-    z ++= y
-    z.toList
   }
 
 }

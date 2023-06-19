@@ -9,6 +9,24 @@ import auth.datalab.siesta.CommandLineParser.Config
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
+/**
+ * This class is the interface that each database should extend. There are 3 types of methods described here:
+ *  - the write and reads methods - that should be implemented by each database, as they might have different indexing
+ * or structure
+ *  - the combine methods - that describe how the data already stored in the database are combined
+ * with the newly calculated
+ *  - the spark related methods - the initialization, building the appropriate tables and finally the termination.
+ *
+ *  The  tables that are utilized are:
+ *   - IndexTable: contains the inverted index that it is based on event type pairs
+ *   - SequenceTable: contains the traces that are indexed
+ *   - SingleTable: contains the single inverted index (Similar to Set-Containment) where the key is a single event tyep
+ *   - LastChecked: contains the timestamp of the last completion of each event type per trace
+ *   - CountTable: contains basic statistics, like max duration and number of completions, for each event type pair
+ *   - Metadata: contains the information for each log database, like the compression algorithm, the number of traces and
+ *   event type pairs etc.
+ */
+
 trait DBConnector {
   /**
    * Depending on the different database, each connector has to initialize the spark context
@@ -24,16 +42,19 @@ trait DBConnector {
    * This method constructs the appropriate metadata based on the already stored in the database and the
    * new presented in the config object
    * @param config contains the configuration passed during execution
-   * @return the metadata
+   * @return Obe
    */
   def get_metadata(config:Config): MetaData
 
   /**
    * Persists metadata
-   * @param metaData metadata of the execution and the database
+   * @param metaData Object containing the metadata
    */
   def write_metadata(metaData: MetaData):Unit
 
+  /**
+   * Closes spark connection
+   */
   def closeSpark():Unit={
     SparkSession.builder().getOrCreate().close()
   }
@@ -41,28 +62,28 @@ trait DBConnector {
 
   /**
    * Read data as an rdd from the SeqTable
-   * @param metaData Containing all the necessary information for the storing
-   * @return In RDD the stored data
+   * @param metaData Object containing the metadata
+   * @return Object containing the metadata
    */
   def read_sequence_table(metaData: MetaData):RDD[Structs.Sequence]
 
   /**
    * This method writes traces to the auxiliary SeqTable. Since RDD will be used as intermediate results it is already persisted
-   * and should not be modify that.
-   * If states in the metadata, this method should combine the new traces with the previous ones
-   * This method should combine the results with previous ones and return the results to the main pipeline
+   * and should not be modified.
+   * This method should combine the results with previous ones and return them to the main pipeline.
    * Additionally updates metaData object
-   * @param sequenceRDD RDD containing the traces
-   * @param metaData Containing all the necessary information for the storing
-   * @return the last position of the event stored per trace
+   * @param sequenceRDD The RDD containing the traces
+   * @param metaData Object containing the metadata
+   * @return An RDD with the last position of the event stored per trace
    */
   def write_sequence_table(sequenceRDD:RDD[Structs.Sequence],metaData: MetaData): RDD[Structs.LastPosition]
 
   /**
-   * This method is responsible to combine results with the previous stored, in order to support incremental indexing
+   * This method is responsible to combine the newly arrived events with the ones previously stored,
+   * in order to support incremental indexing.
    * @param newSequences The new sequences to be indexed
    * @param previousSequences The previous sequences that are already indexed
-   * @return a combined rdd
+   * @return A combined rdd with all the traces combined
    */
   def combine_sequence_table(newSequences:RDD[Structs.Sequence],previousSequences:RDD[Structs.Sequence]):RDD[Structs.Sequence]= {
     if (previousSequences == null) return newSequences
@@ -71,24 +92,24 @@ trait DBConnector {
       .map(x => {
         val prevEvents = x._2._1.getOrElse(Structs.Sequence(List(), -1)).events
         val newEvents = x._2._2.getOrElse(Structs.Sequence(List(), -1)).events
-        Structs.Sequence(ExtractSequence.combineSequences2(prevEvents, newEvents), x._1)
+        Structs.Sequence(ExtractSequence.combineSequences(prevEvents, newEvents), x._1)
       })
     combined
   }
 
   /**
    * This method writes traces to the auxiliary SingleTable. The rdd that comes to this method is not persisted.
-   * Database should persist it before store it and not persist it at the end.
-   * This method should combine the results with previous ones and return the results to the main pipeline
-   * Additionally updates metaData object
+   * Database should persist it before store it and unpersist it at the end.
+   * This method should combine the results with the ones previously stored and return them to the main pipeline.
+   * Additionally updates metaData object.
    * @param singleRDD Contains the newly indexed events in a form of single inverted index
-   * @param metaData Containing all the necessary information for the storing
+   * @param metaData Object containing the metadata
    */
   def write_single_table(singleRDD:RDD[Structs.InvertedSingleFull],metaData: MetaData): RDD[Structs.InvertedSingleFull]
 
   /**
-   * Read data as an rdd from the SingleTable
-   * @param metaData Containing all the necessary information for the storing
+   * Loads the single inverted index from Cassandra, stored in the SingleTable
+   * @param metaData Object containing the metadata
    * @return In RDD the stored data
    */
   def read_single_table(metaData: MetaData):RDD[Structs.InvertedSingleFull]
@@ -99,7 +120,7 @@ trait DBConnector {
    * Combine new and previous entries in the Single table
    * @param newSingle New events in single table
    * @param previousSingle Previous events stored in single table
-   * @return the combined lists
+   * @return An RDD with the combined entries
    */
   def combine_single_table(newSingle: RDD[Structs.InvertedSingleFull], previousSingle: RDD[Structs.InvertedSingleFull]): RDD[Structs.InvertedSingleFull] = {
     if (previousSingle == null) return newSingle
@@ -115,37 +136,26 @@ trait DBConnector {
       })
     combined
   }
-//  def combine_single_table(newSingle:RDD[Structs.InvertedSingleFull],previousSingle:RDD[Structs.InvertedSingleFull]):RDD[Structs.InvertedSingleFull]= {
-//    if (previousSingle == null) return newSingle
-//    val combined = previousSingle.keyBy(x => (x.id, x.event_name))
-//      .rightOuterJoin(newSingle.keyBy(x => (x.id, x.event_name)))
-//      .map(x => {
-//        val previous = x._2._1.getOrElse(Structs.InvertedSingleFull(-1, "", List(), List()))
-//        val prevOc = previous.times.zip(previous.positions)
-//        val newOc = x._2._2.times.zip(x._2._2.positions)
-//        val combine = ExtractSingle.combineTimes(prevOc, newOc)
-//        Structs.InvertedSingleFull(x._1._1, x._1._2, combine.map(_._1), combine.map(_._2))
-//      })
-//    combined
-//  }
 
   /**
    * Returns data from LastChecked Table
-   * @param metaData Containing all the necessary information for the storing
-   * @return LastChecked records
+   * Loads data from the LastChecked Table, which contains the  information of the last timestamp per event type pair
+   * per trace.
+   * @param metaData Object containing the metadata
+   * @return An RDD with the last timestamps per event type pair per trace
    */
   def read_last_checked_table(metaData: MetaData):RDD[LastChecked]
 
   /**
-   * Writes new records for last checked back in the database and return the combined records with the
-   * @param lastChecked records containing the timestamp of last completion for each different n-tuple
-   * @param metaData Containing all the necessary information for the storing
-   * @return The combined last checked records
+   * Stores new records for last checked back in the database
+   *
+   * @param lastChecked Records containing the timestamp of last completion for each event type pair for each trace
+   * @param metaData  Object containing the metadata
    */
-  def write_last_checked_table(lastChecked: RDD[LastChecked], metaData: MetaData)
+  def write_last_checked_table(lastChecked: RDD[LastChecked], metaData: MetaData):Unit
 
   /**
-   * Combines the new with the previous stored last checked
+   * Combines the newly calculated with the previous stored records of last checked
    * @param newLastChecked new records for the last checked
    * @param previousLastChecked already stored records for the last checked values
    */
@@ -166,29 +176,32 @@ trait DBConnector {
   }
 
   /**
-   * Read data previously stored data that correspond to the intervals, in order to be merged
-   * @param metaData Containing all the necessary information for the storing
+   * Loads data from the IndexTable that correspond to the given intervals. These data will be merged with
+   * the newly calculated pairs, before written back to the database.
+   *
+   * @param metaData Object containing the metadata
    * @param intervals The period of times that the pairs will be splitted (thus require to combine with previous pairs,
    *                  if there are any in these periods)
-   * @return combined record of pairs during the interval periods
+   * @return Loaded records from IndexTable for the given intervals
    */
   def read_index_table(metaData: MetaData, intervals:List[Structs.Interval]):RDD[Structs.PairFull]
 
   /**
-   * Reads the all the indexed pairs (mainly for testing reasons) advice to use the above method
-   * @param metaData Containing all the necessary information for the storing
-   * @return All the indexed pairs
+   * Loads all the indexed pairs from the IndexTable. Mainly used for testing reasons.
+   * Advice: use the above method.
+   * @param metaData Object containing the metadata
+   * @return Loaded indexed pairs from IndexTable
    */
   def read_index_table(metaData: MetaData):RDD[Structs.PairFull]
 
   /**
-   * Combine the two rdds with the pairs
+   * Combine the two RDDs with the event type pairs
    *
-   * @param newPairs The newly generated tuples
-   * @param prevPairs The previously stored tuples, during the corresponding intervals
-   * @param metaData Containing all the necessary information for the storing
+   * @param newPairs The newly generated event type pairs
+   * @param prevPairs The previously stored event type pairs, during the corresponding intervals
+   * @param metaData Object containing the metadata
    * @param intervals The period of times that the pairs will be splitted
-   * @return the combined pairs
+   * @return The combined event type pairs
    */
   def combine_index_table(newPairs:RDD[Structs.PairFull],prevPairs:RDD[Structs.PairFull],metaData: MetaData, intervals:List[Structs.Interval]):RDD[Structs.PairFull]= {
     if (prevPairs == null) return newPairs
@@ -196,33 +209,33 @@ trait DBConnector {
   }
 
   /**
-   * Write the combined pairs back to the S3, grouped by the interval and the first event
-   * @param newPairs The newly generated pairs
-   * @param metaData Containing all the necessary information for the storing
+   * Stores the combined event type pairs back to the database
+   * @param newPairs The newly generated event type pairs
+   * @param metaData Object containing the metadata
    * @param intervals The period of times that the pairs will be splitted
    */
   def write_index_table(newPairs:RDD[Structs.PairFull],metaData: MetaData, intervals:List[Structs.Interval]):Unit
 
   /**
-   * Read previously stored data in the count table
-   * @param metaData Containing all the necessary information for the storing
-   * @return The count data stored in the count table
+   * Loads previously stored data in the CountTable
+   * @param metaData Object containing the metadata
+   * @return The data stored in the count table
    */
   def read_count_table(metaData: MetaData):RDD[Structs.Count]
 
   /**
    * Write count to countTable
-   * @param counts Calculated basic statistics in order to be stored in the count table
-   * @param metaData Containing all the necessary information for the storing
+   * @param counts Calculated basic statistics per event type pair in order to be stored in the count table
+   * @param metaData Object containing the metadata
    */
   def write_count_table(counts:RDD[Structs.Count],metaData: MetaData):Unit
 
 
   /**
-   * Combine the newly generated count records with the previous stored in the database
+   * Combine the newly generated count records with the ones previously stored in the database
    * @param newCounts Newly generated count records
-   * @param prevCounts Count records stored in the databse
-   * @param metaData Containing all the necessary information for the storing
+   * @param prevCounts Count records stored in the database
+   * @param metaData Object containing the metadata
    * @return The combined count records
    */
   def combine_count_table(newCounts: RDD[Structs.Count], prevCounts: RDD[Structs.Count], metaData: MetaData): RDD[Structs.Count] = {

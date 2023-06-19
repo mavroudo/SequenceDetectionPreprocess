@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  preprocess:
+    build:
+      context: ../
+      dockerfile: dockerbase/preprocessWithAPI.Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../pythonAPI/uploadedfiles:/app/pythonAPI/uploadedfiles
+    networks:
+      - siesta-net
+
+networks:
+  siesta-net:
+    external:
+      name: siesta-net
+
