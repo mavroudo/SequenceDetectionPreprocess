@@ -2,6 +2,8 @@ package auth.datalab.siesta.BusinessLogic.Model
 
 
 
+import org.apache.spark.streaming.StreamingContext
+
 import java.sql.Timestamp
 import java.util.Date
 
@@ -35,5 +37,8 @@ object Structs {
   //Count
   case class CountList(eventA:String,counts:List[(String,Long,Int,Long,Long)])
   case class Count(eventA:String,eventB:String,sum_duration:Long,count:Int,min_duration:Long,max_duration:Long)
+
+  //Streaming
+  case class SteamingPair(eventA:String,eventB:String,id:Long,timeA:Timestamp,timeB:Timestamp,positionA:Int,positionB:Int)
 
 }

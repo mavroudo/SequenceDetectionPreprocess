@@ -53,10 +53,5 @@ class S3ConnectorStreaming {
     spark
   }
 
-//  def write_sequence_table(events:DStream[(String,EventStream)],logname:String)={
-//    import io.delta.implicits._
-//
-//    events.
-//  }
 
 }
