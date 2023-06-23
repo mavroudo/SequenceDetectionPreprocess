@@ -11,10 +11,11 @@ object Structs {
 
   //For streaming
   case class EventStream(trace:Long, event_type:String, timestamp:Timestamp) extends Serializable
+  case class StreamingPair(eventA: String, eventB: String, id: Long, timeA: Timestamp, timeB: Timestamp, positionA: Int, positionB: Int)
 
   //General Model
   case class Event(timestamp: String, event: String) extends Serializable
-  case class EventWithPosition(event_name:String,timestamp:Timestamp,position:Int)
+  case class EventWithPosition(event_name:String,timestamp:Timestamp,position:Int) extends Serializable
   case class Sequence(events: List[Event], sequence_id: Long) extends Serializable
   case class IdTimeList(id: Long, times: List[String])
   case class IdTime(id:Long, time: String)
@@ -38,7 +39,6 @@ object Structs {
   case class CountList(eventA:String,counts:List[(String,Long,Int,Long,Long)])
   case class Count(eventA:String,eventB:String,sum_duration:Long,count:Int,min_duration:Long,max_duration:Long)
 
-  //Streaming
-  case class SteamingPair(eventA:String,eventB:String,id:Long,timeA:Timestamp,timeB:Timestamp,positionA:Int,positionB:Int)
+
 
 }
