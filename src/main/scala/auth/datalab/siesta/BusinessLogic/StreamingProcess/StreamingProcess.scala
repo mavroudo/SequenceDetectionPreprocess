@@ -35,6 +35,9 @@ object StreamingProcess {
    */
   def calculatePairs(traceId: Long, eventStream: Iterator[Structs.EventStream], groupState: GroupState[CustomState]): Iterator[Structs.StreamingPair] = {
 
+    //TODO: handle lookback, mode (positions/timestamps)
+
+
     val values = eventStream.toSeq
     val initialState = new CustomState(0, new mutable.HashMap[String, Array[(Timestamp, Int)]])
     val oldState = groupState.getOption.getOrElse(initialState)
