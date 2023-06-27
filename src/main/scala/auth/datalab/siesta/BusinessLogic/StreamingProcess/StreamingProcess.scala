@@ -14,6 +14,8 @@ object StreamingProcess {
 
   case class CountState(sum_duration:Long,count:Int,min_duration:Long,max_duration:Long) extends Serializable
 
+  case class LastEventState(lastEvent:mutable.HashMap[Long,Timestamp])
+
   implicit val stateEncoder: Encoder[CustomState] = Encoders.kryo[CustomState]
 
   implicit  val countStateEncoder: Encoder[CountState] = Encoders.kryo[CountState]
@@ -120,6 +122,35 @@ object StreamingProcess {
     val newState = CountState(sum_durations,counts,min_duration, max_duration)
     groupState.update(newState)
     Iterator(Structs.Count(eventPair._1,eventPair._2,sum_durations,counts,min_duration, max_duration))
+  }
+
+
+  /**
+   * Maintains the last event of each trace in order to remove late arriving events
+   * @param traceId The id of the trace
+   * @param eventStream The events in the last batch
+   * @param groupState The state that maintains the last event per trace
+   * @return The events that occur after the last stored event in this trace
+   */
+  def filterEvents(traceId:Long, eventStream:Iterator[Structs.EventStream],groupState: GroupState[LastEventState]):Iterator[Structs.EventStream]={
+    val values = eventStream.toSeq
+    val initialState = new LastEventState(new mutable.HashMap[Long,Timestamp]())
+    val oldState = groupState.getOption.getOrElse(initialState)
+
+    val lastEvent = oldState.lastEvent.getOrElse(traceId,null)
+    if (lastEvent==null){ //there is no previous event in this trace
+      oldState.lastEvent(traceId)=values.last.timestamp
+      groupState.update(oldState)
+      eventStream
+    }else{ // there are already data in this trace
+      val filtered = values.filter(x=>x.timestamp.after(lastEvent))
+      if(filtered.nonEmpty){
+        oldState.lastEvent(traceId)=filtered.last.timestamp
+        groupState.update(oldState)
+      }
+      filtered.iterator
+    }
+
   }
 
 

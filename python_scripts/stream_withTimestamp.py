@@ -27,8 +27,8 @@ def read_file(file):
 
 def reorder_events(data,events_per_second):
     interval = 1/events_per_second
-    counters=[0 for i in range(len(data))]
-    non_empty =[i for i in range(len(data))]
+    counters={i:0 for i in data.keys()}
+    non_empty =[i for i in data.keys()]
     all_events = sum([len(data[x]) for x in data])
     for i in range(all_events):
         trace = random.choice(non_empty)
@@ -46,11 +46,12 @@ if __name__ == "__main__":
 # =============================================================================
 #     Demo params for now
 # =============================================================================
-    file="experiments/input/test_small.withTimestamp"
-    eventsPerSecond=2
+    file="experiments/input/synthetic_0.withTimestamp"
+    eventsPerSecond=200
     print("Streaming {} file, with {} events per second".format(file,eventsPerSecond))
     producer = KafkaProducer(bootstrap_servers='localhost:29092',value_serializer=lambda v: json.dumps(v).encode('utf-8'),key_serializer=lambda k: str(k).encode('utf-8'))
-    data=read_file(file) 
+    data=read_file(file)
+    print("Number of events in this logfile: {}".format(len(data)))
     for event in reorder_events(data,eventsPerSecond):
         print("sending {}".format(str(event)))
         producer.send('test',key=event["trace"], value=event)

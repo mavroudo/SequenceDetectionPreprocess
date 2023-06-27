@@ -1,12 +1,20 @@
 package auth.datalab.siesta.S3ConnectorStreaming
 
+import auth.datalab.siesta.BusinessLogic.Metadata.{MetaData, SetMetadata}
+import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.BusinessLogic.Model.Structs.EventStream
+import auth.datalab.siesta.BusinessLogic.StreamingProcess.StreamingProcess
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.Utils.Utilities
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.streaming.dstream.DStream
-import org.apache.spark.streaming.{Seconds, StreamingContext}
+import io.delta.tables.DeltaTable
+import org.apache.log4j.{Level, Logger}
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.catalyst.ScalaReflection
+import org.apache.spark.sql.streaming.{GroupStateTimeout, OutputMode, StreamingQuery}
+import org.apache.spark.sql.types._
+import org.apache.spark.sql._
+
+import scala.collection.mutable
 
 class S3ConnectorStreaming {
   var seq_table: String = _
@@ -15,6 +23,48 @@ class S3ConnectorStreaming {
   var last_checked_table: String = _
   var index_table: String = _
   var count_table: String = _
+  var metadata: MetaData = _
+  val unique_traces: mutable.Set[Long] = mutable.HashSet[Long]()
+
+  /**
+   * Initializes the private object of this class along with any table required in S3
+   */
+  def initialize_db(config: Config): Unit = {
+    val spark = SparkSession.builder().getOrCreate()
+    //initialize table names base don the given logname
+    meta_table = s"""s3a://siesta-test/${config.log_name}/meta/"""
+    seq_table = s"""s3a://siesta-test/${config.log_name}/seq/"""
+    single_table = s"""s3a://siesta-test/${config.log_name}/single/"""
+    index_table = s"""s3a://siesta-test/${config.log_name}/index/"""
+    count_table = s"""s3a://siesta-test/${config.log_name}/count/"""
+
+    //get metadata
+    this.metadata = this.get_metadata(config)
+
+    //create the CountTable, empty at the beginning so the merge can work
+    val countSchema = StructType(Seq(
+      StructField("eventA", StringType, nullable = false),
+      StructField("eventB", StringType, nullable = false),
+      StructField("sum_duration", LongType, nullable = false),
+      StructField("count", IntegerType, nullable = false),
+      StructField("min_duration", LongType, nullable = false),
+      StructField("max_duration", LongType, nullable = false)
+    ))
+    val tableExists = DeltaTable.isDeltaTable(spark, count_table)
+    if (!tableExists) {
+      // Create an empty DataFrame with the predefined schema
+      val emptyDataFrame: DataFrame = spark.createDataFrame(spark.sparkContext.emptyRDD[Row], countSchema)
+
+      // Write the empty DataFrame as a Delta table
+      emptyDataFrame.write
+        .format("delta")
+        .mode("overwrite")
+        .save(count_table)
+      Logger.getLogger("CountTable").log(Level.INFO, s"CountTable has been created")
+    } else {
+      Logger.getLogger("CountTable").log(Level.INFO, s"CountTable already exists, moving on")
+    }
+  }
 
   def get_spark_context(config: Config): SparkSession = {
 
@@ -25,20 +75,11 @@ class S3ConnectorStreaming {
 
     val conf = new SparkConf()
       .setAppName("Siesta incremental")
-      .setMaster("local[2]")
+      .setMaster("local[*]")
       .set("spark.sql.sources.partitionOverwriteMode", "dynamic")
       .set("spark.sql.parquet.compression.codec", config.compression)
       .set("spark.sql.parquet.filterPushdown", "true")
 
-    //    val scc = new StreamingContext(conf, Seconds(5)) //TODO: parametrize it
-    //    scc.sparkContext.hadoopConfiguration.set("fs.s3a.endpoint", s3endPointLoc)
-    //    scc.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", s3accessKeyAws)
-    //    scc.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", s3secretKeyAws)
-    //    scc.sparkContext.hadoopConfiguration.set("fs.s3a.connection.timeout", s3ConnectionTimeout)
-    //    scc.sparkContext.hadoopConfiguration.set("fs.s3a.path.style.access", "true")
-    //    scc.sparkContext.hadoopConfiguration.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-    //    scc.sparkContext.hadoopConfiguration.set("fs.s3a.connection.ssl.enabled", "true")
-    //    scc.sparkContext.hadoopConfiguration.set("fs.s3a.bucket.create.enabled", "true")
 
     val spark = SparkSession.builder().config(conf).getOrCreate()
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.endpoint", s3endPointLoc)
@@ -50,7 +91,150 @@ class S3ConnectorStreaming {
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.connection.ssl.enabled", "true")
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.bucket.create.enabled", "true")
 
+
     spark
+  }
+
+  private def get_metadata(config: Config): MetaData = {
+    Logger.getLogger("Metadata").log(Level.INFO, s"Getting metadata")
+    val start = System.currentTimeMillis()
+    val spark = SparkSession.builder().getOrCreate()
+    val schema = ScalaReflection.schemaFor[MetaData].dataType.asInstanceOf[StructType]
+    val metaDataObj = try {
+      spark.read.schema(schema).json(meta_table)
+    } catch {
+      case _: org.apache.spark.sql.AnalysisException => null
+    }
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("Metadata").log(Level.INFO, s"finished in ${total / 1000} seconds")
+    val metaData = if (metaDataObj == null) {
+      SetMetadata.initialize_metadata(config)
+    } else {
+      SetMetadata.load_metadata(metaDataObj)
+    }
+    metaData
+  }
+
+
+  /**
+   * Handles the writing of the events in the SequenceTable. There are 2 Streaming Queries.
+   * The first one is to continuous write the incoming events in the delta table and the second
+   * one is responsible to update the number of events and distinct traces in the metadata.
+   *
+   * @param df_events The events stream as it is read from the input source
+   * @return References to the two queries, in order to use awaitTermination at the end of all
+   *         the processes
+   */
+  def write_sequence_table(df_events: Dataset[EventStream]): (StreamingQuery, StreamingQuery) = {
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.implicits._
+
+    val sequenceTable = df_events
+      .writeStream
+      .format("delta")
+      .queryName("Write SequenceTable")
+      .partitionBy("trace")
+      .outputMode("append")
+      .option("checkpointLocation", f"${seq_table}_checkpoints/")
+      .start(seq_table)
+
+
+    val countEvents = df_events.toDF()
+      .writeStream
+      .foreachBatch((batchDF: DataFrame, batchId: Long) => {
+        val batchEventCount = batchDF.count()
+        batchDF.select("trace").as[Long].distinct().collect()
+          .foreach(x => unique_traces.add(x))
+        metadata.events = metadata.events + batchEventCount
+        metadata.traces = unique_traces.size
+        Logger.getLogger(s"SequenceTable").log(Level.INFO,
+          s"Batch: $batchId: Total events: ${metadata.events}. Total traces ${metadata.traces}.")
+        spark.sparkContext.parallelize(Seq(metadata)).toDF()
+          .write.mode(SaveMode.Overwrite).json(meta_table)
+      })
+      .start()
+
+
+    (sequenceTable, countEvents)
+
+  }
+
+  /**
+   * Handles the writing of the events in the SingleTable. The original events are partitioned based
+   * on the event type and then written in the delta table.
+   *
+   * @param df_events The events stream as it is read from the input source
+   * @return Reference to the query, in order to use awaitTermination at the end of all the processes
+   */
+  def write_single_table(df_events: Dataset[EventStream]): StreamingQuery = {
+    val singleTable = df_events
+      .writeStream
+      .queryName("Write SingleTable")
+      .format("delta")
+      .partitionBy("event_type")
+      .option("checkpointLocation", f"${single_table}_checkpoints/")
+      .start(single_table)
+    singleTable
+  }
+
+  /**
+   * Handles the writing of the event pairs in the IndexTable. The pairs have been calculated in the
+   * [[auth.datalab.siesta.Pipeline.SiestaStreamingPipeline]] using a stateful function.
+   *
+   * @param pairs The calculated pairs of the last batch
+   * @return Reference to the query, in order to use awaitTermination at the end of all the processes
+   */
+  def write_index_table(pairs: Dataset[Structs.StreamingPair]): (StreamingQuery,StreamingQuery) = {
+    val indexTable = pairs
+      .writeStream
+      .queryName("Write IndexTable")
+      .format("delta")
+      .partitionBy("eventA")
+      .option("checkpointLocation", f"${index_table}_checkpoints/")
+      .start(index_table)
+
+    val logging = pairs.toDF().writeStream
+      .foreachBatch((batchDF: DataFrame, batchId: Long) => {
+        val countPairs = batchDF.count()
+        Logger.getLogger(s"IndexTable").log(Level.INFO,
+          s"Batch: $batchId: Ingesting pairs: $countPairs.")
+      })
+      .start()
+    (indexTable,logging)
+  }
+
+  def write_count_table(pairs: Dataset[Structs.StreamingPair]): StreamingQuery = {
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.implicits._
+    //calculate metrics for each pair
+    val counts: DataFrame = pairs.map(x => {
+      Structs.Count(x.eventA, x.eventB, x.timeB.getTime - x.timeA.getTime, 1,
+        x.timeB.getTime - x.timeA.getTime, x.timeB.getTime - x.timeA.getTime)
+    }).groupBy("eventA", "eventB")
+      .as[(String, String), Structs.Count]
+      .flatMapGroupsWithState(OutputMode.Append,
+        timeoutConf = GroupStateTimeout.NoTimeout)(StreamingProcess.calculateMetrics)
+      .toDF()
+    //write the calculated metrics in s3, making sure that the old ones will be overwritten
+    val countTable = DeltaTable.forPath(spark, count_table)
+    counts.writeStream
+      .queryName("Write CountTable")
+      .format("delta")
+      .foreachBatch((microBatchOutputDF: DataFrame, batchId: Long) => {
+        val c = microBatchOutputDF.count()
+        Logger.getLogger(s"CountTable").log(Level.INFO,
+          s"Handling Batch: $batchId, storing $c metrics")
+        countTable.as("p")
+          .merge(
+            microBatchOutputDF.as("n"),
+            "p.eventA = n.eventA and p.eventB = n.eventB")
+          .whenMatched().updateAll()
+          .whenNotMatched().insertAll()
+          .execute()
+      })
+      .outputMode(OutputMode.Append)
+      .option("checkpointLocation", f"${count_table}_checkpoints/")
+      .start()
   }
 
 
