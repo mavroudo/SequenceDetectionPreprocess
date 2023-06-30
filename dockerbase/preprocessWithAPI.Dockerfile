@@ -56,4 +56,4 @@ ENV s3endPointLoc=http://minio-contact:9000
 ENV s3secretKeyAws=minioadmin
 
 #start the api
-CMD ["python3","-m","uvicorn","main:app","--host", "0.0.0.0"]
+CMD ["python3","-m","uvicorn","main:app","--host", "0.0.0.0","--port","8000"]
