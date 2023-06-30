@@ -43,6 +43,9 @@ libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.2.0"
 libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.2.0" //3.0.3
 
 libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector-assembly" % "3.2.0"
+//delta library
+libraryDependencies += "io.delta" %% "delta-core" % "0.8.0"
+
 
 assembly / assemblyMergeStrategy:= {
   case manifest if manifest.contains("MANIFEST.MF") =>
