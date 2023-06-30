@@ -5,8 +5,10 @@ ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.12.17"
 ThisBuild / organization := "auth.datalab"
 ThisBuild / Test / parallelExecution := false
+
 assembly / test := {}
 assembly / mainClass := Some("auth.datalab.siesta.Main")
+
 scalacOptions += "-deprecation"
 javacOptions ++= Seq("-source","11","-target","11")
 
@@ -30,6 +32,10 @@ dependencyOverrides ++= {
     "com.fasterxml.jackson.core" % "jackson-core" % "2.14.0"
   )
 }
+
+libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion
+libraryDependencies += "org.apache.spark" %% "spark-sql-kafka-0-10" % "3.0.0"
+
 
 libraryDependencies += "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.2.0"
 libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.2.0"
