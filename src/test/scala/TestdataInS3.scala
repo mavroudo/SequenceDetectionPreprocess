@@ -1,6 +1,6 @@
 import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
 import auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull
-import auth.datalab.siesta.CommandLineParser.{Config, Utilities}
+import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.rdd.RDD
 
@@ -9,7 +9,7 @@ object TestdataInS3 {
 
   def main(args: Array[String]):Unit={
     println("Hello")
-    val c:Config = Config(log_name = "synthetic", database = "s3", delete_previous = false, delete_all = false)
+    val c:Config = Config()
     val dbConnector = new S3Connector()
     dbConnector.initialize_spark(c)
     dbConnector.initialize_db(config = c)

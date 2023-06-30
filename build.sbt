@@ -4,11 +4,14 @@ ThisBuild / name := "Siesta"
 ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.12.17"
 ThisBuild / organization := "auth.datalab"
-ThisBuild / parallelExecution in Test := false
-test in assembly :={}
-assembly / mainClass := Some("auth.datalab.siesta.MainStream")
+
+ThisBuild / Test / parallelExecution := false
+
+assembly / test := {}
+assembly / mainClass := Some("auth.datalab.siesta.Main")
+
 scalacOptions += "-deprecation"
-javacOptions ++= Seq("-source","11","-target","11")
+javacOptions ++= Seq("-source", "11", "-target", "11")
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.14" % "test"
 //scala
@@ -23,6 +26,7 @@ libraryDependencies += "joda-time" % "joda-time" % "2.12.2"
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion , //% "provided"
   "org.apache.spark" %% "spark-sql" % sparkVersion )
+
 
 
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion
@@ -46,7 +50,7 @@ libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector-assemb
 //delta library
 libraryDependencies += "io.delta" %% "delta-core" % "0.8.0"
 
-assemblyMergeStrategy in assembly := {
+assembly / assemblyMergeStrategy:= {
   case manifest if manifest.contains("MANIFEST.MF") =>
     MergeStrategy.discard
   case referenceOverrides if referenceOverrides.contains("reference-overrides.conf") =>

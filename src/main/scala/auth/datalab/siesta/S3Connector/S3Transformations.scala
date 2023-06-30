@@ -8,8 +8,18 @@ import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 import java.sql.Timestamp
 
+/**
+ * This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline.
+ * Then transform the RDDs back to Dataframes, in order to utilize the spark api to store them back in S3.
+ * Therefore there are 2 transformations for each table, one to load data and one to write them back.
+ */
 object S3Transformations {
 
+  /**
+   * The required format is [trace_id, List of events], where each event is [event_type, timestamp]
+   * @param sequenceRDD The RDD containing the traces
+   * @return The transformed Dataframe
+   */
   def transformSeqToDF(sequenceRDD: RDD[Structs.Sequence]): DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
@@ -18,6 +28,11 @@ object S3Transformations {
     }).toDF("trace_id", "events")
   }
 
+  /**
+   * The stored format is [trace_id, List of events], where each event is [event_type, timestamp]
+   * @param df The loaded traces from S3
+   * @return The transformed RDD of traces
+   */
   def transformSeqToRDD(df: DataFrame): RDD[Structs.Sequence] = {
     df.rdd.map(x => {
       val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1)))
@@ -26,6 +41,13 @@ object S3Transformations {
     })
   }
 
+  /**
+   * The stored format is [event_type, List of occurrences], where each occurrence contains the occurrences of this event type
+   * in a particular trace. Therefore an occurrence has the structure [trace_id, list of timestamps, list of position],
+   * where the timestamps and positions correspond to the where and when the event type occurred in the trace.
+   * @param df The loaded single inverted index from S3
+   * @return The transformed RDD
+   */
   def transformSingleToRDD(df: DataFrame): RDD[Structs.InvertedSingleFull] = {
     df.rdd.flatMap(x => {
       val event_name = x.getAs[String]("event_type")
@@ -36,6 +58,14 @@ object S3Transformations {
     })
   }
 
+  /**
+   * The required format is [event_type, List of occurrences], where each occurrence contains the appearences of this event type
+   * in a particular trace. Therefore an occurrence has the structure [trace_id, list of timestamps, list of position],
+   * where the timestamps and positions correspond to the where and when the event type occurred in the trace.
+   *
+   * @param singleRDD The RDD containing the single inverted index
+   * @return The transformed Dataframe
+   */
   def transformSingleToDF(singleRDD: RDD[Structs.InvertedSingleFull]): DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
@@ -46,6 +76,14 @@ object S3Transformations {
       }).toDF("event_type", "occurrences")
   }
 
+  /**
+   * The stored format is [event_typeA, event_typeB, List of occurrences], where each occurrence has the structure:
+   * [trace_id, last timestamp]. So for each event type pair we maintain the information when was the last time that
+   * this event occurred in each trace. This information is latter utilized to facilitate in the efficient incremental
+   * indexing
+   * @param df The loaded LastChecked information from S3
+   * @return The transformed RDD
+   */
   def transformLastCheckedToRDD(df: DataFrame): RDD[LastChecked] = {
     df.rdd.flatMap(x => {
       val eventA = x.getAs[String]("eventA")
@@ -56,6 +94,15 @@ object S3Transformations {
     })
   }
 
+  /**
+   * The required format is [event_typeA, event_typeB, List of occurrences], where each occurrence has the structure:
+   * [trace_id, last timestamp]. So for each event type pair we maintain the information when was the last time that
+   * this event occurred in each trace. This information is latter utilized to facilitate in the efficient incremental
+   * indexing
+   *
+   * @param lastchecked The RDD containing the last timestamps for each event type pair per trace
+   * @return The transformed Dataframe
+   */
   def transformLastCheckedToDF(lastchecked: RDD[LastChecked]): DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
@@ -66,6 +113,16 @@ object S3Transformations {
       }).toDF("eventA", "eventB", "occurrences")
   }
 
+  /**
+   * The stored format is [interval_start, interval_end, event_typeA, event_typeB, List of occurrences], where
+   * each occurrence has the structure: [trace_id, timestampA, timestampB] if timestamps where used or
+   * [trace_id,positionA, positionB] if positions where used.
+   * In the second case we save space by just keeping the position of the events in the trace rather than the exact
+   * timestamp (replace 20 characters with a single integer).
+   * @param df The loaded inverted index using event type pairs
+   * @param metaData Object of metadata
+   * @return The transformed RDD
+   */
   def transformIndexToRDD(df: DataFrame, metaData: MetaData): RDD[Structs.PairFull] = {
     if (metaData.mode == "positions") {
       df.rdd.flatMap(row => {
@@ -98,6 +155,17 @@ object S3Transformations {
     }
   }
 
+  /**
+   * The loaded format is is [interval_start, interval_end, event_typeA, event_typeB, List of occurrences], where
+   * each occurrence has the structure: [trace_id, timestampA, timestampB] if timestamps where used or
+   * [trace_id,positionA, positionB] if positions where used.
+   * In the second case we save space by just keeping the position of the events in the trace rather than the exact
+   * timestamp (replace 20 characters with a single integer).
+   *
+   * @param pairs The RDD of the computed inverted index based on the event type pairs
+   * @param metaData Object of metadata
+   * @return The transformed Dataframe
+   */
   def transformIndexToDF(pairs: RDD[Structs.PairFull], metaData: MetaData): DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
@@ -124,6 +192,17 @@ object S3Transformations {
     }
   }
 
+  /**
+   * The required format is [event_typeA, List of statistics], where each statistic has the structure:
+   * [event_typeB, total_duration, number_of_completions, min_duration, max_duration]. That is
+   * for each event type pair, we maintain the following statistics:
+   *  - Total duration: sum of all the timestamp differences for each occurrence of this event type
+   *  - Total completions: the total number of appearances of this event in the log database
+   *  - Min duration: the minimum difference between the two timestamps of the events for this event type pair
+   *  - Max duration: the maximum difference between the two timestamps of the events for this event type pair
+   * @param counts The RDD containing the statistics for each event type pair
+   * @return The transformed Dataframe
+   */
   def transformCountToDF(counts:RDD[Structs.Count]):DataFrame={
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
@@ -135,6 +214,18 @@ object S3Transformations {
       .toDF("eventA","times")
   }
 
+  /**
+   * The stored format is [event_typeA, List of statistics], where each statistic has the structure:
+   * [event_typeB, total_duration, number_of_completions, min_duration, max_duration]. That is
+   * for each event type pair, we maintain the following statistics:
+   *  - Total duration: sum of all the timestamp differences for each occurrence of this event type
+   *  - Total completions: the total number of appearances of this event in the log database
+   *  - Min duration: the minimum difference between the two timestamps of the events for this event type pair
+   *  - Max duration: the maximum difference between the two timestamps of the events for this event type pair
+   *
+   * @param df The loaded Dataframe of the CountTable
+   * @return The transformed RDD
+   */
   def transformCountToRDD(df:DataFrame):RDD[Structs.Count]={
     df.rdd.flatMap(row=>{
       val eventA=row.getAs[String]("eventA")
