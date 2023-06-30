@@ -5,6 +5,7 @@ import auth.datalab.siesta.BusinessLogic.Model.Structs.EventStream
 import auth.datalab.siesta.BusinessLogic.StreamingProcess.StreamingProcess
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3ConnectorStreaming.S3ConnectorStreaming
+import auth.datalab.siesta.Utils.Utilities
 import org.apache.spark.sql._
 import org.apache.spark.sql.streaming.{GroupStateTimeout, OutputMode}
 import org.apache.spark.sql.types._
@@ -24,10 +25,13 @@ object SiestaStreamingPipeline {
 
     import spark.implicits._
     //TODO: pass values by parameters
-    val topicSet: Set[String] = Set("test")
-    val kafkaBroker = "localhost:29092"
 
-    val topic = "test"
+
+//    val kafkaBroker = "localhost:29092"
+//    val topic = "test"
+    val kafkaBroker = Utilities.readEnvVariable("kafkaBroker")
+    val topic = Utilities.readEnvVariable("kafkaTopic")
+
     val df = spark
       .readStream
       .format("kafka")

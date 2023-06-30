@@ -95,6 +95,11 @@ class S3ConnectorStreaming {
     spark
   }
 
+  /**
+   * Loads metadata from S3 if they exist or create a new object based on the  configuration object
+   * @param config The configuration parsed from the command line in Main
+   * @return The Metadata object containing all the information for indexing
+   */
   private def get_metadata(config: Config): MetaData = {
     Logger.getLogger("Metadata").log(Level.INFO, s"Getting metadata")
     val start = System.currentTimeMillis()
@@ -141,6 +146,7 @@ class S3ConnectorStreaming {
 
     val countEvents = df_events.toDF()
       .writeStream
+      .queryName("Logging SequenceTable")
       .foreachBatch((batchDF: DataFrame, batchId: Long) => {
         val batchEventCount = batchDF.count()
         batchDF.select("trace").as[Long].distinct().collect()
@@ -185,6 +191,8 @@ class S3ConnectorStreaming {
    * @return Reference to the query, in order to use awaitTermination at the end of all the processes
    */
   def write_index_table(pairs: Dataset[Structs.StreamingPair]): (StreamingQuery,StreamingQuery) = {
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.implicits._
     val indexTable = pairs
       .writeStream
       .queryName("Write IndexTable")
@@ -194,8 +202,12 @@ class S3ConnectorStreaming {
       .start(index_table)
 
     val logging = pairs.toDF().writeStream
+      .queryName("IndexTable Logging")
       .foreachBatch((batchDF: DataFrame, batchId: Long) => {
         val countPairs = batchDF.count()
+        metadata.pairs = metadata.pairs+countPairs
+        spark.sparkContext.parallelize(Seq(metadata)).toDF()
+          .write.mode(SaveMode.Overwrite).json(meta_table)
         Logger.getLogger(s"IndexTable").log(Level.INFO,
           s"Batch: $batchId: Ingesting pairs: $countPairs.")
       })
@@ -203,6 +215,12 @@ class S3ConnectorStreaming {
     (indexTable,logging)
   }
 
+  /**
+   * Handles the writing of the metrics for each event pair in the CountTable. This is the most complecated
+   * query in the streaming mode, because metrics should overwrite the previous records
+   * @param pairs The calculated pairs for the last batch
+   * @return Reference to the query, in order to use awaitTermination at the end of all the processes
+   */
   def write_count_table(pairs: Dataset[Structs.StreamingPair]): StreamingQuery = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._

@@ -14,3 +14,5 @@ class EnvironmentVariables(BaseModel):
     s3secretKeyAws: Optional[str] = "minioadmin"
     s3ConnectionTimeout: Optional[str] = "600000"
     s3endPointLoc: Optional[str] = "http://localhost:9000"
+    kafkaBroker: Optional[str] = "localhost:29092"
+    kafkaTopic: Optional[str] = "test"
