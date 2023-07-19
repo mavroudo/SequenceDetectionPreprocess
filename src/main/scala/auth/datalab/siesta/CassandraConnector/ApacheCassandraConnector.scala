@@ -261,7 +261,7 @@ class ApacheCassandraConnector extends DBConnector {
     MetaData(traces = m("traces").toInt, events = m("events").toInt, pairs = m("pairs").toInt, lookback = m("lookback").toInt,
       split_every_days = m("split_every_days").toInt, last_interval = m("last_interval"),
       has_previous_stored = m("has_previous_stored").toBoolean, filename = m("filename"),
-      log_name = m("log_name"), mode = m("mode"), compression = m("compression"))
+      log_name = m("log_name"), mode = m("mode"), compression = m("compression"), last_checked_split = m("last_checked_split").toInt)
   }
 
   /**

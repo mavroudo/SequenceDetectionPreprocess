@@ -100,7 +100,8 @@ object ParsingArguments {
         .action((x, c) => c.copy(last_checked_split = x))
         .text("Split the last checked table every last_checked_split traces (default=1000)")
         .validate(x => {
-          if (x > 0) success else failure("Value last_checked_split has to be a positive number")
+          if (x >= 0) success else failure("Value last_checked_split has to be a positive number or 0 if no" +
+            "partition is required (this will affect incremental building time)")
         }),
       note(sys.props("line.separator") + "The parameters below are used if the file was not set and data will be randomly generated"),
       opt[Int]('t', "traces")
