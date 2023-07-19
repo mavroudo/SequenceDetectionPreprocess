@@ -265,20 +265,20 @@ class S3Connector extends DBConnector {
     Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"Start writing LastChecked table")
     val start = System.currentTimeMillis()
     val spark = SparkSession.builder().getOrCreate()
-//    val previousLastChecked = if (metaData.last_checked_split == 0) { //no partition was used
-//      this.read_last_checked_table(metaData) //loads data
-//
-//
-//    } else { //loads data using partitioning
-//      //      val min_trace = lastChecked.map(_.id).min
-//      //      val max_trace = lastChecked.map(_.id).max
-//      val bsplit = spark.sparkContext.broadcast(metaData.last_checked_split)
-//      val partitions = lastChecked.map(_.id)
-//        .map(x => Math.floor(x / bsplit.value).toLong * bsplit.value)
-//        .distinct().collect()
-//      this.read_last_checked_partitioned_table(metaData, partitions.toList)
-//    }
-//    val combined = this.combine_last_checked_table(lastChecked, previousLastChecked) //combine them
+    val previousLastChecked = if (metaData.last_checked_split == 0) { //no partition was used
+      this.read_last_checked_table(metaData) //loads data
+
+
+    } else { //loads data using partitioning
+      //      val min_trace = lastChecked.map(_.id).min
+      //      val max_trace = lastChecked.map(_.id).max
+      val bsplit = spark.sparkContext.broadcast(metaData.last_checked_split)
+      val partitions = lastChecked.map(_.id)
+        .map(x => Math.floor(x / bsplit.value).toLong * bsplit.value)
+        .distinct().collect()
+      this.read_last_checked_partitioned_table(metaData, partitions.toList)
+    }
+    val combined = this.combine_last_checked_table(lastChecked, previousLastChecked) //combine them
     if (metaData.last_checked_split == 0) { //no partition was used
       val df = S3Transformations.transformLastCheckedToDF(lastChecked) //transform them
       df.repartition(col("eventA"))
