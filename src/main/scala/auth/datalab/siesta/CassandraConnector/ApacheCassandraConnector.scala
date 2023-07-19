@@ -394,6 +394,11 @@ class ApacheCassandraConnector extends DBConnector {
     ApacheCassandraTransformations.transformLastCheckedToRDD(df)
   }
 
+  override def read_last_checked_partitioned_table(metaData: MetaData, partitions: List[Long]): RDD[Structs.LastChecked] = {
+    //TODO: see if need this to be fixed with partitions like s3
+    read_last_checked_table(metaData)
+  }
+
   /**
    * Stores new records for last checked back in the database
    *

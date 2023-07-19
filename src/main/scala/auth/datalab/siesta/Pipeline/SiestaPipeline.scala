@@ -44,7 +44,7 @@ object SiestaPipeline {
     val spark = SparkSession.builder().getOrCreate()
     spark.time({
 
-      //Main pipeline starts here:
+      //Main pipeline starts here:s
       val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
       sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)
       //Extract the last positions of all the traces that are already indexed
@@ -54,13 +54,18 @@ object SiestaPipeline {
       val intervals = Intervals.intervals(sequenceRDD, metadata.last_interval, metadata.split_every_days)
       //Extracts single inverted index (ev_type) -> [(trace_id,ts,pos),...]
       val invertedSingleFull = ExtractSingle.extractFull(sequenceRDD,last_positions)
+      //extract the trace partitions
+      val bsplit = spark.sparkContext.broadcast(metadata.last_checked_split)
+      val trace_partitions = sequenceRDD.map(_.sequence_id)
+        .map(x=>Math.floor(x/ bsplit.value).toLong * bsplit.value)
+        .distinct().collect().toList
       sequenceRDD.unpersist()
       last_positions.unpersist()
       //Read and combine the single inverted index with the previous stored
       val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metadata)
       combinedInvertedFull.persist(StorageLevel.MEMORY_AND_DISK)
       //Read last timestamp for each pair for each event
-      val lastChecked = dbConnector.read_last_checked_table(metadata)
+      val lastChecked = dbConnector.read_last_checked_partitioned_table(metadata,trace_partitions)
       //Extract the new pairs and the update lastchecked for each pair for each trace
       val x = ExtractPairs.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
       combinedInvertedFull.unpersist()
@@ -80,7 +85,6 @@ object SiestaPipeline {
       metadata.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
       dbConnector.write_metadata(metadata)
       dbConnector.closeSpark()
-
     })
 
   }
