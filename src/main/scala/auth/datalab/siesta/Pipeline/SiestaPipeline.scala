@@ -48,7 +48,7 @@ object SiestaPipeline {
       val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
       sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)
       //Extract the last positions of all the traces that are already indexed
-      val last_positions:RDD[Structs.LastPosition] = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence t
+      val last_positions:RDD[Structs.LastPosition] = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence table
       last_positions.persist(StorageLevel.MEMORY_AND_DISK)
       //Calculate the intervals based on mix/max timestamp and the last used interval from metadata
       val intervals = Intervals.intervals(sequenceRDD, metadata.last_interval, metadata.split_every_days)
