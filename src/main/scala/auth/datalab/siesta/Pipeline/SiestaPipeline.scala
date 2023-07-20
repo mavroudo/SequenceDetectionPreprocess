@@ -64,7 +64,6 @@ object SiestaPipeline {
       last_positions.unpersist()
       //Read and combine the single inverted index with the previous stored
       val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metadata)
-      combinedInvertedFull.persist(StorageLevel.MEMORY_AND_DISK)
       //Read last timestamp for each pair for each event
       val lastChecked = dbConnector.read_last_checked_partitioned_table(metadata,trace_partitions)
       //Extract the new pairs and the update lastchecked for each pair for each trace

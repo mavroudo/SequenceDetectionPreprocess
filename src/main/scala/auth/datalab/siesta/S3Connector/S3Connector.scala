@@ -184,21 +184,22 @@ class S3Connector extends DBConnector {
     Logger.getLogger("Single Table Write").log(Level.INFO, s"Start writing single table")
     val start = System.currentTimeMillis()
     val newEvents = singleRDD.map(x => x.times.size).reduce((x, y) => x + y)
+    val new_traces = singleRDD.map(_.id).distinct().collect().toSet
     val previousSingle = read_single_table(metaData)
     val combined = combine_single_table(singleRDD, previousSingle)
+    combined.persist(StorageLevel.MEMORY_AND_DISK)
     val df = S3Transformations.transformSingleToDF(combined) //transform
     metaData.events += newEvents //count and update metadata
-    df.persist(StorageLevel.MEMORY_AND_DISK)
     //partition based on the event type
     df
       .repartition(col("event_type"))
       .write
       .partitionBy("event_type")
       .mode(SaveMode.Overwrite).parquet(single_table) //store to s3
-    df.unpersist()
+
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Single Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
-    combined
+    combined.filter(x=>new_traces.contains(x.id))
   }
 
   /**
