@@ -8,6 +8,7 @@ import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
@@ -68,6 +69,8 @@ object SiestaPipeline {
       val lastChecked = dbConnector.read_last_checked_partitioned_table(metadata,trace_partitions)
       //Extract the new pairs and the update lastchecked for each pair for each trace
       val x = ExtractPairs.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
+      Logger.getLogger("Pair Extraction").log(Level.INFO, s"Extracted ${x._1.count()} event pairs")
+      Logger.getLogger("Pair Extraction").log(Level.INFO, s"Extracted ${x._2.count()} last checked")
       combinedInvertedFull.unpersist()
       //Persist to Index and LastChecked
       x._2.persist(StorageLevel.MEMORY_AND_DISK)
