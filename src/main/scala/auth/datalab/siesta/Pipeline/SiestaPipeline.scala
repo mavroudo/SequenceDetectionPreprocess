@@ -69,11 +69,12 @@ object SiestaPipeline {
       //Extract the new pairs and the update lastchecked for each pair for each trace
 //      val x = ExtractPairs.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
       val x = ExtractPairsSimple.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
-
       combinedInvertedFull.unpersist()
+
+      val update_last_checked = dbConnector.combine_last_checked_table(x._2,lastChecked)
       //Persist to Index and LastChecked
       x._2.persist(StorageLevel.MEMORY_AND_DISK)
-      dbConnector.write_last_checked_table(x._2, metadata)
+      dbConnector.write_last_checked_table(update_last_checked, metadata)
       x._2.unpersist()
       x._1.persist(StorageLevel.MEMORY_AND_DISK)
       dbConnector.write_index_table(x._1, metadata, intervals)
