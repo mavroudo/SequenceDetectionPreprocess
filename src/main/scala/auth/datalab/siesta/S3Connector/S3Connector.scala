@@ -286,7 +286,8 @@ class S3Connector extends DBConnector {
         .mode(SaveMode.Overwrite).parquet(last_checked_table)
     } else { //transform them using using the partition
       val df = S3Transformations.transformLastCheckedToPartitionedDF(lastChecked, metaData)
-      df.repartition(col("partition"))
+      df
+//        .repartition(col("partition"))
         .write.partitionBy("partition", "eventA")
         .mode(SaveMode.Overwrite).parquet(last_checked_table)
     }
