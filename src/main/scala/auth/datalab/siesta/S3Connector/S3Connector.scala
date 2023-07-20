@@ -352,7 +352,7 @@ class S3Connector extends DBConnector {
     metaData.pairs += newPairs.count() //update metadata
     val df = S3Transformations.transformIndexToDF(combined, metaData) //transform them
     //partition by the interval (start and end) and the first event of the event type pair
-    df.repartition(col("interval"))
+    df.repartition(col("interval"),col("eventA"))
       .select("interval.start", "interval.end", "eventA", "eventB", "occurrences")
       .write.partitionBy("start", "end", "eventA")
       .mode(SaveMode.Overwrite).parquet(this.index_table)
