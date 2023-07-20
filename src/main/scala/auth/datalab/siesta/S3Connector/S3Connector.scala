@@ -280,12 +280,12 @@ class S3Connector extends DBConnector {
     }
     val combined = this.combine_last_checked_table(lastChecked, previousLastChecked) //combine them
     if (metaData.last_checked_split == 0) { //no partition was used
-      val df = S3Transformations.transformLastCheckedToDF(lastChecked) //transform them
+      val df = S3Transformations.transformLastCheckedToDF(combined) //transform them
       df.repartition(col("eventA"))
         .write.partitionBy("eventA")
         .mode(SaveMode.Overwrite).parquet(last_checked_table)
     } else { //transform them using using the partition
-      val df = S3Transformations.transformLastCheckedToPartitionedDF(lastChecked, metaData)
+      val df = S3Transformations.transformLastCheckedToPartitionedDF(combined, metaData)
       df
         .repartition(col("partition"),col("eventA"))
         .write.partitionBy("partition", "eventA")

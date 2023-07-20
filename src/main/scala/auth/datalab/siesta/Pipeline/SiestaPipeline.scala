@@ -1,7 +1,7 @@
 package auth.datalab.siesta.Pipeline
 
 import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
-import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
+import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, ExtractPairsSimple, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs
@@ -68,9 +68,9 @@ object SiestaPipeline {
       //Read last timestamp for each pair for each event
       val lastChecked = dbConnector.read_last_checked_partitioned_table(metadata,trace_partitions)
       //Extract the new pairs and the update lastchecked for each pair for each trace
-      val x = ExtractPairs.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
-      Logger.getLogger("Pair Extraction").log(Level.INFO, s"Extracted ${x._1.count()} event pairs")
-      Logger.getLogger("Pair Extraction").log(Level.INFO, s"Extracted ${x._2.count()} last checked")
+//      val x = ExtractPairs.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
+      val x = ExtractPairsSimple.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
+
       combinedInvertedFull.unpersist()
       //Persist to Index and LastChecked
       x._2.persist(StorageLevel.MEMORY_AND_DISK)
