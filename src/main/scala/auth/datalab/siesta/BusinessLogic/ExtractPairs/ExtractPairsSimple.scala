@@ -108,13 +108,16 @@ object ExtractPairsSimple {
   }
 
 
-  def createTuples(key1: String, key2: String, ts1: List[(String, Int)], ts2: List[(String, Int)],
+  def createTuples2(key1: String, key2: String, ts1: List[(String, Int)], ts2: List[(String, Int)],
                    intervals: Broadcast[List[Structs.Interval]], lookback: Int, last_checked: Structs.LastChecked,
                    trace_id: Long):List[Structs.PairFull] = {
     val pairs = new ListBuffer[Structs.PairFull]
     var prev:Timestamp = null
     val ts2_copy:ListBuffer[(Timestamp,Int)] = new ListBuffer[(Timestamp,Int)]
     ts2.foreach(t=>ts2_copy.append((Timestamp.valueOf(t._1),t._2)))
+
+    //ts ...
+
 
     for(ea <- ts1){
       val ea_ts = Timestamp.valueOf(ea._1)
@@ -141,6 +144,37 @@ object ExtractPairsSimple {
             if !to_be_removed.contains(i)
           }yield x
           i+=1
+        }
+      }
+    }
+    pairs.toList
+  }
+
+  def createTuples(key1: String, key2: String, ts1: List[(String, Int)], ts2: List[(String, Int)],
+                   intervals: Broadcast[List[Structs.Interval]], lookback: Int, last_checked: Structs.LastChecked,
+                   trace_id: Long): List[Structs.PairFull] = {
+    val pairs = new ListBuffer[Structs.PairFull]
+    var prev: Timestamp = null
+    var i=0
+    for (ea <- ts1) {
+      val ea_ts = Timestamp.valueOf(ea._1)
+      if ((prev == null || !ea_ts.before(prev)) && //evaluate based on previous
+        (last_checked == null || !ea_ts.before(Timestamp.valueOf(last_checked.timestamp)))) { // evaluate based on last checked
+        var stop = false
+        while (i < ts2.size && !stop) { //iterate through what remained of the second list
+          val eb = ts2(i)
+          val eb_ts = Timestamp.valueOf(eb._1)
+          if (!ea_ts.before(eb_ts)) { // if the event a is not before the event b we remove it
+            i+=1
+          } else { // if it is we create a new pair and remove it from consideration in the next iteration
+            if (ChronoUnit.DAYS.between(ea_ts.toInstant, eb_ts.toInstant) <= lookback) { //evaluate lookback
+              val interval: Structs.Interval = this.chooseInterval(intervals, eb_ts)
+              pairs.append(Structs.PairFull(key1, key2, trace_id, ea_ts, eb_ts, ea._2, eb._2, interval))
+              prev = eb_ts
+            }
+            i+=1 //remove the event anyways and stop the process because the next events timestamps will be greater
+            stop = true
+          }
         }
       }
     }
