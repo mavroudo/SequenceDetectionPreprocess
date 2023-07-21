@@ -67,8 +67,8 @@ object SiestaPipeline {
       //Read last timestamp for each pair for each event
       val lastChecked = dbConnector.read_last_checked_partitioned_table(metadata,trace_partitions)
       //Extract the new pairs and the update lastchecked for each pair for each trace
-//      val x = ExtractPairs.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
-      val x = ExtractPairsSimple.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
+      val x = ExtractPairs.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
+//      val x = ExtractPairsSimple.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
       combinedInvertedFull.unpersist()
 
       val update_last_checked = dbConnector.combine_last_checked_table(x._2,lastChecked)

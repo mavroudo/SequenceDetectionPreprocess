@@ -2,6 +2,7 @@ package auth.datalab.siesta.BusinessLogic.ExtractPairs
 
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
@@ -42,20 +43,45 @@ object ExtractPairs {
     val spark = SparkSession.builder().getOrCreate()
     //broadcasts the intervals so they can be available to all workers during event pair extraction
     val bintervals = spark.sparkContext.broadcast(intervals)
-    if (last_checked == null) {
-      val full = singleRDD.groupBy(_.id)
+
+    Logger.getLogger("Pair Extraction")
+      .log(Level.INFO, s"Number of input traces ${singleRDD.map(_.id).count()} ")
+    Logger.getLogger("Pair Extraction")
+      .log(Level.INFO, s"Number of unique input traces ${singleRDD.map(_.id).distinct().count()}")
+
+    val full = if (last_checked == null) {
+      singleRDD.groupBy(_.id)
         .map(x => {
           this.calculate_pairs_stnm(x._2, null, lookback, bintervals)
         })
-      (full.flatMap(_._1),full.flatMap(_._2))
     } else {
-      val full =singleRDD.groupBy(_.id).leftOuterJoin(last_checked.groupBy(_.id))
+      singleRDD.groupBy(_.id).leftOuterJoin(last_checked.groupBy(_.id))
         .map(x => {
           val last = x._2._2.orNull
           this.calculate_pairs_stnm(x._2._1, last, lookback, bintervals)
         })
-      (full.flatMap(_._1),full.flatMap(_._2))
     }
+
+    val pairs = full.flatMap(_._1)
+    val last_checked_pairs = full.flatMap(_._2)
+    Logger.getLogger("Pair Extraction").log(Level.INFO, s"Extracted ${pairs.count()} event pairs")
+    Logger.getLogger("Pair Extraction").log(Level.INFO, s"Extracted ${last_checked_pairs.count()} last checked")
+    (pairs, last_checked_pairs)
+
+//    if (last_checked == null) {
+//      val full = singleRDD.groupBy(_.id)
+//        .map(x => {
+//          this.calculate_pairs_stnm(x._2, null, lookback, bintervals)
+//        })
+//      (full.flatMap(_._1),full.flatMap(_._2))
+//    } else {
+//      val full =singleRDD.groupBy(_.id).leftOuterJoin(last_checked.groupBy(_.id))
+//        .map(x => {
+//          val last = x._2._2.orNull
+//          this.calculate_pairs_stnm(x._2._1, last, lookback, bintervals)
+//        })
+//      (full.flatMap(_._1),full.flatMap(_._2))
+//    }
 
 
   }
