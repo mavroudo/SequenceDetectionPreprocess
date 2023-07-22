@@ -56,6 +56,7 @@ object SiestaPipeline {
       //Extracts single inverted index (ev_type) -> [(trace_id,ts,pos),...]
       val invertedSingleFull = ExtractSingle.extractFull(sequenceRDD,last_positions)
       //extract the trace partitions
+      //TODO: check if trace partitions are positive number
       val bsplit = spark.sparkContext.broadcast(metadata.last_checked_split)
       val trace_partitions = sequenceRDD.map(_.sequence_id)
         .map(x=>Math.floor(x/ bsplit.value).toLong * bsplit.value)
