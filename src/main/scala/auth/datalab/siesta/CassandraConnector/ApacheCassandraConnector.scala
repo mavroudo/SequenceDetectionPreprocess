@@ -45,7 +45,7 @@ class ApacheCassandraConnector extends DBConnector {
   private val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.LOCAL_ONE) // throughputMiBPS = Option(0.8)
 
   /**
-   * Spark initilizes the connection to s3 utilizing cassandra properties, that are available through the
+   * Spark initilizes the connection to Cassandra utilizing cassandra properties, that are available through the
    * cassandra-connector library.
    */
   override def initialize_spark(config: Config): Unit = {

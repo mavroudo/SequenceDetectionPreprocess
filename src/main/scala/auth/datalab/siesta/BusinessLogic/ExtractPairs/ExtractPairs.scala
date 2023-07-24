@@ -44,10 +44,10 @@ object ExtractPairs {
     //broadcasts the intervals so they can be available to all workers during event pair extraction
     val bintervals = spark.sparkContext.broadcast(intervals)
 
-    Logger.getLogger("Pair Extraction")
-      .log(Level.INFO, s"Number of input traces ${singleRDD.map(_.id).count()} ")
-    Logger.getLogger("Pair Extraction")
-      .log(Level.INFO, s"Number of unique input traces ${singleRDD.map(_.id).distinct().count()}")
+//    Logger.getLogger("Pair Extraction")
+//      .log(Level.INFO, s"Number of input traces ${singleRDD.map(_.id).count()} ")
+//    Logger.getLogger("Pair Extraction")
+//      .log(Level.INFO, s"Number of unique input traces ${singleRDD.map(_.id).distinct().count()}")
 
     val full = if (last_checked == null) {
       singleRDD.groupBy(_.id)
@@ -64,8 +64,8 @@ object ExtractPairs {
 
     val pairs = full.flatMap(_._1)
     val last_checked_pairs = full.flatMap(_._2)
-    Logger.getLogger("Pair Extraction").log(Level.INFO, s"Extracted ${pairs.count()} event pairs")
-    Logger.getLogger("Pair Extraction").log(Level.INFO, s"Extracted ${last_checked_pairs.count()} last checked")
+//    Logger.getLogger("Pair Extraction").log(Level.INFO, s"Extracted ${pairs.count()} event pairs")
+//    Logger.getLogger("Pair Extraction").log(Level.INFO, s"Extracted ${last_checked_pairs.count()} last checked")
     (pairs, last_checked_pairs)
 
 //    if (last_checked == null) {
