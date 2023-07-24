@@ -72,10 +72,16 @@ object SiestaPipeline {
 //      val x = ExtractPairsSimple.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
       combinedInvertedFull.unpersist()
 
-      val update_last_checked = dbConnector.combine_last_checked_table(x._2,lastChecked)
-      //Persist to Index and LastChecked
       x._2.persist(StorageLevel.MEMORY_AND_DISK)
-      dbConnector.write_last_checked_table(update_last_checked, metadata)
+      if(dbConnector.isInstanceOf[S3Connector]) {
+        Logger.getLogger("LastChecked Table ").log(Level.INFO, s"executing S3")
+        val update_last_checked = dbConnector.combine_last_checked_table(x._2, lastChecked)
+        //Persist to Index and LastChecked
+        dbConnector.write_last_checked_table(update_last_checked, metadata)
+      }else{
+        Logger.getLogger("LastChecked Table ").log(Level.INFO, s"executing Cassandra")
+        dbConnector.write_last_checked_table(x._2,metadata)
+      }
       x._2.unpersist()
       x._1.persist(StorageLevel.MEMORY_AND_DISK)
       dbConnector.write_index_table(x._1, metadata, intervals)
