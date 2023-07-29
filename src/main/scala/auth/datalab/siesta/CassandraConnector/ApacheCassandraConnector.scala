@@ -396,8 +396,14 @@ class ApacheCassandraConnector extends DBConnector {
     ApacheCassandraTransformations.transformLastCheckedToRDD(df)
   }
 
+  /**
+   * Returns data from LastChecked Table, but it is using partitions. Since partitions are not currently handled
+   * in Cassandra this function is identical to the above one
+   * @param metaData Object containing the metadata
+   * @param partitions
+   *  @return An RDD with the last timestamps per event type pair per trace
+   */
   override def read_last_checked_partitioned_table(metaData: MetaData, partitions: List[Long]): RDD[Structs.LastChecked] = {
-    //TODO: see if need this to be fixed with partitions like s3
     read_last_checked_table(metaData)
   }
 

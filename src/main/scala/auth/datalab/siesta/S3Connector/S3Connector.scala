@@ -241,7 +241,17 @@ class S3Connector extends DBConnector {
     }
   }
 
+  /**
+   * Returns records from LastChecked Table that corresponds to the given partitions
+   * @param metaData Object containing the metadata
+   * @param partitions Contains the partitions of the required records from LastChecked. If the list is empty all
+   *                   the records from LastChecked will be read.
+   *  @return An RDD with the last timestamps per event type pair per trace
+   */
   override def read_last_checked_partitioned_table(metaData: MetaData, partitions: List[Long]): RDD[Structs.LastChecked] = {
+    if(partitions.isEmpty){
+      return read_last_checked_table(metaData)
+    }
     val spark = SparkSession.builder().getOrCreate()
     try {
       val parqDF = spark.read.parquet(this.last_checked_table) //loads data
@@ -256,51 +266,13 @@ class S3Connector extends DBConnector {
     }
   }
 
-//  /**
-//   * Stores new records for last checked back in the database
-//   *
-//   * @param lastChecked Records containing the timestamp of last completion for each event type pair for each trace
-//   * @param metaData    Object containing the metadata
-//   */
-//  override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData): Unit = {
-//    Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"Start writing LastChecked table")
-//    val start = System.currentTimeMillis()
-//    val spark = SparkSession.builder().getOrCreate()
-//    val previousLastChecked = if (metaData.last_checked_split == 0) { //no partition was used
-//      this.read_last_checked_table(metaData) //loads data
-//
-//
-//    } else { //loads data using partitioning
-//      //      val min_trace = lastChecked.map(_.id).min
-//      //      val max_trace = lastChecked.map(_.id).max
-//      val bsplit = spark.sparkContext.broadcast(metaData.last_checked_split)
-//      val partitions = lastChecked.map(_.id)
-//        .map(x => Math.floor(x / bsplit.value).toLong * bsplit.value)
-//        .distinct().collect()
-//      this.read_last_checked_partitioned_table(metaData, partitions.toList)
-//    }
-//    val combined = this.combine_last_checked_table(lastChecked, previousLastChecked) //combine them
-//    if (metaData.last_checked_split == 0) { //no partition was used
-//      val df = S3Transformations.transformLastCheckedToDF(combined) //transform them
-//      df.repartition(col("eventA"))
-//        .write.partitionBy("eventA")
-//        .mode(SaveMode.Overwrite).parquet(last_checked_table)
-//    } else { //transform them using using the partition
-//      val df = S3Transformations.transformLastCheckedToPartitionedDF(combined, metaData)
-//      df
-//        .repartition(col("partition"),col("eventA"))
-//        .write.partitionBy("partition", "eventA")
-//        .mode(SaveMode.Overwrite).parquet(last_checked_table)
-//    }
-//    val total = System.currentTimeMillis() - start
-//    Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
-//
-//  }
 
   /**
    * Stores new records for last checked back in the database
    *
-   * @param lastChecked Records containing the timestamp of last completion for each event type pair for each trace
+   * @param lastChecked Records containing the timestamp of last completion for each event type pair for each trace combined
+   *                    with the records that were previously read from the LastChecked Table. that way douplicate
+   *                    read is avoided
    * @param metaData    Object containing the metadata
    */
   override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData): Unit = {
