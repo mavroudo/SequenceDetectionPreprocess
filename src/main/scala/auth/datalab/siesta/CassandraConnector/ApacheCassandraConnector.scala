@@ -45,7 +45,7 @@ class ApacheCassandraConnector extends DBConnector {
   private val writeConf: WriteConf = WriteConf(consistencyLevel = ConsistencyLevel.LOCAL_ONE) // throughputMiBPS = Option(0.8)
 
   /**
-   * Spark initilizes the connection to s3 utilizing cassandra properties, that are available through the
+   * Spark initilizes the connection to Cassandra utilizing cassandra properties, that are available through the
    * cassandra-connector library.
    */
   override def initialize_spark(config: Config): Unit = {
@@ -261,7 +261,7 @@ class ApacheCassandraConnector extends DBConnector {
     MetaData(traces = m("traces").toInt, events = m("events").toInt, pairs = m("pairs").toInt, lookback = m("lookback").toInt,
       split_every_days = m("split_every_days").toInt, last_interval = m("last_interval"),
       has_previous_stored = m("has_previous_stored").toBoolean, filename = m("filename"),
-      log_name = m("log_name"), mode = m("mode"), compression = m("compression"))
+      log_name = m("log_name"), mode = m("mode"), compression = m("compression"), last_checked_split = m("last_checked_split").toInt)
   }
 
   /**
@@ -349,18 +349,20 @@ class ApacheCassandraConnector extends DBConnector {
     Logger.getLogger("Single Table Write").log(Level.INFO, s"Start writing single table")
     val start = System.currentTimeMillis()
     val newEvents = singleRDD.map(x => x.times.size).reduce((x, y) => x + y)
+    val new_traces = singleRDD.map(_.id).distinct().collect().toSet
     metaData.events += newEvents //count and update metadata
     val previousSingle = read_single_table(metaData)
     val combined = combine_single_table(singleRDD, previousSingle)
+    combined.persist(StorageLevel.MEMORY_AND_DISK)
     val transformed = ApacheCassandraTransformations.transformSingleToWrite(singleRDD)
-    transformed.persist(StorageLevel.MEMORY_AND_DISK)
+//    transformed.persist(StorageLevel.MEMORY_AND_DISK)
     transformed
       .saveToCassandra(keyspaceName = this.cassandra_keyspace_name, tableName = this.tables("single"),
         columns = SomeColumns("event_type", "trace_id", "occurrences" append), writeConf = writeConf)
-    transformed.unpersist()
+//    transformed.unpersist()
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Single Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
-    combined
+    combined.filter(x=>new_traces.contains(x.id))
   }
 
 
@@ -392,6 +394,17 @@ class ApacheCassandraConnector extends DBConnector {
       return null
     }
     ApacheCassandraTransformations.transformLastCheckedToRDD(df)
+  }
+
+  /**
+   * Returns data from LastChecked Table, but it is using partitions. Since partitions are not currently handled
+   * in Cassandra this function is identical to the above one
+   * @param metaData Object containing the metadata
+   * @param partitions
+   *  @return An RDD with the last timestamps per event type pair per trace
+   */
+  override def read_last_checked_partitioned_table(metaData: MetaData, partitions: List[Long]): RDD[Structs.LastChecked] = {
+    read_last_checked_table(metaData)
   }
 
   /**

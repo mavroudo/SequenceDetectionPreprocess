@@ -17,6 +17,7 @@ object S3Transformations {
 
   /**
    * The required format is [trace_id, List of events], where each event is [event_type, timestamp]
+   *
    * @param sequenceRDD The RDD containing the traces
    * @return The transformed Dataframe
    */
@@ -30,6 +31,7 @@ object S3Transformations {
 
   /**
    * The stored format is [trace_id, List of events], where each event is [event_type, timestamp]
+   *
    * @param df The loaded traces from S3
    * @return The transformed RDD of traces
    */
@@ -45,6 +47,7 @@ object S3Transformations {
    * The stored format is [event_type, List of occurrences], where each occurrence contains the occurrences of this event type
    * in a particular trace. Therefore an occurrence has the structure [trace_id, list of timestamps, list of position],
    * where the timestamps and positions correspond to the where and when the event type occurred in the trace.
+   *
    * @param df The loaded single inverted index from S3
    * @return The transformed RDD
    */
@@ -81,6 +84,7 @@ object S3Transformations {
    * [trace_id, last timestamp]. So for each event type pair we maintain the information when was the last time that
    * this event occurred in each trace. This information is latter utilized to facilitate in the efficient incremental
    * indexing
+   *
    * @param df The loaded LastChecked information from S3
    * @return The transformed RDD
    */
@@ -91,6 +95,24 @@ object S3Transformations {
       x.getAs[Seq[Row]]("occurrences").map(oc => {
         LastChecked(eventA, eventB, oc.getLong(0), oc.getString(1))
       })
+    })
+  }
+
+  /**
+   * The stored format is [event_typeA, event_typeB, timestamp, id, partition]. Therefore, it is easy to extract
+   * the LastChecked dataframe
+   * This information is latter utilized to facilitate in the efficient incremental indexing
+   *
+   * @param df The loaded LastChecked information from S3
+   * @return The transformed RDD
+   */
+  def transformPartitionLastCheckedToRDD(df: DataFrame): RDD[LastChecked] = {
+    df.rdd.map(x => {
+      val eventA = x.getAs[String]("eventA")
+      val eventB = x.getAs[String]("eventB")
+      val timestamp = x.getAs[String]("timestamp")
+      val id = x.getAs[Long]("id")
+      LastChecked(eventA, eventB, id, timestamp)
     })
   }
 
@@ -114,12 +136,31 @@ object S3Transformations {
   }
 
   /**
+   * The required format is [event_typeA, event_typeB, timestamp, trace id, partition]. This format is based on splitting
+   * the last checked using partitions
+   *
+   * @param lastchecked The RDD containing the last timestamps for each event type pair per trace
+   * @param metaData    Containing the metadata
+   * @return The transformed Dataframe
+   */
+  def transformLastCheckedToPartitionedDF(lastchecked: RDD[LastChecked], metaData: MetaData): DataFrame = {
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.sqlContext.implicits._
+    val bSplit = spark.sparkContext.broadcast(metaData.last_checked_split)
+    lastchecked.map(x => {
+      val partition = Math.floor(x.id / bSplit.value).toLong * bSplit.value //calculate partition
+      Structs.LastCheckedPartitionedDF(x.eventA, x.eventB, timestamp = x.timestamp, id = x.id, partition = partition)
+    }).toDF("eventA", "eventB", "timestamp", "id", "partition")
+  }
+
+  /**
    * The stored format is [interval_start, interval_end, event_typeA, event_typeB, List of occurrences], where
    * each occurrence has the structure: [trace_id, timestampA, timestampB] if timestamps where used or
    * [trace_id,positionA, positionB] if positions where used.
    * In the second case we save space by just keeping the position of the events in the trace rather than the exact
    * timestamp (replace 20 characters with a single integer).
-   * @param df The loaded inverted index using event type pairs
+   *
+   * @param df       The loaded inverted index using event type pairs
    * @param metaData Object of metadata
    * @return The transformed RDD
    */
@@ -132,8 +173,8 @@ object S3Transformations {
         val eventB = row.getAs[String]("eventB")
         row.getAs[Seq[Row]]("occurrences").flatMap(oc => {
           val id = oc.getLong(0)
-          oc.getAs[Seq[Row]](1).map(o=>{
-            Structs.PairFull(eventA, eventB, id, null, null, o.getInt(0), o.getInt(1), Structs.Interval(start,end))
+          oc.getAs[Seq[Row]](1).map(o => {
+            Structs.PairFull(eventA, eventB, id, null, null, o.getInt(0), o.getInt(1), Structs.Interval(start, end))
           })
 
         })
@@ -147,7 +188,7 @@ object S3Transformations {
         row.getAs[Seq[Row]]("occurrences").flatMap(oc => {
           val id = oc.getLong(0)
           oc.getAs[Seq[Row]](1).map(o => {
-            Structs.PairFull(eventA, eventB, id, Timestamp.valueOf(o.getString(0)), Timestamp.valueOf(o.getString(1)),-1,-1, Structs.Interval(start, end))
+            Structs.PairFull(eventA, eventB, id, Timestamp.valueOf(o.getString(0)), Timestamp.valueOf(o.getString(1)), -1, -1, Structs.Interval(start, end))
           })
 
         })
@@ -162,7 +203,7 @@ object S3Transformations {
    * In the second case we save space by just keeping the position of the events in the trace rather than the exact
    * timestamp (replace 20 characters with a single integer).
    *
-   * @param pairs The RDD of the computed inverted index based on the event type pairs
+   * @param pairs    The RDD of the computed inverted index based on the event type pairs
    * @param metaData Object of metadata
    * @return The transformed Dataframe
    */
@@ -200,18 +241,19 @@ object S3Transformations {
    *  - Total completions: the total number of appearances of this event in the log database
    *  - Min duration: the minimum difference between the two timestamps of the events for this event type pair
    *  - Max duration: the maximum difference between the two timestamps of the events for this event type pair
+   *
    * @param counts The RDD containing the statistics for each event type pair
    * @return The transformed Dataframe
    */
-  def transformCountToDF(counts:RDD[Structs.Count]):DataFrame={
+  def transformCountToDF(counts: RDD[Structs.Count]): DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
     counts.groupBy(_.eventA)
-      .map(x=>{
-        val counts = x._2.map(y=>(y.eventB,y.sum_duration,y.count,y.min_duration,y.max_duration))
-        Structs.CountList(x._1,counts.toList)
+      .map(x => {
+        val counts = x._2.map(y => (y.eventB, y.sum_duration, y.count, y.min_duration, y.max_duration))
+        Structs.CountList(x._1, counts.toList)
       })
-      .toDF("eventA","times")
+      .toDF("eventA", "times")
   }
 
   /**
@@ -226,11 +268,11 @@ object S3Transformations {
    * @param df The loaded Dataframe of the CountTable
    * @return The transformed RDD
    */
-  def transformCountToRDD(df:DataFrame):RDD[Structs.Count]={
-    df.rdd.flatMap(row=>{
-      val eventA=row.getAs[String]("eventA")
-      row.getAs[Seq[Row]]("times").map(t=>{
-        Structs.Count(eventA,t.getString(0),t.getLong(1),t.getInt(2),t.getLong(3),t.getLong(4))
+  def transformCountToRDD(df: DataFrame): RDD[Structs.Count] = {
+    df.rdd.flatMap(row => {
+      val eventA = row.getAs[String]("eventA")
+      row.getAs[Seq[Row]]("times").map(t => {
+        Structs.Count(eventA, t.getString(0), t.getLong(1), t.getInt(2), t.getLong(3), t.getLong(4))
       })
     })
   }
