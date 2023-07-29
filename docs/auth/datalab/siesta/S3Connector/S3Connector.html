@@ -700,6 +700,23 @@ Advice: use the above method.
 the newly calculated pairs, before written back to the database.
 </p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt class="param">intervals</dt><dd class="cmt"><p>The period of times that the pairs will be splitted (thus require to combine with previous pairs,
                  if there are any in these periods)</p></dd><dt>returns</dt><dd class="cmt"><p>Loaded records from IndexTable for the given intervals</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+    </li><li name="auth.datalab.siesta.S3Connector.S3Connector#read_last_checked_partitioned_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="read_last_checked_partitioned_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,partitions:List[Long]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]"></a><a id="read_last_checked_partitioned_table(MetaData,List[Long]):RDD[LastChecked]"></a>
+      <span class="permalink">
+      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#read_last_checked_partitioned_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,partitions:List[Long]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">read_last_checked_partitioned_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>, <span name="partitions">partitions: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Long">Long</span>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns records from LastChecked Table that corresponds to the given partitions</p><div class="fullcomment"><div class="comment cmt"><p>Returns records from LastChecked Table that corresponds to the given partitions</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt class="param">partitions</dt><dd class="cmt"><p>Contains the partitions of the required records from LastChecked. If the list is empty all
+                  the records from LastChecked will be read.</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the last timestamps per event type pair per trace</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#read_last_checked_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="read_last_checked_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]"></a><a id="read_last_checked_table(MetaData):RDD[LastChecked]"></a>
       <span class="permalink">
@@ -910,7 +927,9 @@ per trace.
       
       <p class="shortcomment cmt">Stores new records for last checked back in the database
 </p><div class="fullcomment"><div class="comment cmt"><p>Stores new records for last checked back in the database
-</p></div><dl class="paramcmts block"><dt class="param">lastChecked</dt><dd class="cmt"><p>Records containing the timestamp of last completion for each event type pair for each trace</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">lastChecked</dt><dd class="cmt"><p>Records containing the timestamp of last completion for each event type pair for each trace combined
+                   with the records that were previously read from the LastChecked Table. that way douplicate
+                   read is avoided</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#write_metadata" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="write_metadata(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):Unit"></a><a id="write_metadata(MetaData):Unit"></a>
       <span class="permalink">

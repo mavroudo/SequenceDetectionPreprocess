@@ -348,6 +348,26 @@ Advice: use the above method.</p></div><dl class="paramcmts block"><dt class="pa
 the newly calculated pairs, before written back to the database.
 </p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt class="param">intervals</dt><dd class="cmt"><p>The period of times that the pairs will be splitted (thus require to combine with previous pairs,
                  if there are any in these periods)</p></dd><dt>returns</dt><dd class="cmt"><p>Loaded records from IndexTable for the given intervals</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector#read_last_checked_partitioned_table" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="read_last_checked_partitioned_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,partitions:List[Long]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]"></a><a id="read_last_checked_partitioned_table(MetaData,List[Long]):RDD[LastChecked]"></a>
+      <span class="permalink">
+      <a href="../../../../../auth/datalab/siesta/BusinessLogic/DBConnector/DBConnector.html#read_last_checked_partitioned_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,partitions:List[Long]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">read_last_checked_partitioned_table</span><span class="params">(<span name="metaData">metaData: <a href="../Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>, <span name="partitions">partitions: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Long">Long</span>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns data from LastChecked Table only the required partitions
+Loads data from the LastChecked Table, which contains the  information of the last timestamp per event type pair
+per trace.</p><div class="fullcomment"><div class="comment cmt"><p>Returns data from LastChecked Table only the required partitions
+Loads data from the LastChecked Table, which contains the  information of the last timestamp per event type pair
+per trace.</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the last timestamps per event type pair per trace</p></dd></dl></div>
     </li><li name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector#read_last_checked_table" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="read_last_checked_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]"></a><a id="read_last_checked_table(MetaData):RDD[LastChecked]"></a>
       <span class="permalink">
@@ -367,7 +387,8 @@ the newly calculated pairs, before written back to the database.
 Loads data from the LastChecked Table, which contains the  information of the last timestamp per event type pair
 per trace.</p><div class="fullcomment"><div class="comment cmt"><p>Returns data from LastChecked Table
 Loads data from the LastChecked Table, which contains the  information of the last timestamp per event type pair
-per trace.</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the last timestamps per event type pair per trace</p></dd></dl></div>
+per trace.
+</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the last timestamps per event type pair per trace</p></dd></dl></div>
     </li><li name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector#read_sequence_table" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="read_sequence_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]"></a><a id="read_sequence_table(MetaData):RDD[Sequence]"></a>
       <span class="permalink">
