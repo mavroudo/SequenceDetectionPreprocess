@@ -157,6 +157,10 @@ Otherwise, they are located in the **docs/** folder and you can access it by ope
 in a browser.
 
 # Change Log
+### [2.1.1] - 2023-07-29
+- Hotfix in indexing process for Cassandra and S3
+- Introduce partitions for LastChecked to handle incremental indexing
+- Simpler way to extract pairs and not n-tuples
 
 ### [2.1.0] - 2023-06-18
 - Added FastAPI to submit preprocessing jobs using api calls

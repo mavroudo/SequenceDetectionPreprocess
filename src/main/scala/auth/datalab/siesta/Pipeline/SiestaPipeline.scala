@@ -1,13 +1,14 @@
 package auth.datalab.siesta.Pipeline
 
 import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
-import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
+import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, ExtractPairsSimple, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
@@ -24,9 +25,9 @@ import org.apache.spark.storage.StorageLevel
  *  - Store the last timestamp for each event type per trace in LastChecked table
  *  - Create/Load-merge statistics for each event type pair and store them in CountTable
  *  - Store the updated Metadata object
- * The methods that are used to perform the following procedures are described in
- * [[auth.datalab.siesta.BusinessLogic.DBConnector]] so that SIESTA can be connected with a new database by simply
- * extend this class and implement the corresponding methods.
+ *    The methods that are used to perform the following procedures are described in
+ *    [[auth.datalab.siesta.BusinessLogic.DBConnector]] so that SIESTA can be connected with a new database by simply
+ *    extend this class and implement the corresponding methods.
  */
 object SiestaPipeline {
 
@@ -44,29 +45,47 @@ object SiestaPipeline {
     val spark = SparkSession.builder().getOrCreate()
     spark.time({
 
-      //Main pipeline starts here:
+      //Main pipeline starts here:s
       val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
       sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)
       //Extract the last positions of all the traces that are already indexed
-      val last_positions:RDD[Structs.LastPosition] = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence t
+      val last_positions: RDD[Structs.LastPosition] = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence table
       last_positions.persist(StorageLevel.MEMORY_AND_DISK)
       //Calculate the intervals based on mix/max timestamp and the last used interval from metadata
       val intervals = Intervals.intervals(sequenceRDD, metadata.last_interval, metadata.split_every_days)
       //Extracts single inverted index (ev_type) -> [(trace_id,ts,pos),...]
-      val invertedSingleFull = ExtractSingle.extractFull(sequenceRDD,last_positions)
+      val invertedSingleFull = ExtractSingle.extractFull(sequenceRDD, last_positions)
+      //extract the trace partitions
+      val bsplit = spark.sparkContext.broadcast(metadata.last_checked_split)
+      val trace_partitions = if (metadata.last_checked_split > 0) { //evaluate if the partitions are used
+        sequenceRDD.map(_.sequence_id)
+          .map(x => Math.floor(x / bsplit.value).toLong * bsplit.value)
+          .distinct().collect().toList
+      }
+      else {
+        List.empty[Long]
+      }
       sequenceRDD.unpersist()
       last_positions.unpersist()
       //Read and combine the single inverted index with the previous stored
       val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metadata)
-      combinedInvertedFull.persist(StorageLevel.MEMORY_AND_DISK)
       //Read last timestamp for each pair for each event
-      val lastChecked = dbConnector.read_last_checked_table(metadata)
+      val lastChecked = dbConnector.read_last_checked_partitioned_table(metadata, trace_partitions)
       //Extract the new pairs and the update lastchecked for each pair for each trace
-      val x = ExtractPairs.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
+      //      val x = ExtractPairs.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
+      val x = ExtractPairsSimple.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
       combinedInvertedFull.unpersist()
-      //Persist to Index and LastChecked
+
       x._2.persist(StorageLevel.MEMORY_AND_DISK)
-      dbConnector.write_last_checked_table(x._2, metadata)
+      if (dbConnector.isInstanceOf[S3Connector]) {
+        Logger.getLogger("LastChecked Table ").log(Level.INFO, s"executing S3")
+        val update_last_checked = dbConnector.combine_last_checked_table(x._2, lastChecked)
+        //Persist to Index and LastChecked
+        dbConnector.write_last_checked_table(update_last_checked, metadata)
+      } else {
+        Logger.getLogger("LastChecked Table ").log(Level.INFO, s"executing Cassandra")
+        dbConnector.write_last_checked_table(x._2, metadata)
+      }
       x._2.unpersist()
       x._1.persist(StorageLevel.MEMORY_AND_DISK)
       dbConnector.write_index_table(x._1, metadata, intervals)
@@ -80,7 +99,6 @@ object SiestaPipeline {
       metadata.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
       dbConnector.write_metadata(metadata)
       dbConnector.closeSpark()
-
     })
 
   }
