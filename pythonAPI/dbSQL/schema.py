@@ -5,7 +5,8 @@ from pydantic import BaseModel
 
 class PreprocessEntryBase(BaseModel):
     id: str
-    message: Optional[str]
+    output: Optional[str]
+    error: Optional[str]
     status: str
 
     class Config:

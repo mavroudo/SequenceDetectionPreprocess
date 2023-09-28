@@ -7,8 +7,9 @@ import uuid
 
 class PreprocessEntry(Base):
     __tablename__ = "entries"
-    id = Column(Text(length=36), default=lambda: str(uuid.uuid4()), primary_key=True, index=True)
-    message = Column(String, default="Starting")
+    id = Column(String(length=36), default=lambda: str(uuid.uuid4()), primary_key=True, index=True)
+    output = Column(String, default="")
+    error = Column(String, default="")
     status = Column(String, default="starting")
 
     def __str__(self):
