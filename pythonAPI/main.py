@@ -1,12 +1,22 @@
-from fastapi import FastAPI
+import os
+import uuid
+from threading import Lock, Thread
+from fastapi import FastAPI, Depends
 from fastapi import File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-
-from EnvironmentVariables import EnvironmentVariables
-import uuid, os
-from PreprocessItem import PreprocessItem
-from threading import Lock
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
+from fastapi.encoders import jsonable_encoder
+from EnvironmentVariables import EnvironmentVariables
+from PreprocessItem import PreprocessItem
+import subprocess, threading
+
+from PreprocessTask import task
+from dbSQL import crud, model
+from dbSQL.database import SessionLocal, engine
+from sqlalchemy.orm import scoped_session
+
+model.Base.metadata.create_all(bind=engine)
 
 spark_location = "/opt/spark/bin/spark-submit"
 
@@ -17,6 +27,17 @@ env_vars = {"cassandra_host": "localhost", "cassandra_port": 9042, "cassandra_us
             "s3secretKeyAws": "minioadmin"}
 
 app = FastAPI()
+
+
+# Dependency
+def get_db():
+    db = scoped_session(SessionLocal)
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 origins = ["*"]
 app.add_middleware(CORSMiddleware,
                    allow_origins=origins,
@@ -114,20 +135,16 @@ def set_Environmental_Variables(env: EnvironmentVariables):
 @app.post("/preprocess",
           responses={
               200: {
-                  "content": {"output": {}},
-                  "description": "Return the process output",
+                  "content": {"process_id": {}},
+                  "description": "Return the process id",
               },
               520: {
                   "content": {"message": {}},
                   "description": "Another preprocessing job is already running",
-              },
-              500: {
-                  "content": {"error": {}},
-                  "description": "An error has occurred during processing",
               }
           }
           )
-async def preprocess_file(params: PreprocessItem):
+async def preprocess_file(params: PreprocessItem, db: Session = Depends(get_db)):
     '''
     Executes the preprocessing step for a particular file (Already uploaded).
         The environmental parameters are set using  the **/setting_vars** endpoint.
@@ -135,18 +152,65 @@ async def preprocess_file(params: PreprocessItem):
      **Configuration parameters**: Spark config (e.g. master, number of executors etc.)
      and preprocessing parameters (e.g. lookback, compression etc.)\n
     '''
-    spark_command = spark_location + " " + params.getAttributes()
+    process = crud.start_process(db)
     if not lock.locked():
-        with lock:
-            try:
-                process = os.popen(spark_command)
-                # TODO: redirect standar output and error to capture them and send them to the use
-                output = process.read()
-                return JSONResponse(content={"output": output}, status_code=200)
-            except Exception as e:
-                return JSONResponse(content={"error": str(e)}, status_code=500)
+        lock.acquire()
+        thread = Thread(target=task, args=(spark_location, params.getAttributes(), process.id, lock))
+        thread.start()
+        return JSONResponse(content={"process_id": process.id}, status_code=200)
     else:
         return JSONResponse(content={"message": "Already running a preprocessing job"}, status_code=520)
+
+
+@app.get("/process/{process_id}",
+         responses={
+             200: {
+                 "content": {},
+                 "description": "Information about the process",
+             },
+             404: {
+                 "content": {"message": {}},
+                 "description": "Process is not found",
+             }
+         }
+         )
+async def get_information_for_process(process_id: str, db: Session = Depends(get_db)):
+    process = crud.get(db, process_id)
+    if process is None:
+        return JSONResponse(content={"message": "Process is not found"}, status_code=404)
+    json = jsonable_encoder(process)
+    return JSONResponse(content=json, status_code=200)
+
+
+@app.get("/process/",
+         responses={
+             200: {
+                 "content": {},
+                 "description": "Information about the process",
+             },
+             404: {
+                 "content": {"message": {}},
+                 "description": "Process is not found",
+             }
+         }
+         )
+async def get_information_for_all(db: Session = Depends(get_db)):
+    processes = crud.get_all(db)
+    json = jsonable_encoder(processes)
+    return JSONResponse(content=json, status_code=200)
+
+
+# if not lock.locked():
+#     with lock:
+#         try:
+#             process = os.popen(spark_command)
+#             # TODO: redirect standar output and error to capture them and send them to the use
+#             output = process.read()
+#             return JSONResponse(content={"output": output}, status_code=200)
+#         except Exception as e:
+#             return JSONResponse(content={"error": str(e)}, status_code=500)
+# else:
+#     return JSONResponse(content={"message": "Already running a preprocessing job"}, status_code=520)
 
 
 @app.post("/upload/",
@@ -185,4 +249,4 @@ async def upload_log_file(file: UploadFile = File(...)):
         return JSONResponse(content={"error": str(e)}, status_code=500)
     finally:
         file.file.close()
-    return JSONResponse(content={"message": f"Successfully uploaded {file.filename}"}, status_code=200)
+    return JSONResponse(content={"message": f"Successfully uploaded {file.filename}", "uuid": str(id)}, status_code=200)
