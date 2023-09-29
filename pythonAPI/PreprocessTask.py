@@ -13,12 +13,11 @@ def task(spark_location: str, params: str, process_id, lock: threading.Lock):
     processEntry: model.PreprocessEntry = crud.get(db, process_id)
     processEntry.status = "executing"
     crud.update(db, processEntry)
-    process = os.popen(spark_location + " " + params)
-    #  TODO: redirect standar output and error to capture them and send them to the use
-    output = process.read()
-    # result = subprocess.run([spark_location, params], capture_output=True, text=True)
-    processEntry.output = output
-    # processEntry.error = result.stderr
+    x = spark_location + " " + params
+    coms = [i for i in x.split(" ") if i != '']
+    result = subprocess.run(coms, capture_output=True, text=True)
+    processEntry.error = result.stderr
+    processEntry.output = result.stdout
     processEntry.status = "finished"
     crud.update(db, processEntry)
     lock.release()
