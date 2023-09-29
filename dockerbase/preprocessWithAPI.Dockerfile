@@ -34,6 +34,8 @@ WORKDIR /app/pythonAPI
 COPY pythonAPI/main.py /app/pythonAPI/
 COPY pythonAPI/EnvironmentVariables.py /app/pythonAPI/
 COPY pythonAPI/PreprocessItem.py /app/pythonAPI/
+COPY pythonAPI/PreprocessTask.py /app/pythonAPI/
+COPY pythonAPI/dbSQL /app/pythonAPI/dbSQL
 RUN mkdir uploadedfiles
 
 #Copy jar from the builder
