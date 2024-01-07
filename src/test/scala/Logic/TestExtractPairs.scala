@@ -3,7 +3,7 @@ package Logic
 import ConnectionToDBAndIncrement.CreateRDD
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
 import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
-import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
+import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, ExtractPairsSimple, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
 import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
@@ -16,8 +16,8 @@ import org.scalatest.BeforeAndAfterAll
 import java.sql.Timestamp
 
 class TestExtractPairs extends AnyFlatSpec with BeforeAndAfterAll{
-//  @transient var dbConnector: DBConnector = new S3Connector()
-  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
+  @transient var dbConnector: DBConnector = new S3Connector()
+//  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
   @transient var metaData: MetaData = null
   @transient var config: Config = null
 
@@ -31,7 +31,8 @@ class TestExtractPairs extends AnyFlatSpec with BeforeAndAfterAll{
     val intervals = Intervals.intervals(data, "", 30)
     val lp = dbConnector.write_sequence_table(data,metaData)
     val invertedSingleFull = ExtractSingle.extractFull(data,lp)
-    val x = ExtractPairs.extract(invertedSingleFull, null, intervals, 5)
+//    val x = ExtractPairs.extract(invertedSingleFull, null, intervals, 5)
+    val x = ExtractPairsSimple.extract(invertedSingleFull, null, intervals, 5)
     val pairs = x._1.collect()
     val lastChecked = x._2.collect()
     assert(pairs.length == 9)
@@ -49,7 +50,8 @@ class TestExtractPairs extends AnyFlatSpec with BeforeAndAfterAll{
     val intervals = Intervals.intervals(data, "", 30)
     val lp = dbConnector.write_sequence_table(data, metaData)
     val invertedSingleFull = ExtractSingle.extractFull(data, lp)
-    val x = ExtractPairs.extract(invertedSingleFull, null, intervals, 2)
+//    val x = ExtractPairs.extract(invertedSingleFull, null, intervals, 2)
+    val x = ExtractPairsSimple.extract(invertedSingleFull, null, intervals, 2)
     val pairs = x._1.collect()
     val lastChecked = x._2.collect()
     assert(pairs.length == 5)
@@ -64,18 +66,31 @@ class TestExtractPairs extends AnyFlatSpec with BeforeAndAfterAll{
     this.dbConnector.initialize_db(config)
     this.metaData = dbConnector.get_metadata(config)
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
-    dbConnector.write_sequence_table(data, metaData)
     val intervals = Intervals.intervals(data, "", config.split_every_days)
     metaData.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
     val lp = dbConnector.write_sequence_table(data, metaData)
     val invertedSingleFull = ExtractSingle.extractFull(data, lp)
     val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metaData)
-    val x = ExtractPairs.extract(combinedInvertedFull, null, intervals, config.lookback_days)
+//    val x = ExtractPairs.extract(combinedInvertedFull, null, intervals, config.lookback_days)
+    val x = ExtractPairsSimple.extract(combinedInvertedFull, null, intervals, config.lookback_days)
     dbConnector.write_last_checked_table(x._2, metaData)
     dbConnector.write_index_table(x._1, metaData, intervals)
     val counts = ExtractCounts.extract(x._1)
     dbConnector.write_count_table(counts, metaData)
     dbConnector.write_metadata(metaData) //till here index the first one
+
+    var pairs_c = x._1.collect()
+    var last_checked_c = x._2.collect()
+    assert(pairs_c.length == 9)
+    assert(last_checked_c.length == 8)
+    assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "a") == 1)
+    assert(pairs_c.count(x => x.eventA == "c" && x.eventB == "a") == 1)
+    assert(pairs_c.count(x => x.eventA == "b" && x.eventB == "a") == 2)
+    assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "b") == 2)
+    assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "c") == 1)
+    assert(pairs_c.count(x => x.eventA == "c" && x.eventB == "b") == 1)
+    assert(pairs_c.count(x => x.eventA == "b" && x.eventB == "b") == 1)
+
 
     //index the second one
     val data2 = spark.sparkContext.parallelize(CreateRDD.createRDD_2)
@@ -84,18 +99,24 @@ class TestExtractPairs extends AnyFlatSpec with BeforeAndAfterAll{
     val intervals2 = Intervals.intervals(data2, metaData.last_interval, config.split_every_days)
     val combinedInvertedFull2 = dbConnector.write_single_table(invertedSingleFull2, metaData)
     val last_checked = dbConnector.read_last_checked_table(metaData)
-    val x2 = ExtractPairs.extract(combinedInvertedFull2, last_checked, intervals2, config.lookback_days)
-    val pairs_c = x2._1.collect()
-    val last_checked_c = x2._2.collect()
-    assert(pairs_c.length == 9)
-    assert(last_checked_c.length == 9)
-    assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "a") == 2)
+//    val x2 = ExtractPairs.extract(combinedInvertedFull2, last_checked, intervals2, config.lookback_days)
+    val x2 = ExtractPairsSimple.extract(combinedInvertedFull2, last_checked, intervals2, config.lookback_days)
+
+    pairs_c = x2._1.collect()
+    last_checked_c = x2._2.collect()
+    assert(pairs_c.length == 11)
+    assert(last_checked_c.length == 11)
+    assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "a") == 3)
     assert(pairs_c.count(x => x.eventA == "c" && x.eventB == "a") == 2)
     assert(pairs_c.count(x => x.eventA == "b" && x.eventB == "a") == 1)
     assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "b") == 1)
     assert(pairs_c.count(x => x.eventA == "c" && x.eventB == "c") == 1)
     assert(pairs_c.count(x => x.eventA == "b" && x.eventB == "c") == 1)
     assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "c") == 1)
+    assert(pairs_c.count(x => x.eventA == "b" && x.eventB == "b") == 1)
+
+
+
   }
 
   it should "Split the index table every 30 days - lookback 30 (2)" in {
@@ -105,13 +126,13 @@ class TestExtractPairs extends AnyFlatSpec with BeforeAndAfterAll{
     this.dbConnector.initialize_db(config)
     this.metaData = dbConnector.get_metadata(config)
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
-    dbConnector.write_sequence_table(data, metaData)
     val intervals = Intervals.intervals(data, "", config.split_every_days)
     metaData.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
     val lp = dbConnector.write_sequence_table(data, metaData)
     val invertedSingleFull = ExtractSingle.extractFull(data, lp)
     val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metaData)
-    val x = ExtractPairs.extract(combinedInvertedFull, null, intervals, config.lookback_days)
+//    val x = ExtractPairs.extract(combinedInvertedFull, null, intervals, config.lookback_days)
+    val x = ExtractPairsSimple.extract(combinedInvertedFull, null, intervals, config.lookback_days)
     dbConnector.write_last_checked_table(x._2, metaData)
     dbConnector.write_index_table(x._1, metaData, intervals)
     val counts = ExtractCounts.extract(x._1)
@@ -128,15 +149,16 @@ class TestExtractPairs extends AnyFlatSpec with BeforeAndAfterAll{
     val x2 = ExtractPairs.extract(combinedInvertedFull2, last_checked, intervals2, config.lookback_days)
     val pairs_c = x2._1.collect()
     val last_checked_c = x2._2.collect()
-    assert(pairs_c.length == 9)
-    assert(last_checked_c.length == 9)
-    assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "a") == 2)
+    assert(pairs_c.length == 11)
+    assert(last_checked_c.length == 11)
+    assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "a") == 3)
     assert(pairs_c.count(x => x.eventA == "c" && x.eventB == "a") == 2)
     assert(pairs_c.count(x => x.eventA == "b" && x.eventB == "a") == 1)
     assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "b") == 1)
     assert(pairs_c.count(x => x.eventA == "c" && x.eventB == "c") == 1)
     assert(pairs_c.count(x => x.eventA == "b" && x.eventB == "c") == 1)
     assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "c") == 1)
+    assert(pairs_c.count(x => x.eventA == "b" && x.eventB == "b") == 1)
   }
 
   it should "Split the index table every 30 days - lookback 10 (2)" in {
@@ -146,13 +168,13 @@ class TestExtractPairs extends AnyFlatSpec with BeforeAndAfterAll{
     this.dbConnector.initialize_db(config)
     this.metaData = dbConnector.get_metadata(config)
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
-    dbConnector.write_sequence_table(data, metaData)
     val intervals = Intervals.intervals(data, "", config.split_every_days)
     metaData.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
     val lp = dbConnector.write_sequence_table(data, metaData)
     val invertedSingleFull = ExtractSingle.extractFull(data, lp)
     val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metaData)
-    val x = ExtractPairs.extract(combinedInvertedFull, null, intervals, config.lookback_days)
+//    val x = ExtractPairs.extract(combinedInvertedFull, null, intervals, config.lookback_days)
+    val x = ExtractPairsSimple.extract(combinedInvertedFull, null, intervals, config.lookback_days)
     dbConnector.write_last_checked_table(x._2, metaData)
     dbConnector.write_index_table(x._1, metaData, intervals)
     val counts = ExtractCounts.extract(x._1)
@@ -166,7 +188,8 @@ class TestExtractPairs extends AnyFlatSpec with BeforeAndAfterAll{
     val intervals2 = Intervals.intervals(data2, metaData.last_interval, config.split_every_days)
     val combinedInvertedFull2 = dbConnector.write_single_table(invertedSingleFull2, metaData)
     val last_checked = dbConnector.read_last_checked_table(metaData)
-    val x2 = ExtractPairs.extract(combinedInvertedFull2, last_checked, intervals2, config.lookback_days)
+//    val x2 = ExtractPairs.extract(combinedInvertedFull2, last_checked, intervals2, config.lookback_days)
+    val x2 = ExtractPairsSimple.extract(combinedInvertedFull2, last_checked, intervals2, config.lookback_days)
     val pairs_c = x2._1.collect()
     val last_checked_c = x2._2.collect()
     assert(pairs_c.length == 4)
@@ -183,13 +206,13 @@ class TestExtractPairs extends AnyFlatSpec with BeforeAndAfterAll{
     this.dbConnector.initialize_db(config)
     this.metaData = dbConnector.get_metadata(config)
     val data = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
-    dbConnector.write_sequence_table(data, metaData)
     val intervals = Intervals.intervals(data, "", config.split_every_days)
     metaData.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
     val lp = dbConnector.write_sequence_table(data, metaData)
     val invertedSingleFull = ExtractSingle.extractFull(data, lp)
     val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metaData)
-    val x = ExtractPairs.extract(combinedInvertedFull, null, intervals, config.lookback_days)
+//    val x = ExtractPairs.extract(combinedInvertedFull, null, intervals, config.lookback_days)
+    val x = ExtractPairsSimple.extract(combinedInvertedFull, null, intervals, config.lookback_days)
     dbConnector.write_last_checked_table(x._2, metaData)
     dbConnector.write_index_table(x._1, metaData, intervals)
     val counts = ExtractCounts.extract(x._1)
@@ -203,15 +226,17 @@ class TestExtractPairs extends AnyFlatSpec with BeforeAndAfterAll{
     val intervals2 = Intervals.intervals(data2, metaData.last_interval, config.split_every_days)
     val combinedInvertedFull2 = dbConnector.write_single_table(invertedSingleFull2, metaData)
     val last_checked = dbConnector.read_last_checked_table(metaData)
-    val x2 = ExtractPairs.extract(combinedInvertedFull2, last_checked, intervals2, config.lookback_days)
+//    val x2 = ExtractPairs.extract(combinedInvertedFull2, last_checked, intervals2, config.lookback_days)
+    val x2 = ExtractPairsSimple.extract(combinedInvertedFull2, last_checked, intervals2, config.lookback_days)
     val pairs_c = x2._1.collect()
     val last_checked_c = x2._2.collect()
-    assert(pairs_c.length == 5)
-    assert(last_checked_c.length == 5)
-    assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "a") == 1)
+    assert(pairs_c.length == 7)
+    assert(last_checked_c.length == 7)
+    assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "a") == 2)
     assert(pairs_c.count(x => x.eventA == "c" && x.eventB == "a") == 2)
     assert(pairs_c.count(x => x.eventA == "b" && x.eventB == "a") == 1)
     assert(pairs_c.count(x => x.eventA == "a" && x.eventB == "b") == 1)
+    assert(pairs_c.count(x => x.eventA == "b" && x.eventB == "b") == 1)
   }
 
   override def afterAll(): Unit = {

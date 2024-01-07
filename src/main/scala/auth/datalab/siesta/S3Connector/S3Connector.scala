@@ -8,10 +8,10 @@ import auth.datalab.siesta.Utils.Utilities
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.apache.spark.sql.catalyst.ScalaReflection
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
 import java.net.URI
@@ -22,7 +22,7 @@ import java.net.URI
  * S3 stores data in parquet files. These files allow for objects to be stored and some indexing that enables efficient query.
  * The drawback is that parquet files are immutable and thus in order to append new records to a preexisting parquet
  * file we have to rewrite the whole file.
-
+ *
  */
 class S3Connector extends DBConnector {
   private var seq_table: String = _
@@ -38,7 +38,7 @@ class S3Connector extends DBConnector {
   override def initialize_spark(config: Config): Unit = {
     lazy val spark = SparkSession.builder()
       .appName("SIESTA indexing")
-      //      .master("local[*]")
+//      .master("local[*]")
       .getOrCreate()
 
     val s3accessKeyAws = Utilities.readEnvVariable("s3accessKeyAws")
@@ -98,7 +98,6 @@ class S3Connector extends DBConnector {
     Logger.getLogger("Metadata").log(Level.INFO, s"Getting metadata")
     val start = System.currentTimeMillis()
     val spark = SparkSession.builder().getOrCreate()
-    import spark.implicits._
     //get previous values if exists
     val schema = ScalaReflection.schemaFor[MetaData].dataType.asInstanceOf[StructType]
     val metaDataObj = try {
@@ -185,21 +184,22 @@ class S3Connector extends DBConnector {
     Logger.getLogger("Single Table Write").log(Level.INFO, s"Start writing single table")
     val start = System.currentTimeMillis()
     val newEvents = singleRDD.map(x => x.times.size).reduce((x, y) => x + y)
+    val new_traces = singleRDD.map(_.id).distinct().collect().toSet
     val previousSingle = read_single_table(metaData)
     val combined = combine_single_table(singleRDD, previousSingle)
+    combined.persist(StorageLevel.MEMORY_AND_DISK)
     val df = S3Transformations.transformSingleToDF(combined) //transform
     metaData.events += newEvents //count and update metadata
-    df.persist(StorageLevel.MEMORY_AND_DISK)
     //partition based on the event type
     df
       .repartition(col("event_type"))
       .write
       .partitionBy("event_type")
       .mode(SaveMode.Overwrite).parquet(single_table) //store to s3
-    df.unpersist()
+
     val total = System.currentTimeMillis() - start
     Logger.getLogger("Single Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
-    combined
+    combined.filter(x=>new_traces.contains(x.id))
   }
 
   /**
@@ -230,28 +230,68 @@ class S3Connector extends DBConnector {
     val spark = SparkSession.builder().getOrCreate()
     try {
       val df = spark.read.parquet(last_checked_table)
-      S3Transformations.transformLastCheckedToRDD(df)
+      if (metaData.last_checked_split == 0) {
+        S3Transformations.transformLastCheckedToRDD(df)
+      } else {
+        S3Transformations.transformPartitionLastCheckedToRDD(df)
+      }
+
     } catch {
       case _: org.apache.spark.sql.AnalysisException => null
     }
   }
 
   /**
+   * Returns records from LastChecked Table that corresponds to the given partitions
+   * @param metaData Object containing the metadata
+   * @param partitions Contains the partitions of the required records from LastChecked. If the list is empty all
+   *                   the records from LastChecked will be read.
+   *  @return An RDD with the last timestamps per event type pair per trace
+   */
+  override def read_last_checked_partitioned_table(metaData: MetaData, partitions: List[Long]): RDD[Structs.LastChecked] = {
+    if(partitions.isEmpty){
+      return read_last_checked_table(metaData)
+    }
+    val spark = SparkSession.builder().getOrCreate()
+    try {
+      val parqDF = spark.read.parquet(this.last_checked_table) //loads data
+      if (metaData.last_checked_split == 0) {
+        S3Transformations.transformLastCheckedToRDD(parqDF)
+      } else {
+        val parkSQL = parqDF.filter(parqDF("partition").isin(partitions:_*))
+        S3Transformations.transformPartitionLastCheckedToRDD(parkSQL)
+      }
+    } catch {
+      case _: org.apache.spark.sql.AnalysisException => null
+    }
+  }
+
+
+  /**
    * Stores new records for last checked back in the database
    *
-   * @param lastChecked Records containing the timestamp of last completion for each event type pair for each trace
+   * @param lastChecked Records containing the timestamp of last completion for each event type pair for each trace combined
+   *                    with the records that were previously read from the LastChecked Table. that way douplicate
+   *                    read is avoided
    * @param metaData    Object containing the metadata
    */
   override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData): Unit = {
     Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"Start writing LastChecked table")
     val start = System.currentTimeMillis()
-    val previousLastChecked = this.read_last_checked_table(metaData) //loads data
-    val combined = this.combine_last_checked_table(lastChecked, previousLastChecked) //combine them
-    val df = S3Transformations.transformLastCheckedToDF(combined) //transform them
-    //partition based on the first event
-    df.repartition(col("eventA"))
-      .write.partitionBy("eventA")
-      .mode(SaveMode.Overwrite).parquet(last_checked_table)
+    val spark = SparkSession.builder().getOrCreate()
+
+    if (metaData.last_checked_split == 0) { //no partition was used
+      val df = S3Transformations.transformLastCheckedToDF(lastChecked) //transform them
+      df.repartition(col("eventA"))
+        .write.partitionBy("eventA")
+        .mode(SaveMode.Overwrite).parquet(last_checked_table)
+    } else { //transform them using using the partition
+      val df = S3Transformations.transformLastCheckedToPartitionedDF(lastChecked, metaData)
+      df
+        .repartition(col("partition"), col("eventA"))
+        .write.partitionBy("partition", "eventA")
+        .mode(SaveMode.Overwrite).parquet(last_checked_table)
+    }
     val total = System.currentTimeMillis() - start
     Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
   }
@@ -312,7 +352,7 @@ class S3Connector extends DBConnector {
     metaData.pairs += newPairs.count() //update metadata
     val df = S3Transformations.transformIndexToDF(combined, metaData) //transform them
     //partition by the interval (start and end) and the first event of the event type pair
-    df.repartition(col("interval"))
+    df.repartition(col("interval"),col("eventA"))
       .select("interval.start", "interval.end", "eventA", "eventB", "occurrences")
       .write.partitionBy("start", "end", "eventA")
       .mode(SaveMode.Overwrite).parquet(this.index_table)
@@ -347,7 +387,7 @@ class S3Connector extends DBConnector {
     val start = System.currentTimeMillis()
     val previousIndexed = this.read_count_table(metaData) //read data
     val combined = this.combine_count_table(counts, previousIndexed, metaData) //combine them
-    val df = S3Transformations.transformCountToDF(combined)//transform them
+    val df = S3Transformations.transformCountToDF(combined) //transform them
     //partition by the first event in the event type pair
     df.repartition(col("eventA"))
       .write.partitionBy("eventA")

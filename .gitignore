@@ -38,3 +38,6 @@ pythonAPI/.idea
 pythonAPI/venv
 .bsp
 
+*.db
+*/env
+*/__pycache__/*

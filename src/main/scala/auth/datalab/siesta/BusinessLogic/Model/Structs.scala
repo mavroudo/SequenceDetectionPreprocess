@@ -32,6 +32,7 @@ object Structs {
   //For last_checked
   case class LastChecked (eventA:String,eventB:String, id: Long, timestamp:String)
   case class LastCheckedDF (eventA:String, eventB:String,occurrences: List[IdTime])
+  case class LastCheckedPartitionedDF(eventA:String,eventB:String,timestamp: String, id:Long, partition:Long)
 
   //Extract Pairs
   case class PairFull(eventA:String,eventB:String,id:Long,timeA:Timestamp,timeB:Timestamp,positionA:Int,positionB:Int,interval:Interval)
