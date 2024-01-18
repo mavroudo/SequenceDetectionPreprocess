@@ -20,7 +20,7 @@ model.Base.metadata.create_all(bind=engine)
 
 spark_location = "/opt/spark/bin/spark-submit"
 
-ALLOWED_EXTENSIONS = {'withTimestamp', 'xes', 'jpg', 'pdf'}
+ALLOWED_EXTENSIONS = {'withTimestamp', 'xes'}
 env_vars = {"cassandra_host": "localhost", "cassandra_port": 9042, "cassandra_user": "cassandra",
             "cassandra_pass": "cassandra", "cassandra_replication_factor": 1, "cassandra_gc_grace_seconds": 864000,
             "s3accessKeyAws": "minioadmin", "s3ConnectionTimeout": 600000, "s3endPointLoc": "http://localhost:9000",
