@@ -1,11 +1,13 @@
 version: '3.7'
 services:
   preprocess:
-    image: mavroudo/siesta-preprocess:2.2
+    image: mavroudo/siesta-preprocess:2
     ports:
       - "8000:8000"
     networks:
       - siesta-net
+    volumes:
+      - preprocesses:/app/pythonAPI/dbSQL
     environment:
       cassandra_host: cassandra
       cassandra_port: 9042
@@ -52,23 +54,6 @@ services:
 #      - siesta-net
 
 
-#    build:
-#      context: ../
-#      dockerfile: dockerbase/preprocessWithAPI.Dockerfile
-#    ports:
-#      - "8000:8000"
-#      - "8080:8080"
-#    volumes:
-#      - ../pythonAPI/uploadedfiles:/app/pythonAPI/uploadedfiles
-#      - ../pythonAPI/dbSQL:/app/pythonAPI/dbSQL
-#    networks:
-#      - siesta-net
-#
-#networks:
-#  siesta-net:
-#    external:
-#      name: siesta-net
-
 networks:
   siesta-net:
     name: siesta-net
@@ -76,3 +61,4 @@ networks:
 
 volumes:
   minio_storage: {}
+  preprocesses: {}
