@@ -15,9 +15,12 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     command: server --console-address ":9001" /data
     networks:
-      - trineflex-net
+      - siesta-net
 
 networks:
   siesta-net:
     external:
       name: siesta-net
+
+volumes:
+  minio_storage: {}
