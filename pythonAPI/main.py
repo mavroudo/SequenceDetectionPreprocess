@@ -155,7 +155,6 @@ async def preprocess_file(params: PreprocessItem, db: Session = Depends(get_db))
      and preprocessing parameters (e.g. lookback, compression etc.)\n
     '''
     process = crud.start_process(db)
-    print(os.getcwd())
     if not lock.locked():
         lock.acquire()
         thread = Thread(target=task, args=(spark_location, params, process.id, lock))
