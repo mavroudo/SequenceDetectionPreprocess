@@ -54,8 +54,9 @@ ENV cassandra_write_consistency_level=ONE
 ENV cassandra_gc_grace_seconds=864000
 ENV s3accessKeyAws=minioadmin
 ENV s3ConnectionTimeout=600000
-ENV s3endPointLoc=http://minio-contact:9000
+ENV s3endPointLoc=http://minio:9000
 ENV s3secretKeyAws=minioadmin
 
 #start the api
-CMD ["python3","-m","uvicorn","main:app","--host", "0.0.0.0"]
+#CMD ["python3","-m","uvicorn","main:app","--host", "0.0.0.0"]
+CMD ["python3","main.py"]
