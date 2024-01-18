@@ -7,6 +7,7 @@ services:
       dockerfile: dockerbase/preprocessWithAPI.Dockerfile
     ports:
       - "8000:8000"
+      - "8080:8080"
     volumes:
       - ../pythonAPI/uploadedfiles:/app/pythonAPI/uploadedfiles
       - ../pythonAPI/dbSQL/sql.db:/app/pythonAPI/dbSQL/sql.db
