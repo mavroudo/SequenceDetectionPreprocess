@@ -1,6 +1,8 @@
 import os
 import uuid
 from threading import Lock, Thread
+
+import uvicorn
 from fastapi import FastAPI, Depends
 from fastapi import File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -153,9 +155,10 @@ async def preprocess_file(params: PreprocessItem, db: Session = Depends(get_db))
      and preprocessing parameters (e.g. lookback, compression etc.)\n
     '''
     process = crud.start_process(db)
+    print(os.getcwd())
     if not lock.locked():
         lock.acquire()
-        thread = Thread(target=task, args=(spark_location, params.getAttributes(), process.id, lock))
+        thread = Thread(target=task, args=(spark_location, params, process.id, lock))
         thread.start()
         return JSONResponse(content={"process_id": process.id}, status_code=200)
     else:
@@ -250,3 +253,7 @@ async def upload_log_file(file: UploadFile = File(...)):
     finally:
         file.file.close()
     return JSONResponse(content={"message": f"Successfully uploaded {file.filename}", "uuid": str(id)}, status_code=200)
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
