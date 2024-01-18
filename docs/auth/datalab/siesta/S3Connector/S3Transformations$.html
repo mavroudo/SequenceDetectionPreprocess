@@ -517,7 +517,8 @@ Therefore there are 2 transformations for each table, one to load data and one t
       <p class="shortcomment cmt">The required format is [event_typeA, List of statistics], where each statistic has the structure:
 [event_typeB, total_duration, number_of_completions, min_duration, max_duration].</p><div class="fullcomment"><div class="comment cmt"><p>The required format is [event_typeA, List of statistics], where each statistic has the structure:
 [event_typeB, total_duration, number_of_completions, min_duration, max_duration]. That is
-for each event type pair, we maintain the following statistics:</p><ul><li>Total duration: sum of all the timestamp differences for each occurrence of this event type</li><li>Total completions: the total number of appearances of this event in the log database</li><li>Min duration: the minimum difference between the two timestamps of the events for this event type pair</li><li>Max duration: the maximum difference between the two timestamps of the events for this event type pair</li></ul></div><dl class="paramcmts block"><dt class="param">counts</dt><dd class="cmt"><p>The RDD containing the statistics for each event type pair</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed Dataframe</p></dd></dl></div>
+for each event type pair, we maintain the following statistics:</p><ul><li>Total duration: sum of all the timestamp differences for each occurrence of this event type</li><li>Total completions: the total number of appearances of this event in the log database</li><li>Min duration: the minimum difference between the two timestamps of the events for this event type pair</li><li>Max duration: the maximum difference between the two timestamps of the events for this event type pair
+</li></ul></div><dl class="paramcmts block"><dt class="param">counts</dt><dd class="cmt"><p>The RDD containing the statistics for each event type pair</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed Dataframe</p></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Transformations#transformCountToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformCountToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count]"></a><a id="transformCountToRDD(DataFrame):RDD[Count]"></a>
       <span class="permalink">
@@ -582,7 +583,8 @@ each occurrence has the structure: [trace_id, timestampA, timestampB] if timesta
 each occurrence has the structure: [trace_id, timestampA, timestampB] if timestamps where used or
 [trace_id,positionA, positionB] if positions where used.
 In the second case we save space by just keeping the position of the events in the trace rather than the exact
-timestamp (replace 20 characters with a single integer).</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded inverted index using event type pairs</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object of metadata</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD</p></dd></dl></div>
+timestamp (replace 20 characters with a single integer).
+</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded inverted index using event type pairs</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object of metadata</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD</p></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Transformations#transformLastCheckedToDF" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformLastCheckedToDF(lastchecked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]):org.apache.spark.sql.DataFrame"></a><a id="transformLastCheckedToDF(RDD[LastChecked]):DataFrame"></a>
       <span class="permalink">
@@ -604,6 +606,24 @@ timestamp (replace 20 characters with a single integer).</p></div><dl class="par
 this event occurred in each trace. This information is latter utilized to facilitate in the efficient incremental
 indexing
 </p></div><dl class="paramcmts block"><dt class="param">lastchecked</dt><dd class="cmt"><p>The RDD containing the last timestamps for each event type pair per trace</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed Dataframe</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.S3Connector.S3Transformations#transformLastCheckedToPartitionedDF" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="transformLastCheckedToPartitionedDF(lastchecked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.sql.DataFrame"></a><a id="transformLastCheckedToPartitionedDF(RDD[LastChecked],MetaData):DataFrame"></a>
+      <span class="permalink">
+      <a href="../../../../auth/datalab/siesta/S3Connector/S3Transformations$.html#transformLastCheckedToPartitionedDF(lastchecked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.sql.DataFrame" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">transformLastCheckedToPartitionedDF</span><span class="params">(<span name="lastchecked">lastchecked: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">The required format is [event_typeA, event_typeB, timestamp, trace id, partition].</p><div class="fullcomment"><div class="comment cmt"><p>The required format is [event_typeA, event_typeB, timestamp, trace id, partition]. This format is based on splitting
+the last checked using partitions
+</p></div><dl class="paramcmts block"><dt class="param">lastchecked</dt><dd class="cmt"><p>The RDD containing the last timestamps for each event type pair per trace</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed Dataframe</p></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Transformations#transformLastCheckedToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformLastCheckedToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]"></a><a id="transformLastCheckedToRDD(DataFrame):RDD[LastChecked]"></a>
       <span class="permalink">
@@ -623,7 +643,27 @@ indexing
 [trace_id, last timestamp].</p><div class="fullcomment"><div class="comment cmt"><p>The stored format is [event_typeA, event_typeB, List of occurrences], where each occurrence has the structure:
 [trace_id, last timestamp]. So for each event type pair we maintain the information when was the last time that
 this event occurred in each trace. This information is latter utilized to facilitate in the efficient incremental
-indexing</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded LastChecked information from S3</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD</p></dd></dl></div>
+indexing
+</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded LastChecked information from S3</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD</p></dd></dl></div>
+    </li><li name="auth.datalab.siesta.S3Connector.S3Transformations#transformPartitionLastCheckedToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="transformPartitionLastCheckedToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]"></a><a id="transformPartitionLastCheckedToRDD(DataFrame):RDD[LastChecked]"></a>
+      <span class="permalink">
+      <a href="../../../../auth/datalab/siesta/S3Connector/S3Transformations$.html#transformPartitionLastCheckedToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">transformPartitionLastCheckedToRDD</span><span class="params">(<span name="df">df: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">The stored format is [event_typeA, event_typeB, timestamp, id, partition].</p><div class="fullcomment"><div class="comment cmt"><p>The stored format is [event_typeA, event_typeB, timestamp, id, partition]. Therefore, it is easy to extract
+the LastChecked dataframe
+This information is latter utilized to facilitate in the efficient incremental indexing
+</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded LastChecked information from S3</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD</p></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Transformations#transformSeqToDF" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformSeqToDF(sequenceRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]):org.apache.spark.sql.DataFrame"></a><a id="transformSeqToDF(RDD[Sequence]):DataFrame"></a>
       <span class="permalink">
@@ -639,7 +679,9 @@ indexing</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class
         <span class="name">transformSeqToDF</span><span class="params">(<span name="sequenceRDD">sequenceRDD: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>
       </span>
       
-      <p class="shortcomment cmt">The required format is [trace_id, List of events], where each event is [event_type, timestamp]</p><div class="fullcomment"><div class="comment cmt"><p>The required format is [trace_id, List of events], where each event is [event_type, timestamp]</p></div><dl class="paramcmts block"><dt class="param">sequenceRDD</dt><dd class="cmt"><p>The RDD containing the traces</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed Dataframe</p></dd></dl></div>
+      <p class="shortcomment cmt">The required format is [trace_id, List of events], where each event is [event_type, timestamp]
+</p><div class="fullcomment"><div class="comment cmt"><p>The required format is [trace_id, List of events], where each event is [event_type, timestamp]
+</p></div><dl class="paramcmts block"><dt class="param">sequenceRDD</dt><dd class="cmt"><p>The RDD containing the traces</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed Dataframe</p></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Transformations#transformSeqToRDD" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformSeqToRDD(df:org.apache.spark.sql.DataFrame):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]"></a><a id="transformSeqToRDD(DataFrame):RDD[Sequence]"></a>
       <span class="permalink">
@@ -655,7 +697,9 @@ indexing</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class
         <span class="name">transformSeqToRDD</span><span class="params">(<span name="df">df: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">The stored format is [trace_id, List of events], where each event is [event_type, timestamp]</p><div class="fullcomment"><div class="comment cmt"><p>The stored format is [trace_id, List of events], where each event is [event_type, timestamp]</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded traces from S3</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD of traces</p></dd></dl></div>
+      <p class="shortcomment cmt">The stored format is [trace_id, List of events], where each event is [event_type, timestamp]
+</p><div class="fullcomment"><div class="comment cmt"><p>The stored format is [trace_id, List of events], where each event is [event_type, timestamp]
+</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded traces from S3</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD of traces</p></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Transformations#transformSingleToDF" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformSingleToDF(singleRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]):org.apache.spark.sql.DataFrame"></a><a id="transformSingleToDF(RDD[InvertedSingleFull]):DataFrame"></a>
       <span class="permalink">
@@ -694,7 +738,8 @@ where the timestamps and positions correspond to the where and when the event ty
       <p class="shortcomment cmt">The stored format is [event_type, List of occurrences], where each occurrence contains the occurrences of this event type
 in a particular trace.</p><div class="fullcomment"><div class="comment cmt"><p>The stored format is [event_type, List of occurrences], where each occurrence contains the occurrences of this event type
 in a particular trace. Therefore an occurrence has the structure [trace_id, list of timestamps, list of position],
-where the timestamps and positions correspond to the where and when the event type occurred in the trace.</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded single inverted index from S3</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD</p></dd></dl></div>
+where the timestamps and positions correspond to the where and when the event type occurred in the trace.
+</p></div><dl class="paramcmts block"><dt class="param">df</dt><dd class="cmt"><p>The loaded single inverted index from S3</p></dd><dt>returns</dt><dd class="cmt"><p>The transformed RDD</p></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">

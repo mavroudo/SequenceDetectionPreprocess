@@ -166,9 +166,9 @@
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class describes the main pipeline of the index building. The procedure includes the following steps:</p><ul><li>Initialize connection with db (configure spark, drop tables if needed, create the new ones)</li><li>Create/Load Metadata object from the configuration object</li><li>Load/Generate traces to be indexed (based on configuration passed)</li><li>Store traces to the SequenceTable</li><li>Extract single index and store it to SingleTable</li><li>Calculate event type pairs and the last timestamp that they occurred per trace (based on the SingleTable data)</li><li>Store inverted index using event type pairs in IndexTable</li><li>Store the last timestamp for each event type per trace in LastChecked table</li><li>Create/Load-merge statistics for each event type pair and store them in CountTable</li><li>Store the updated Metadata object
-The methods that are used to perform the following procedures are described in
-<a href="../BusinessLogic/DBConnector/index.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector">auth.datalab.siesta.BusinessLogic.DBConnector</a> so that SIESTA can be connected with a new database by simply
-extend this class and implement the corresponding methods.
+   The methods that are used to perform the following procedures are described in
+   <a href="../BusinessLogic/DBConnector/index.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector">auth.datalab.siesta.BusinessLogic.DBConnector</a> so that SIESTA can be connected with a new database by simply
+   extend this class and implement the corresponding methods.
 </li></ul></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
