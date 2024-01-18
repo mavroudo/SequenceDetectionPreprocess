@@ -9,6 +9,7 @@ services:
       - "8000:8000"
     volumes:
       - ../pythonAPI/uploadedfiles:/app/pythonAPI/uploadedfiles
+      - ../pythonAPI/dbSQL/sql.db:/app/pythonAPI/dbSQL/sql.db
     networks:
       - siesta-net
 
