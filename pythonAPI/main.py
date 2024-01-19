@@ -5,28 +5,43 @@ from threading import Lock, Thread
 import uvicorn
 from fastapi import FastAPI, Depends
 from fastapi import File, UploadFile
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from fastapi.encoders import jsonable_encoder
+from sqlalchemy.orm import scoped_session
+
 from EnvironmentVariables import EnvironmentVariables
 from PreprocessItem import PreprocessItem
-import subprocess, threading
-
 from PreprocessTask import task
 from dbSQL import crud, model
 from dbSQL.database import SessionLocal, engine
-from sqlalchemy.orm import scoped_session
 
 model.Base.metadata.create_all(bind=engine)
 
 spark_location = "/opt/spark/bin/spark-submit"
 
 ALLOWED_EXTENSIONS = {'withTimestamp', 'xes'}
-env_vars = {"cassandra_host": "localhost", "cassandra_port": 9042, "cassandra_user": "cassandra",
-            "cassandra_pass": "cassandra", "cassandra_replication_factor": 1, "cassandra_gc_grace_seconds": 864000,
-            "s3accessKeyAws": "minioadmin", "s3ConnectionTimeout": 600000, "s3endPointLoc": "http://localhost:9000",
-            "s3secretKeyAws": "minioadmin"}
+
+cassandra_host = "localhost" if os.environ.get("cassandra_host") is None else os.environ["cassandra_host"]
+cassandra_port = 9042 if os.environ.get("cassandra_port") is None else os.environ["cassandra_port"]
+cassandra_user = "cassandra" if os.environ.get("cassandra_user") is None else os.environ["cassandra_user"]
+cassandra_pass = "cassandra" if os.environ.get("cassandra_pass") is None else os.environ["cassandra_pass"]
+cassandra_replication_factor = 1 if os.environ.get("cassandra_replication_factor") is None else os.environ[
+    "cassandra_replication_factor"]
+cassandra_gc_grace_seconds = 864000 if os.environ.get("cassandra_gc_grace_seconds") is None else os.environ[
+    "cassandra_gc_grace_seconds"]
+
+s3accessKeyAws = "minioadmin" if os.environ.get("s3accessKeyAws") is None else os.environ["s3accessKeyAws"]
+s3secretKeyAws = "minioadmin" if os.environ.get("s3secretKeyAws") is None else os.environ["s3secretKeyAws"]
+s3ConnectionTimeout = 600000 if os.environ.get("s3ConnectionTimeout") is None else os.environ["s3ConnectionTimeout"]
+s3endPointLoc = "http://localhost:9000" if os.environ.get("s3endPointLoc") is None else os.environ["s3endPointLoc"]
+
+env_vars = {"cassandra_host": cassandra_host, "cassandra_port": cassandra_port, "cassandra_user": cassandra_user,
+            "cassandra_pass": cassandra_pass, "cassandra_replication_factor": cassandra_replication_factor,
+            "cassandra_gc_grace_seconds": cassandra_gc_grace_seconds,
+            "s3accessKeyAws": s3accessKeyAws, "s3ConnectionTimeout": s3ConnectionTimeout,
+            "s3endPointLoc": s3endPointLoc, "s3secretKeyAws": s3secretKeyAws}
 
 app = FastAPI()
 
@@ -155,7 +170,6 @@ async def preprocess_file(params: PreprocessItem, db: Session = Depends(get_db))
      and preprocessing parameters (e.g. lookback, compression etc.)\n
     '''
     process = crud.start_process(db)
-    print(os.getcwd())
     if not lock.locked():
         lock.acquire()
         thread = Thread(target=task, args=(spark_location, params, process.id, lock))

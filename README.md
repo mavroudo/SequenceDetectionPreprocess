@@ -45,39 +45,42 @@ a new network using the following command:
 docker network create --driver=bridge  siesta-net
 ```
 
-2. **Deploy database:** From the root directory execute the following commands:
+2. **Deploy the infrastructure:** From the root directory execute the following command:
 ```bash
-docker-compose -f dockerbase/docker-compose-s3.yml up -d
-```   
-for the S3
+docker-compose up -d 
+```
+This will deploy the entire SIESTA infrastructure, which includes the Preprocessing Component
+(integrated with a Python REST API implemented in FastAPI), the Query Processor, and the User Interface. 
+Additionally, it deploys a database for index storage. Currently, MinIO (S3) is active, while Cassandra is commented out.
+You can choose to switch between these two, or use environmental variables to set up a connection with another database.
 
-```bash
-docker-compose -f dockerbase/docker-compose-cassandra.yml up -d
-```  
-for the Cassandra. The database will be deployed locally, opening the default ports, and then it will be
-detached.
+Before executing the preprocessing with S3, note that you must create a new bucket named **siesta**.
+You can access the different services from the following endpoints:
 
-If you decide to use S3, you have to create a new bucket named "**siesta**" before proceeding to the next step. To do that
-login to http://localhost:9000 using for both username and password **minioadmin** (default option for minio). Click on
-**Buckets** from the left and then press **Create Bucket**. Use the default settings.
+- FastAPI: http://localhost:8000/#docs
+- S3: http://localhost:9000 (default username/password: minionadmin/minioadmin)
 
-3. **Build Docker image:** From the root directory run the following command:
+
+### Build the preprocess component separately 
+1. **Build Docker image:** From the root directory run the following command:
 ```bash
 docker build -t preprocess -f dockerbase/Dockerfile .
 ```
 This will download all the dependencies, build the jar file and finally download the spark component. The image is now
 ready to be executed.
 
-4. **Run image:** After image was built it can be run with the 
+2. **Deploy a database:** You can run from the root directory ```docker-compose up -d minio``` to deploy S3,
+ or ```docker-compose up -d cassandra``` to deploy Cassandra.
+
+3. **Run image:** if S3 is utilized 
 ```bash
 docker run --network siesta-net preprocess
 ```
-
-if S3 is utilized or
+if Cassandra is utilized
 ```bash
 docker run --network siesta-net preprocess -d cassandra
 ``` 
-for Cassandra. The default execution will  generate 200 synthetic traces, 
+The default execution will  generate 200 synthetic traces, 
 using 10 different event types, and lengths that vary from 10 to 90 events. The inverted indices will be stored
 using "test" as the logname.
 
@@ -86,43 +89,42 @@ Connecting to already deployed databases or utilizing a spark cluster can be eas
 of parameters. The only thing that you should make sure is that their urls are accessible
 by the docker container. this can be done by either making the url publicly available or by connecting the
 docker container in the same network (as done above with the siesta-net).
-- **Connect with spark cluster:** Change the value of the "**--master**" parameter in the ENTRYPOINT of the 
-Dockerfile from "**local[*]**" to the resource manager's url. 
+- **Connect with spark cluster (with the api):** Change the value of the Spark master parameter before submitting the
+preprocess job from "**local[*]**" to the resource manager's url. 
+- **Connect with spark cluster (standalone):** Change the value of the "**--master**" parameter in the ENTRYPOINT of the 
+Dockerfile from "**local[*]**" to the resource manager's url. At the end build the image again before executing it.
 - **Connect with Cassandra:** Change the values environmental parameters that start with **cassandra\_**. 
 These parameters include the contact point and the credentials required to achieve connection.
 - **Connect with S3:** Change the values environmental parameters that start with **s3**.
    These parameters include the contact point and the credentials required to achieve connection.
 
-At the end build the image again before executing it.
+
 
 ### Executing preprocess for a provided logfile
 Till now the supported file extensions are "**.xes**", which are the default file for the Business Process
 Management logfiles and "**.withTimestamp**", which is a generic file format generated for testing. A new
 connector can be easily implemented in the _auth.datalab.siesta.BusinessLogic.IngestData.ReadLogFile_. 
 
-In order to execute the preprocess for a provided logfile you need to take 2 steps. First ensure that the
+You can either submit a file to be preprocessed through the User Interface (Preprocessing tab), through the FastAPI docs
+or in the standalone format. For the last one you need to take 2 steps.
+First ensure that the
 logfile is visible inside the docker container and second execute the preprocessing with the appropriate
 parameters. Therefore, place the logfile you want to preprocess inside the _experiments/input_ file. 
 Assuming that the logfile is named "log.xes" and the indices should have the name "log" run the following
 command from the root directory:
+
+You can submit a file for preprocessing through the User Interface (under the Preprocessing tab), 
+via the FastAPI docs, or in standalone format. For the latter, two steps are required. 
+First, ensure that the logfile is visible inside the Docker container. 
+Second, execute the preprocessing with the appropriate parameters.
+To do this, place the logfile you wish to preprocess inside the _experiments/input_ directory. 
+Assuming that the logfile is named log.xes and the indices should be named log,
+run the following command from the root directory:
+
 ```bash
 docker run  --mount type=bind,source="$(pwd)"/experiments/input,target=/app/input \
-  preprocess -f /input/log.xes --logname log
+  preprocess -f /app/input/log.xes --logname log
 ```
-### Execute preprocessing through API
-
-There is another way to execute the preprocess component and this is utilizing an API. To that end, 
-FastAPI was used. The process allows to upload log file, modify the environmental parameters (that 
-describe among others the connection properties to the databases) and execute the preprocessing.
-
-The same parameters used while executing the preprocessing jar can also be set here, as parameters
-in the request.
-
-To deploy the preprocess component with the api run the following command from the root directory:
-```bash
-docker-compose -f dockerbase/docker-compose-preprocess-with-api.yml up
-```
-and then access the docs (Swagger) from the http://localhost:8000/docs.
 
 ### Complete list of parameters:
 ```
