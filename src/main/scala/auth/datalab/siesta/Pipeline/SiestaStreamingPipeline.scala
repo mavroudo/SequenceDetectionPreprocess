@@ -24,8 +24,6 @@ object SiestaStreamingPipeline {
     s3Connector.initialize_db(config = c)
 
     import spark.implicits._
-    //TODO: pass values by parameters
-
 
 //    val kafkaBroker = "localhost:29092"
 //    val topic = "test"

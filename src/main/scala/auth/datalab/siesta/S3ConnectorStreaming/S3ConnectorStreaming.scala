@@ -10,9 +10,10 @@ import io.delta.tables.DeltaTable
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.catalyst.ScalaReflection
-import org.apache.spark.sql.streaming.{GroupStateTimeout, OutputMode, StreamingQuery}
+import org.apache.spark.sql.streaming.{GroupStateTimeout, OutputMode, StreamingQuery, StreamingQueryListener}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql._
+import org.apache.spark.sql.streaming.StreamingQueryListener.{QueryProgressEvent, QueryStartedEvent, QueryTerminatedEvent}
 
 import scala.collection.mutable
 
@@ -37,6 +38,20 @@ class S3ConnectorStreaming {
     single_table = s"""s3a://siesta-test/${config.log_name}/single/"""
     index_table = s"""s3a://siesta-test/${config.log_name}/index/"""
     count_table = s"""s3a://siesta-test/${config.log_name}/count/"""
+    spark.streams.addListener(new StreamingQueryListener() {
+      override def onQueryStarted(queryStarted: QueryStartedEvent): Unit = {
+        println("Query started: " + queryStarted.id)
+      }
+
+      override def onQueryTerminated(queryTerminated: QueryTerminatedEvent): Unit = {
+        println("Query terminated: " + queryTerminated.id)
+      }
+
+      override def onQueryProgress(queryProgress: QueryProgressEvent): Unit = {
+        println("Query made progress: " + queryProgress.progress.id)
+        println("Query made progress: " + queryProgress.progress.numInputRows)
+      }
+    })
 
     //get metadata
     this.metadata = this.get_metadata(config)
@@ -75,7 +90,7 @@ class S3ConnectorStreaming {
 
     val conf = new SparkConf()
       .setAppName("Siesta incremental")
-//      .setMaster("local[*]")
+      .setMaster("local[*]")
       .set("spark.sql.sources.partitionOverwriteMode", "dynamic")
       .set("spark.sql.parquet.compression.codec", config.compression)
       .set("spark.sql.parquet.filterPushdown", "true")

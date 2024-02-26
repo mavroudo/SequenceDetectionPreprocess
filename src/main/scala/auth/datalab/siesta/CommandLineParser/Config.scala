@@ -34,7 +34,7 @@ package auth.datalab.siesta.CommandLineParser
  *      available values for each parameter.
  */
 case class Config(
-                   system: String = "siesta",
+                   system: String = "streaming",
                    database: String = "s3",
                    mode: String = "positions",
                    filename: String = "synthetic",

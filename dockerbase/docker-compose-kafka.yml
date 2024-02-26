@@ -29,5 +29,5 @@ services:
 
 networks:
   siesta-net:
-    external:
-      name: siesta-net
+    name: siesta-net
+    external: true
