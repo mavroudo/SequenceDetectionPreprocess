@@ -32,6 +32,9 @@ libraryDependencies ++= Seq(
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion
 libraryDependencies += "org.apache.spark" %% "spark-sql-kafka-0-10" % "3.0.0"
 
+libraryDependencies += "org.postgresql" % "postgresql" % "42.4.0"
+
+
 dependencyOverrides ++= {
   Seq(
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.1",

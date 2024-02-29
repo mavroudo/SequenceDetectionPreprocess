@@ -25,10 +25,10 @@ object SiestaStreamingPipeline {
 
     import spark.implicits._
 
-//    val kafkaBroker = "localhost:29092"
-//    val topic = "test"
-    val kafkaBroker = Utilities.readEnvVariable("kafkaBroker")
-    val topic = Utilities.readEnvVariable("kafkaTopic")
+    val kafkaBroker = "localhost:29092"
+    val topic = "test"
+//    val kafkaBroker = Utilities.readEnvVariable("kafkaBroker")
+//    val topic = Utilities.readEnvVariable("kafkaTopic")
 
     val df = spark
       .readStream

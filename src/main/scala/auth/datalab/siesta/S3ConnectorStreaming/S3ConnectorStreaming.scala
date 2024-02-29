@@ -15,6 +15,9 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql._
 import org.apache.spark.sql.streaming.StreamingQueryListener.{QueryProgressEvent, QueryStartedEvent, QueryTerminatedEvent}
 
+import java.sql.SQLException
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import scala.collection.mutable
 
 class S3ConnectorStreaming {
@@ -38,9 +41,38 @@ class S3ConnectorStreaming {
     single_table = s"""s3a://siesta-test/${config.log_name}/single/"""
     index_table = s"""s3a://siesta-test/${config.log_name}/index/"""
     count_table = s"""s3a://siesta-test/${config.log_name}/count/"""
+
+    val connection = DatabaseConnector.getConnection
+    try {
+      DatabaseConnector.createTableIfNotExists(connection)
+    } finally {
+      if (connection != null) connection.close()
+    }
+
     spark.streams.addListener(new StreamingQueryListener() {
       override def onQueryStarted(queryStarted: QueryStartedEvent): Unit = {
-        println("Query started: " + queryStarted.id)
+        println("\"" + queryStarted.name + "\" started at " + queryStarted.timestamp)
+        val formatter = DateTimeFormatter.ISO_DATE_TIME
+
+        val connection = DatabaseConnector.getConnection
+        try {
+          val sql = "INSERT INTO logs (query_name, ts, batch_id, batch_duration, num_input_rows) VALUES (?, ?, ?, ?, ?)"
+          val statement = connection.prepareStatement(sql)
+          statement.setString(1, queryStarted.name)
+
+          val zonedDateTime = ZonedDateTime.parse(queryStarted.timestamp, formatter)
+          val timestamp = zonedDateTime.toInstant.toEpochMilli
+          statement.setLong(2, timestamp)
+          statement.setLong(3, 0)
+          statement.setLong(4, 0)
+          statement.setLong(5, 0)
+          statement.executeUpdate()
+        } catch {
+          case e: SQLException => e.printStackTrace() // Handle exceptions properly in production code
+        } finally {
+          if (connection != null) connection.close()
+        }
+
       }
 
       override def onQueryTerminated(queryTerminated: QueryTerminatedEvent): Unit = {
@@ -48,10 +80,33 @@ class S3ConnectorStreaming {
       }
 
       override def onQueryProgress(queryProgress: QueryProgressEvent): Unit = {
-        println("Query made progress: " + queryProgress.progress.id)
-        println("Query made progress: " + queryProgress.progress.numInputRows)
+        if (queryProgress.progress.numInputRows > 0) {
+          val formatter = DateTimeFormatter.ISO_DATE_TIME
+
+          val connection = DatabaseConnector.getConnection
+          try {
+            val sql = "INSERT INTO logs (query_name, ts, batch_id, batch_duration, num_input_rows) VALUES (?, ?, ?, ?, ?)"
+            val statement = connection.prepareStatement(sql)
+            statement.setString(1, queryProgress.progress.name)
+
+            val zonedDateTime = ZonedDateTime.parse(queryProgress.progress.timestamp, formatter)
+            val timestamp = zonedDateTime.toInstant.toEpochMilli
+            statement.setLong(2, timestamp)
+            statement.setLong(3, queryProgress.progress.batchId)
+            statement.setLong(4, queryProgress.progress.batchDuration)
+            statement.setLong(5, queryProgress.progress.numInputRows)
+            statement.executeUpdate()
+          } catch {
+            case e: SQLException => e.printStackTrace() // Handle exceptions properly in production code
+          } finally {
+            if (connection != null) connection.close()
+          }
+          println(s" ${queryProgress.progress.name}  , handled batch ${queryProgress.progress.batchId.toString} in" +
+            s" ${queryProgress.progress.batchDuration.toString}. Total rows processed ${queryProgress.progress.numInputRows.toString}")
+        }
       }
     })
+
 
     //get metadata
     this.metadata = this.get_metadata(config)
@@ -112,6 +167,7 @@ class S3ConnectorStreaming {
 
   /**
    * Loads metadata from S3 if they exist or create a new object based on the  configuration object
+   *
    * @param config The configuration parsed from the command line in Main
    * @return The Metadata object containing all the information for indexing
    */
@@ -161,15 +217,15 @@ class S3ConnectorStreaming {
 
     val countEvents = df_events.toDF()
       .writeStream
-      .queryName("Logging SequenceTable")
+      .queryName("Update metadata from SequenceTable")
       .foreachBatch((batchDF: DataFrame, batchId: Long) => {
         val batchEventCount = batchDF.count()
         batchDF.select("trace").as[Long].distinct().collect()
           .foreach(x => unique_traces.add(x))
         metadata.events = metadata.events + batchEventCount
         metadata.traces = unique_traces.size
-        Logger.getLogger(s"SequenceTable").log(Level.INFO,
-          s"Batch: $batchId: Total events: ${metadata.events}. Total traces ${metadata.traces}.")
+//        Logger.getLogger(s"SequenceTable").log(Level.INFO,
+//          s"Batch: $batchId: Total events: ${metadata.events}. Total traces ${metadata.traces}.")
         spark.sparkContext.parallelize(Seq(metadata)).toDF()
           .write.mode(SaveMode.Overwrite).json(meta_table)
       })
@@ -205,7 +261,7 @@ class S3ConnectorStreaming {
    * @param pairs The calculated pairs of the last batch
    * @return Reference to the query, in order to use awaitTermination at the end of all the processes
    */
-  def write_index_table(pairs: Dataset[Structs.StreamingPair]): (StreamingQuery,StreamingQuery) = {
+  def write_index_table(pairs: Dataset[Structs.StreamingPair]): (StreamingQuery, StreamingQuery) = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._
     val indexTable = pairs
@@ -217,22 +273,23 @@ class S3ConnectorStreaming {
       .start(index_table)
 
     val logging = pairs.toDF().writeStream
-      .queryName("IndexTable Logging")
+      .queryName("Update metadata from IndexTable")
       .foreachBatch((batchDF: DataFrame, batchId: Long) => {
         val countPairs = batchDF.count()
-        metadata.pairs = metadata.pairs+countPairs
+        metadata.pairs = metadata.pairs + countPairs
         spark.sparkContext.parallelize(Seq(metadata)).toDF()
           .write.mode(SaveMode.Overwrite).json(meta_table)
-        Logger.getLogger(s"IndexTable").log(Level.INFO,
-          s"Batch: $batchId: Ingesting pairs: $countPairs.")
+//        Logger.getLogger(s"IndexTable").log(Level.INFO,
+//          s"Batch: $batchId: Ingesting pairs: $countPairs.")
       })
       .start()
-    (indexTable,logging)
+    (indexTable, logging)
   }
 
   /**
    * Handles the writing of the metrics for each event pair in the CountTable. This is the most complecated
    * query in the streaming mode, because metrics should overwrite the previous records
+   *
    * @param pairs The calculated pairs for the last batch
    * @return Reference to the query, in order to use awaitTermination at the end of all the processes
    */
@@ -241,9 +298,9 @@ class S3ConnectorStreaming {
     import spark.implicits._
     //calculate metrics for each pair
     val counts: DataFrame = pairs.map(x => {
-      Structs.Count(x.eventA, x.eventB, x.timeB.getTime - x.timeA.getTime, 1,
-        x.timeB.getTime - x.timeA.getTime, x.timeB.getTime - x.timeA.getTime)
-    }).groupBy("eventA", "eventB")
+        Structs.Count(x.eventA, x.eventB, x.timeB.getTime - x.timeA.getTime, 1,
+          x.timeB.getTime - x.timeA.getTime, x.timeB.getTime - x.timeA.getTime)
+      }).groupBy("eventA", "eventB")
       .as[(String, String), Structs.Count]
       .flatMapGroupsWithState(OutputMode.Append,
         timeoutConf = GroupStateTimeout.NoTimeout)(StreamingProcess.calculateMetrics)
@@ -255,8 +312,8 @@ class S3ConnectorStreaming {
       .format("delta")
       .foreachBatch((microBatchOutputDF: DataFrame, batchId: Long) => {
         val c = microBatchOutputDF.count()
-        Logger.getLogger(s"CountTable").log(Level.INFO,
-          s"Handling Batch: $batchId, storing $c metrics")
+//        Logger.getLogger(s"CountTable").log(Level.INFO,
+//          s"Handling Batch: $batchId, storing $c metrics")
         countTable.as("p")
           .merge(
             microBatchOutputDF.as("n"),

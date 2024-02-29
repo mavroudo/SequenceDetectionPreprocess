@@ -2,8 +2,6 @@ package auth.datalab.siesta.BusinessLogic.Model
 
 
 
-import org.apache.spark.streaming.StreamingContext
-
 import java.sql.Timestamp
 
 /**
