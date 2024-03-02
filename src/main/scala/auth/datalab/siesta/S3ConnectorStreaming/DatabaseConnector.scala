@@ -20,6 +20,7 @@ object DatabaseConnector {
     val createTableSQL =
       """
         |CREATE TABLE IF NOT EXISTS logs (
+        |    id  SERIAL PRIMARY KEY,
         |    query_name VARCHAR(255),
         |    ts BIGINT,
         |    batch_id BIGINT,
