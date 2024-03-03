@@ -1,235 +1,235 @@
-"query_name","ts","batch_id","batch_duration","num_input_rows"
-"Write SequenceTable","1709401134626","0","0","0"
-"Update metadata from SequenceTable","1709401134864","0","0","0"
-"Write SingleTable","1709401135563","0","0","0"
-"Write IndexTable","1709401136590","0","0","0"
-"Update metadata from IndexTable","1709401136756","0","0","0"
-"Write CountTable","1709401137407","0","0","0"
-"Write SequenceTable","1709401178774","1","56626","451"
-"Write SingleTable","1709401179612","1","60779","451"
-"Update metadata from IndexTable","1709401203423","1","54634","451"
-"Update metadata from SequenceTable","1709401176698","1","82136","902"
-"Write IndexTable","1709401233217","1","60820","451"
-"Write CountTable","1709401313701","1","93791","451"
-"Write SequenceTable","1709401473019","0","0","0"
-"Update metadata from SequenceTable","1709401473246","0","0","0"
-"Write SingleTable","1709401473912","0","0","0"
-"Write IndexTable","1709401474852","0","0","0"
-"Update metadata from IndexTable","1709401475032","0","0","0"
-"Write CountTable","1709401475679","0","0","0"
-"Write SequenceTable","1709401515796","1","54447","991"
-"Update metadata from IndexTable","1709401536903","1","87266","991"
-"Update metadata from SequenceTable","1709401513744","1","110570","1982"
-"Write SingleTable","1709401536864","1","91616","991"
-"Write IndexTable","1709401563515","1","80590","991"
-"Write CountTable","1709401661088","1","69682","991"
-"Write SequenceTable","1709401819882","0","0","0"
-"Update metadata from SequenceTable","1709401820137","0","0","0"
-"Write SingleTable","1709401820960","0","0","0"
-"Write IndexTable","1709401821811","0","0","0"
-"Update metadata from IndexTable","1709401822027","0","0","0"
-"Write CountTable","1709401822847","0","0","0"
-"Write SingleTable","1709401866125","1","73337","9946"
-"Write SequenceTable","1709401865703","1","74376","9946"
-"Update metadata from IndexTable","1709401890270","1","53666","9946"
-"Update metadata from SequenceTable","1709401835777","1","222667","148"
-"Write IndexTable","1709401921066","1","155920","9946"
-"Update metadata from SequenceTable","1709402058479","2","19319","19744"
-"Write CountTable","1709402097207","1","83828","9946"
-"Write SequenceTable","1709402979880","0","0","0"
-"Update metadata from SequenceTable","1709402980099","0","0","0"
-"Write SingleTable","1709402980744","0","0","0"
-"Write IndexTable","1709402981598","0","0","0"
-"Update metadata from IndexTable","1709402981761","0","0","0"
-"Write CountTable","1709402982455","0","0","0"
-"Write SequenceTable","1709403153760","1","62142","52"
-"Write SingleTable","1709403153760","1","62998","52"
-"Write IndexTable","1709403153760","1","63524","52"
-"Update metadata from IndexTable","1709403153760","1","65149","52"
-"Update metadata from SequenceTable","1709403153760","1","65450","108"
-"Write SingleTable","1709403216775","2","386435","42012"
-"Write SequenceTable","1709403216042","2","387732","41642"
-"Update metadata from IndexTable","1709403218918","2","384904","43078"
-"Write IndexTable","1709403217294","2","390574","42430"
-"Update metadata from SequenceTable","1709403219216","2","402050","86562"
-"Write CountTable","1709403153754","1","896732","45"
-"Update metadata from IndexTable","1709403603825","3","447804","57614"
-"Write SingleTable","1709403603236","3","449190","58680"
-"Write SequenceTable","1709403603775","3","449903","59050"
-"Update metadata from SequenceTable","1709403621270","3","436475","114818"
-"Write IndexTable","1709403607881","3","493558","58262"
-"Write CountTable","1709404050554","2","114760","100699"
-"Write SequenceTable","1709404404224","0","0","0"
-"Update metadata from SequenceTable","1709404404480","0","0","0"
-"Write SingleTable","1709404405174","0","0","0"
-"Write IndexTable","1709404406075","0","0","0"
-"Update metadata from IndexTable","1709404406229","0","0","0"
-"Write CountTable","1709404406933","0","0","0"
-"Write SequenceTable","1709404457653","1","71407","1015"
-"Write SingleTable","1709404456211","1","75634","1015"
-"Update metadata from IndexTable","1709404479978","1","53965","1015"
-"Update metadata from SequenceTable","1709404453804","1","113505","2030"
-"Write IndexTable","1709404513074","1","68903","1015"
-"Write CountTable","1709404599283","1","67544","1015"
-"Write SequenceTable","1709404769075","0","0","0"
-"Update metadata from SequenceTable","1709404769328","0","0","0"
-"Write SingleTable","1709404770084","0","0","0"
-"Write IndexTable","1709404770964","0","0","0"
-"Update metadata from IndexTable","1709404771130","0","0","0"
-"Write CountTable","1709404771881","0","0","0"
-"Write SequenceTable","1709404815733","1","71747","10084"
-"Write SingleTable","1709404814890","1","73256","10084"
-"Update metadata from SequenceTable","1709404812476","1","78541","20168"
-"Update metadata from IndexTable","1709404841720","1","150162","10084"
-"Write IndexTable","1709404871848","1","137991","10084"
-"Write CountTable","1709405026138","1","76401","10084"
-"Write SequenceTable","1709405263450","0","0","0"
-"Update metadata from SequenceTable","1709405263665","0","0","0"
-"Write SingleTable","1709405264308","0","0","0"
-"Write IndexTable","1709405265272","0","0","0"
-"Update metadata from IndexTable","1709405265444","0","0","0"
-"Write CountTable","1709405266116","0","0","0"
-"Write SequenceTable","1709405303099","1","75093","19092"
-"Write SingleTable","1709405303619","1","74739","19422"
-"Update metadata from IndexTable","1709405326084","1","54658","35049"
-"Update metadata from SequenceTable","1709405300589","1","80587","34810"
-"Write SingleTable","1709405378366","2","143633","49920"
-"Write SequenceTable","1709405378258","2","144185","50252"
-"Update metadata from IndexTable","1709405380750","2","149660","35838"
-"Update metadata from SequenceTable","1709405381180","2","149632","107526"
-"Write IndexTable","1709405360765","1","172374","57931"
-"Update metadata from SequenceTable","1709405530813","3","19382","60810"
-"Update metadata from IndexTable","1709405530429","3","20755","30686"
-"Write SequenceTable","1709405522448","3","144690","32229"
-"Write SingleTable","1709405522010","3","146103","32231"
-"Write IndexTable","1709405533140","2","142111","43642"
-"Write CountTable","1709405669007","1","61005","101573"
-"Write SequenceTable","1709405830911","0","0","0"
-"Update metadata from SequenceTable","1709405831150","0","0","0"
-"Write SingleTable","1709405831758","0","0","0"
-"Write IndexTable","1709405832815","0","0","0"
-"Update metadata from IndexTable","1709405832984","0","0","0"
-"Write CountTable","1709405833650","0","0","0"
-"Write SequenceTable","1709405868865","1","219826","18015"
-"Write SingleTable","1709405870012","1","219339","18771"
-"Update metadata from SequenceTable","1709405868498","1","223083","35708"
-"Update metadata from IndexTable","1709405891408","1","200785","33067"
-"Update metadata from IndexTable","1709406092201","2","24513","134760"
-"Write SequenceTable","1709406088740","2","31232","147806"
-"Write IndexTable","1709405891390","1","228595","33066"
-"Write SingleTable","1709406089358","2","30855","147227"
-"Update metadata from SequenceTable","1709406091583","2","170708","299134"
-"Update metadata from IndexTable","1709406116735","3","145929","16088"
-"Write SequenceTable","1709406119973","3","145995","20160"
-"Write IndexTable","1709406119987","2","149264","152919"
-"Write SingleTable","1709406120215","3","156327","20129"
-"Update metadata from SequenceTable","1709406262385","3","155383","227804"
-"Update metadata from IndexTable","1709406262678","4","155370","97528"
-"Write SequenceTable","1709406265969","4","172855","97617"
-"Write IndexTable","1709406269251","3","169739","99748"
-"Write SingleTable","1709406276545","4","293361","104187"
-"Update metadata from IndexTable","1709406418056","5","158846","103026"
-"Write SequenceTable","1709406438833","5","140917","114531"
-"Update metadata from SequenceTable","1709406417791","4","182114","206044"
-"Write IndexTable","1709406438995","4","162755","112480"
-"Update metadata from IndexTable","1709406576925","6","47174","98755"
-"Write SingleTable","1709406569915","5","183681","188981"
-"Write SequenceTable","1709406579753","6","176158","86683"
-"Write CountTable","1709406269169","1","500930","287587"
-"Update metadata from SequenceTable","1709406599958","5","170803","223874"
-"Update metadata from IndexTable","1709406624123","7","148731","26508"
-"Write SingleTable","1709406753607","6","23815","106020"
-"Write IndexTable","1709406601755","5","175949","98996"
-"Update metadata from IndexTable","1709406772855","8","13607","87836"
-"Update metadata from SequenceTable","1709406770762","6","16126","199868"
-"Write SequenceTable","1709406755913","7","31316","101975"
-"Write SingleTable","1709406777423","7","184981","15229"
-"Update metadata from IndexTable","1709406786463","9","178106","8701"
-"Update metadata from SequenceTable","1709406786889","7","181273","20648"
-"Write IndexTable","1709406777706","6","222675","103505"
-"Write SequenceTable","1709406787230","8","214319","19983"
-"Update metadata from IndexTable","1709406964576","10","37043","117558"
-"Write SingleTable","1709406962413","8","39426","121871"
-"Update metadata from SequenceTable","1709406968174","8","61353","239356"
-"Write SingleTable","1709407001840","9","183037","25535"
-"Write SequenceTable","1709407001559","9","184739","141001"
-"Write CountTable","1709406770118","2","416928","310254"
-"Update metadata from SequenceTable","1709407029538","9","161884","79788"
-"Update metadata from IndexTable","1709407001622","11","189881","23980"
-"Write IndexTable","1709407001036","7","194363","146911"
-"Update metadata from IndexTable","1709407191506","12","186860","124360"
-"Update metadata from SequenceTable","1709407191427","10","187993","212020"
-"Write SequenceTable","1709407186310","10","194804","121408"
-"Write SingleTable","1709407184896","10","196683","120477"
-"Update metadata from IndexTable","1709407378403","13","32953","116200"
-"Write IndexTable","1709407195402","8","217631","126750"
-"Write SingleTable","1709407381579","11","33254","121961"
-"Write SequenceTable","1709407381115","11","33908","120900"
-"Update metadata from SequenceTable","1709407379427","11","58249","233692"
-"Update metadata from IndexTable","1709407411387","14","26449","21259"
-"Write CountTable","1709407187051","3","377054","273556"
-"Write SequenceTable","1709407415024","12","149369","21765"
-"Write SingleTable","1709407414841","12","149564","21335"
-"Update metadata from IndexTable","1709407437839","15","130607","9859"
-"Write IndexTable","1709407413042","9","155772","136308"
-"Update metadata from SequenceTable","1709407437706","12","131156","61034"
-"Write SequenceTable","1709407564397","13","99806","7641"
-"Write SingleTable","1709407564406","13","103281","7762"
-"Write IndexTable","1709407568815","10","150650","8802"
-"Write CountTable","1709407564118","4","163458","148088"
-"Write SequenceTable","1709408442582","0","0","0"
-"Update metadata from SequenceTable","1709408442863","0","0","0"
-"Write SingleTable","1709408443468","0","0","0"
-"Write IndexTable","1709408444358","0","0","0"
-"Update metadata from IndexTable","1709408444505","0","0","0"
-"Write CountTable","1709408445322","0","0","0"
-"Update metadata from IndexTable","1709408516107","1","37761","2"
-"Write SingleTable","1709408516114","1","47328","12"
-"Update metadata from SequenceTable","1709408516115","1","53152","26"
-"Write SequenceTable","1709408516110","1","53522","9"
-"Write IndexTable","1709408516108","1","57141","2"
-"Update metadata from IndexTable","1709408553955","2","50287","10148"
-"Write SingleTable","1709408563597","2","75155","10138"
-"Write SequenceTable","1709408569648","2","69476","10141"
-"Update metadata from SequenceTable","1709408569396","2","71081","20274"
-"Write IndexTable","1709408573274","2","83527","10148"
-"Write CountTable","1709408662713","1","66803","10150"
-"Write SequenceTable","1709408810617","0","0","0"
-"Update metadata from SequenceTable","1709408810888","0","0","0"
-"Write SingleTable","1709408811581","0","0","0"
-"Write IndexTable","1709408812458","0","0","0"
-"Update metadata from IndexTable","1709408812628","0","0","0"
-"Write CountTable","1709408813334","0","0","0"
-"Update metadata from SequenceTable","1709408857346","1","193219","20056"
-"Write SingleTable","1709408926614","1","125206","10028"
-"Update metadata from IndexTable","1709408928740","1","123569","10028"
-"Write SequenceTable","1709408889860","1","162471","10028"
-"Write IndexTable","1709408927792","1","135619","10028"
-"Write CountTable","1709409078402","1","61305","10028"
-"Write SequenceTable","1709409269324","0","0","0"
-"Update metadata from SequenceTable","1709409269605","0","0","0"
-"Write SingleTable","1709409270202","0","0","0"
-"Write IndexTable","1709409271088","0","0","0"
-"Update metadata from IndexTable","1709409271250","0","0","0"
-"Write CountTable","1709409272035","0","0","0"
-"Update metadata from SequenceTable","1709409313586","1","216190","19572"
-"Write SequenceTable","1709409353172","1","178179","9786"
-"Write SingleTable","1709409352789","1","179251","9786"
-"Update metadata from IndexTable","1709409353726","1","178980","9786"
-"Write IndexTable","1709409353589","1","190177","9786"
-"Write CountTable","1709409556068","1","65245","9786"
-"Write SequenceTable","1709409688812","0","0","0"
-"Update metadata from SequenceTable","1709409689040","0","0","0"
-"Write SingleTable","1709409689707","0","0","0"
-"Write IndexTable","1709409690701","0","0","0"
-"Update metadata from IndexTable","1709409690874","0","0","0"
-"Write CountTable","1709409691552","0","0","0"
-"Write SequenceTable","1709409702254","1","88354","108"
-"Update metadata from SequenceTable","1709409702116","1","97707","12"
-"Update metadata from IndexTable","1709409755729","1","46706","10127"
-"Write SequenceTable","1709409790618","2","219440","10019"
-"Update metadata from SequenceTable","1709409799881","2","228846","20242"
-"Write IndexTable","1709409785698","1","248890","10127"
-"Write CountTable","1709410050462","1","72938","10127"
-"Write SingleTable","1709409711294","1","468611","6310"
-"Write SingleTable","1709410179907","2","109910","3817"
+"query_name","ts","batch_id","batch_duration","num_input_rows",dataset
+"Write SequenceTable","1709401134626","0","0","0",1
+"Update metadata from SequenceTable","1709401134864","0","0","0",1
+"Write SingleTable","1709401135563","0","0","0", 1
+"Write IndexTable","1709401136590","0","0","0",1
+"Update metadata from IndexTable","1709401136756","0","0","0",1
+"Write CountTable","1709401137407","0","0","0",1
+"Write SequenceTable","1709401178774","1","56626","451",1
+"Write SingleTable","1709401179612","1","60779","451",1
+"Update metadata from IndexTable","1709401203423","1","54634","451",1
+"Update metadata from SequenceTable","1709401176698","1","82136","902",1
+"Write IndexTable","1709401233217","1","60820","451",1
+"Write CountTable","1709401313701","1","93791","451",1
+"Write SequenceTable","1709401473019","0","0","0",2
+"Update metadata from SequenceTable","1709401473246","0","0","0",2
+"Write SingleTable","1709401473912","0","0","0",2
+"Write IndexTable","1709401474852","0","0","0",2
+"Update metadata from IndexTable","1709401475032","0","0","0",2
+"Write CountTable","1709401475679","0","0","0",2
+"Write SequenceTable","1709401515796","1","54447","991",2
+"Update metadata from IndexTable","1709401536903","1","87266","991",2
+"Update metadata from SequenceTable","1709401513744","1","110570","1982",2
+"Write SingleTable","1709401536864","1","91616","991",2
+"Write IndexTable","1709401563515","1","80590","991",2
+"Write CountTable","1709401661088","1","69682","991",2
+"Write SequenceTable","1709401819882","0","0","0",3
+"Update metadata from SequenceTable","1709401820137","0","0","0",3
+"Write SingleTable","1709401820960","0","0","0",3
+"Write IndexTable","1709401821811","0","0","0",3
+"Update metadata from IndexTable","1709401822027","0","0","0",3
+"Write CountTable","1709401822847","0","0","0",3
+"Write SingleTable","1709401866125","1","73337","9946",3
+"Write SequenceTable","1709401865703","1","74376","9946",3
+"Update metadata from IndexTable","1709401890270","1","53666","9946",3
+"Update metadata from SequenceTable","1709401835777","1","222667","148",3
+"Write IndexTable","1709401921066","1","155920","9946",3
+"Update metadata from SequenceTable","1709402058479","2","19319","19744",3
+"Write CountTable","1709402097207","1","83828","9946",3
+"Write SequenceTable","1709402979880","0","0","0",4
+"Update metadata from SequenceTable","1709402980099","0","0","0",4
+"Write SingleTable","1709402980744","0","0","0",4
+"Write IndexTable","1709402981598","0","0","0",4
+"Update metadata from IndexTable","1709402981761","0","0","0",4
+"Write CountTable","1709402982455","0","0","0",4
+"Write SequenceTable","1709403153760","1","62142","52",4
+"Write SingleTable","1709403153760","1","62998","52",4
+"Write IndexTable","1709403153760","1","63524","52",4
+"Update metadata from IndexTable","1709403153760","1","65149","52",4
+"Update metadata from SequenceTable","1709403153760","1","65450","108",4
+"Write SingleTable","1709403216775","2","386435","42012",4
+"Write SequenceTable","1709403216042","2","387732","41642",4
+"Update metadata from IndexTable","1709403218918","2","384904","43078",4
+"Write IndexTable","1709403217294","2","390574","42430",4
+"Update metadata from SequenceTable","1709403219216","2","402050","86562",4
+"Write CountTable","1709403153754","1","896732","45",4
+"Update metadata from IndexTable","1709403603825","3","447804","57614",4
+"Write SingleTable","1709403603236","3","449190","58680",4
+"Write SequenceTable","1709403603775","3","449903","59050",4
+"Update metadata from SequenceTable","1709403621270","3","436475","114818",4
+"Write IndexTable","1709403607881","3","493558","58262",4
+"Write CountTable","1709404050554","2","114760","100699",4
+"Write SequenceTable","1709404404224","0","0","0",5
+"Update metadata from SequenceTable","1709404404480","0","0","0",5
+"Write SingleTable","1709404405174","0","0","0",5
+"Write IndexTable","1709404406075","0","0","0",5
+"Update metadata from IndexTable","1709404406229","0","0","0",5
+"Write CountTable","1709404406933","0","0","0",5
+"Write SequenceTable","1709404457653","1","71407","1015",5
+"Write SingleTable","1709404456211","1","75634","1015",5
+"Update metadata from IndexTable","1709404479978","1","53965","1015",5
+"Update metadata from SequenceTable","1709404453804","1","113505","2030",5
+"Write IndexTable","1709404513074","1","68903","1015",5
+"Write CountTable","1709404599283","1","67544","1015",5
+"Write SequenceTable","1709404769075","0","0","0",6
+"Update metadata from SequenceTable","1709404769328","0","0","0",6
+"Write SingleTable","1709404770084","0","0","0",6
+"Write IndexTable","1709404770964","0","0","0",6
+"Update metadata from IndexTable","1709404771130","0","0","0",6
+"Write CountTable","1709404771881","0","0","0",6
+"Write SequenceTable","1709404815733","1","71747","10084",6
+"Write SingleTable","1709404814890","1","73256","10084",6
+"Update metadata from SequenceTable","1709404812476","1","78541","20168",6
+"Update metadata from IndexTable","1709404841720","1","150162","10084",6
+"Write IndexTable","1709404871848","1","137991","10084",6
+"Write CountTable","1709405026138","1","76401","10084",6
+"Write SequenceTable","1709405263450","0","0","0",7
+"Update metadata from SequenceTable","1709405263665","0","0","0",7
+"Write SingleTable","1709405264308","0","0","0",7
+"Write IndexTable","1709405265272","0","0","0",7
+"Update metadata from IndexTable","1709405265444","0","0","0",7
+"Write CountTable","1709405266116","0","0","0",7
+"Write SequenceTable","1709405303099","1","75093","19092",7
+"Write SingleTable","1709405303619","1","74739","19422",7
+"Update metadata from IndexTable","1709405326084","1","54658","35049",7
+"Update metadata from SequenceTable","1709405300589","1","80587","34810",7
+"Write SingleTable","1709405378366","2","143633","49920",7
+"Write SequenceTable","1709405378258","2","144185","50252",7
+"Update metadata from IndexTable","1709405380750","2","149660","35838",7
+"Update metadata from SequenceTable","1709405381180","2","149632","107526",7
+"Write IndexTable","1709405360765","1","172374","57931",7
+"Update metadata from SequenceTable","1709405530813","3","19382","60810",7
+"Update metadata from IndexTable","1709405530429","3","20755","30686",7
+"Write SequenceTable","1709405522448","3","144690","32229",7
+"Write SingleTable","1709405522010","3","146103","32231",7
+"Write IndexTable","1709405533140","2","142111","43642",7
+"Write CountTable","1709405669007","1","61005","101573",7
+"Write SequenceTable","1709405830911","0","0","0",8
+"Update metadata from SequenceTable","1709405831150","0","0","0",8
+"Write SingleTable","1709405831758","0","0","0",8
+"Write IndexTable","1709405832815","0","0","0",8
+"Update metadata from IndexTable","1709405832984","0","0","0",8
+"Write CountTable","1709405833650","0","0","0",8
+"Write SequenceTable","1709405868865","1","219826","18015",8
+"Write SingleTable","1709405870012","1","219339","18771",8
+"Update metadata from SequenceTable","1709405868498","1","223083","35708",8
+"Update metadata from IndexTable","1709405891408","1","200785","33067",8
+"Update metadata from IndexTable","1709406092201","2","24513","134760",8
+"Write SequenceTable","1709406088740","2","31232","147806",8
+"Write IndexTable","1709405891390","1","228595","33066",8
+"Write SingleTable","1709406089358","2","30855","147227",8
+"Update metadata from SequenceTable","1709406091583","2","170708","299134",8
+"Update metadata from IndexTable","1709406116735","3","145929","16088",8
+"Write SequenceTable","1709406119973","3","145995","20160",8
+"Write IndexTable","1709406119987","2","149264","152919",8
+"Write SingleTable","1709406120215","3","156327","20129",8
+"Update metadata from SequenceTable","1709406262385","3","155383","227804",8
+"Update metadata from IndexTable","1709406262678","4","155370","97528",8
+"Write SequenceTable","1709406265969","4","172855","97617",8
+"Write IndexTable","1709406269251","3","169739","99748",8
+"Write SingleTable","1709406276545","4","293361","104187",8
+"Update metadata from IndexTable","1709406418056","5","158846","103026",8
+"Write SequenceTable","1709406438833","5","140917","114531",8
+"Update metadata from SequenceTable","1709406417791","4","182114","206044",8
+"Write IndexTable","1709406438995","4","162755","112480",8
+"Update metadata from IndexTable","1709406576925","6","47174","98755",8
+"Write SingleTable","1709406569915","5","183681","188981",8
+"Write SequenceTable","1709406579753","6","176158","86683",8
+"Write CountTable","1709406269169","1","500930","287587",8
+"Update metadata from SequenceTable","1709406599958","5","170803","223874",8
+"Update metadata from IndexTable","1709406624123","7","148731","26508",8
+"Write SingleTable","1709406753607","6","23815","106020",8
+"Write IndexTable","1709406601755","5","175949","98996",8
+"Update metadata from IndexTable","1709406772855","8","13607","87836",8
+"Update metadata from SequenceTable","1709406770762","6","16126","199868",8
+"Write SequenceTable","1709406755913","7","31316","101975",8
+"Write SingleTable","1709406777423","7","184981","15229",8
+"Update metadata from IndexTable","1709406786463","9","178106","8701",8
+"Update metadata from SequenceTable","1709406786889","7","181273","20648",8
+"Write IndexTable","1709406777706","6","222675","103505",8
+"Write SequenceTable","1709406787230","8","214319","19983",8
+"Update metadata from IndexTable","1709406964576","10","37043","117558",8
+"Write SingleTable","1709406962413","8","39426","121871",8
+"Update metadata from SequenceTable","1709406968174","8","61353","239356",8
+"Write SingleTable","1709407001840","9","183037","25535",8
+"Write SequenceTable","1709407001559","9","184739","141001",8
+"Write CountTable","1709406770118","2","416928","310254",8
+"Update metadata from SequenceTable","1709407029538","9","161884","79788",8
+"Update metadata from IndexTable","1709407001622","11","189881","23980",8
+"Write IndexTable","1709407001036","7","194363","146911",8
+"Update metadata from IndexTable","1709407191506","12","186860","124360",8
+"Update metadata from SequenceTable","1709407191427","10","187993","212020",8
+"Write SequenceTable","1709407186310","10","194804","121408",8
+"Write SingleTable","1709407184896","10","196683","120477",8
+"Update metadata from IndexTable","1709407378403","13","32953","116200",8
+"Write IndexTable","1709407195402","8","217631","126750",8
+"Write SingleTable","1709407381579","11","33254","121961",8
+"Write SequenceTable","1709407381115","11","33908","120900",8
+"Update metadata from SequenceTable","1709407379427","11","58249","233692",8
+"Update metadata from IndexTable","1709407411387","14","26449","21259",8
+"Write CountTable","1709407187051","3","377054","273556",8
+"Write SequenceTable","1709407415024","12","149369","21765",8
+"Write SingleTable","1709407414841","12","149564","21335",8
+"Update metadata from IndexTable","1709407437839","15","130607","9859",8
+"Write IndexTable","1709407413042","9","155772","136308",8
+"Update metadata from SequenceTable","1709407437706","12","131156","61034",8
+"Write SequenceTable","1709407564397","13","99806","7641",8
+"Write SingleTable","1709407564406","13","103281","7762",8
+"Write IndexTable","1709407568815","10","150650","8802",8
+"Write CountTable","1709407564118","4","163458","148088",8
+"Write SequenceTable","1709408442582","0","0","0",9
+"Update metadata from SequenceTable","1709408442863","0","0","0",9
+"Write SingleTable","1709408443468","0","0","0",9
+"Write IndexTable","1709408444358","0","0","0",9
+"Update metadata from IndexTable","1709408444505","0","0","0",9
+"Write CountTable","1709408445322","0","0","0",9
+"Update metadata from IndexTable","1709408516107","1","37761","2",9
+"Write SingleTable","1709408516114","1","47328","12",9
+"Update metadata from SequenceTable","1709408516115","1","53152","26",9
+"Write SequenceTable","1709408516110","1","53522","9",9
+"Write IndexTable","1709408516108","1","57141","2",9
+"Update metadata from IndexTable","1709408553955","2","50287","10148",9
+"Write SingleTable","1709408563597","2","75155","10138",9
+"Write SequenceTable","1709408569648","2","69476","10141",9
+"Update metadata from SequenceTable","1709408569396","2","71081","20274",9
+"Write IndexTable","1709408573274","2","83527","10148",9
+"Write CountTable","1709408662713","1","66803","10150",9
+"Write SequenceTable","1709408810617","0","0","0",10
+"Update metadata from SequenceTable","1709408810888","0","0","0",10
+"Write SingleTable","1709408811581","0","0","0",10
+"Write IndexTable","1709408812458","0","0","0",10
+"Update metadata from IndexTable","1709408812628","0","0","0",10
+"Write CountTable","1709408813334","0","0","0",10
+"Update metadata from SequenceTable","1709408857346","1","193219","20056",10
+"Write SingleTable","1709408926614","1","125206","10028",10
+"Update metadata from IndexTable","1709408928740","1","123569","10028",10
+"Write SequenceTable","1709408889860","1","162471","10028",10
+"Write IndexTable","1709408927792","1","135619","10028",10
+"Write CountTable","1709409078402","1","61305","10028",10
+"Write SequenceTable","1709409269324","0","0","0",11
+"Update metadata from SequenceTable","1709409269605","0","0","0",11
+"Write SingleTable","1709409270202","0","0","0",11
+"Write IndexTable","1709409271088","0","0","0",11
+"Update metadata from IndexTable","1709409271250","0","0","0",11
+"Write CountTable","1709409272035","0","0","0",11
+"Update metadata from SequenceTable","1709409313586","1","216190","19572",11
+"Write SequenceTable","1709409353172","1","178179","9786",11
+"Write SingleTable","1709409352789","1","179251","9786",11
+"Update metadata from IndexTable","1709409353726","1","178980","9786",11
+"Write IndexTable","1709409353589","1","190177","9786",11
+"Write CountTable","1709409556068","1","65245","9786",11
+"Write SequenceTable","1709409688812","0","0","0",12
+"Update metadata from SequenceTable","1709409689040","0","0","0",12
+"Write SingleTable","1709409689707","0","0","0",12
+"Write IndexTable","1709409690701","0","0","0",12
+"Update metadata from IndexTable","1709409690874","0","0","0",12
+"Write CountTable","1709409691552","0","0","0",12
+"Write SequenceTable","1709409702254","1","88354","108",12
+"Update metadata from SequenceTable","1709409702116","1","97707","12",12
+"Update metadata from IndexTable","1709409755729","1","46706","10127",12
+"Write SequenceTable","1709409790618","2","219440","10019",12
+"Update metadata from SequenceTable","1709409799881","2","228846","20242",12
+"Write IndexTable","1709409785698","1","248890","10127",12
+"Write CountTable","1709410050462","1","72938","10127",12
+"Write SingleTable","1709409711294","1","468611","6310",12
+"Write SingleTable","1709410179907","2","109910","3817",12
