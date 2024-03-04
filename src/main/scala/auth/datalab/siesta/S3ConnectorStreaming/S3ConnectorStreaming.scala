@@ -77,7 +77,11 @@ class S3ConnectorStreaming {
 
       override def onQueryTerminated(queryTerminated: QueryTerminatedEvent): Unit = {
         println("Query terminated: " + queryTerminated.id)
+        if (queryTerminated.exception.nonEmpty) {
+          println("Termination reason: " + queryTerminated.exception.get)
+        }
       }
+
 
       override def onQueryProgress(queryProgress: QueryProgressEvent): Unit = {
         if (queryProgress.progress.numInputRows > 0) {
@@ -224,8 +228,8 @@ class S3ConnectorStreaming {
           .foreach(x => unique_traces.add(x))
         metadata.events = metadata.events + batchEventCount
         metadata.traces = unique_traces.size
-//        Logger.getLogger(s"SequenceTable").log(Level.INFO,
-//          s"Batch: $batchId: Total events: ${metadata.events}. Total traces ${metadata.traces}.")
+        //        Logger.getLogger(s"SequenceTable").log(Level.INFO,
+        //          s"Batch: $batchId: Total events: ${metadata.events}. Total traces ${metadata.traces}.")
         spark.sparkContext.parallelize(Seq(metadata)).toDF()
           .write.mode(SaveMode.Overwrite).json(meta_table)
       })
@@ -279,8 +283,8 @@ class S3ConnectorStreaming {
         metadata.pairs = metadata.pairs + countPairs
         spark.sparkContext.parallelize(Seq(metadata)).toDF()
           .write.mode(SaveMode.Overwrite).json(meta_table)
-//        Logger.getLogger(s"IndexTable").log(Level.INFO,
-//          s"Batch: $batchId: Ingesting pairs: $countPairs.")
+        Logger.getLogger(s"IndexTable").log(Level.INFO,
+          s"Batch: $batchId: Ingesting pairs: $countPairs.")
       })
       .start()
     (indexTable, logging)
@@ -312,8 +316,8 @@ class S3ConnectorStreaming {
       .format("delta")
       .foreachBatch((microBatchOutputDF: DataFrame, batchId: Long) => {
         val c = microBatchOutputDF.count()
-//        Logger.getLogger(s"CountTable").log(Level.INFO,
-//          s"Handling Batch: $batchId, storing $c metrics")
+        //        Logger.getLogger(s"CountTable").log(Level.INFO,
+        //          s"Handling Batch: $batchId, storing $c metrics")
         countTable.as("p")
           .merge(
             microBatchOutputDF.as("n"),

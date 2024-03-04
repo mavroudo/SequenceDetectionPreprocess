@@ -122,6 +122,14 @@ object ParsingArguments {
       opt[Int]("lmax")
         .valueName("<max length>")
         .action((x, c) => c.copy(length_max = x)),
+      note(sys.props("line.separator") + "The parameters below are used in case of the streaming setup"),
+      opt[Int]("streaming_events")
+        .valueName("<#streaming_events>")
+        .text(" Terminate the streaming process after indexing at least <#streaming_events> events")
+        .validate(x => {
+          if (x > 0) success else failure("Value <#streaming_events> must be positive")
+        })
+        .action((x, c) => c.copy(traces = x)),
       help("help").text("prints this usage text")
     )
   }
