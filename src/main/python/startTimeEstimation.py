@@ -41,8 +41,14 @@ def printTasks(traces, duration=False):
             if duration:
                 print(f"-> {divmod((task.end_timestamp - task.start_timestamp).total_seconds(), 60)[0]} min")
 
-def ingest_data(file_name, separator, delimiter) -> dict:
+def ingest_data(file_name, separator, delimiter):
+    # Set of types of activity instances, e.g. "A", "B", "C"
+    types = set()
+    # Pairs of activity instances, e.g. "A->B", "B->C"
+    pairs = dict()
+    # Dictionary of traces and their tasks
     traces = {}
+   
     with open(file_name, 'r') as reader:
         for line in reader:
             parts = line.strip().split("::")
@@ -63,7 +69,7 @@ def ingest_data(file_name, separator, delimiter) -> dict:
                     else:
                         pairs[type + tasks[i+1].split(delimiter)[0]] = 1
                         pairs[tasks[i+1].split(delimiter)[0] + type] = 0
-    return traces
+    return traces, pairs, types
 
 def find_concurrency(traces, pairs, types) -> set:
     non_concurrents = set()
@@ -90,8 +96,8 @@ def find_concurrency(traces, pairs, types) -> set:
     # Exonerate certain non-concurrent pairs based on the second condition
     # O(m*n) but since n is small, it's ok
     for tasks in traces.values():
-        for i in range(1, len(tasks), 2):
-            if tasks[i-1].event_type == tasks[i].event_type:
+        for i in range(1, len(tasks) - 1):
+            if tasks[i - 1].event_type == tasks[i + 1].event_type:
                 non_concurrents.add(tasks[i-1].event_type + tasks[i].event_type)
                 non_concurrents.add(tasks[i].event_type + tasks[i-1].event_type)
     
@@ -146,13 +152,8 @@ if __name__ == '__main__':
 
 
     """ Pipeline """
-    # Set of types of activity instances, e.g. "A", "B", "C"
-    types = set()
-    # Pairs of activity instances, e.g. "A->B", "B->C"
-    pairs = dict()
-
     # Dictionary of traces and their tasks
-    traces = ingest_data(file_name, separator, delimiter)
+    traces , pairs , types = ingest_data(file_name, separator, delimiter)
 
     # Set of concurrent pairs of tasks
     concurrents = find_concurrency(traces, pairs, types)
@@ -163,5 +164,5 @@ if __name__ == '__main__':
 
     # print(f"Pairs: {pairs}")
     print(f"Types: {types}")
-    print(f"Concurrents: {concurrents}")
+    print(f"Concurrents: {concurrents if concurrents else 'No concurrent pairs found'}")
     printTasks(traces, duration=True)
