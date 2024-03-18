@@ -49,6 +49,7 @@ case class Config(
                    event_types: Int = 10,
                    length_min: Int = 10,
                    length_max: Int = 90,
-                   k: Int = -1
+                   k: Int = -1,
+                   streaming_events:Int = 100
 
                  )

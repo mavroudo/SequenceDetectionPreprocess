@@ -7,13 +7,21 @@ import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3ConnectorStreaming.S3ConnectorStreaming
 import auth.datalab.siesta.Utils.Utilities
 import org.apache.spark.sql._
-import org.apache.spark.sql.streaming.{GroupStateTimeout, OutputMode}
+import org.apache.spark.sql.streaming.StreamingQueryListener.{QueryProgressEvent, QueryStartedEvent, QueryTerminatedEvent}
+import org.apache.spark.sql.streaming.{GroupStateTimeout, OutputMode, StreamingQuery, StreamingQueryListener}
 import org.apache.spark.sql.types._
 
 import java.time.Duration
 
 
 object SiestaStreamingPipeline {
+
+  private def stopQuery(query : StreamingQuery): Unit = {
+    if(query.isActive && !query.status.isDataAvailable && !query.status.isTriggerActive) {
+      println(s"Terminating Query ${query.name}")
+      query.stop()
+    }
+  }
 
   def execute(c: Config): Unit = {
 
@@ -71,12 +79,43 @@ object SiestaStreamingPipeline {
     //write in CountTable
     val countTableQuery = s3Connector.write_count_table(pairs)
 
+
+    spark.streams.addListener(new StreamingQueryListener() {
+      var totalEvents = 0L
+
+      override def onQueryStarted(queryStarted: QueryStartedEvent): Unit = {
+      }
+
+      override def onQueryTerminated(queryTerminated: QueryTerminatedEvent): Unit = {
+      }
+
+
+      override def onQueryProgress(queryProgress: QueryProgressEvent): Unit = {
+        if (queryProgress.progress.numInputRows > 0 && queryProgress.progress.name=="Write SingleTable") {
+          totalEvents+= queryProgress.progress.numInputRows
+          println(s"Processed events: ${totalEvents}")
+        }
+
+        if(totalEvents>=c.streaming_events){
+          stopQuery(sequenceTableQueries._1)
+          stopQuery(sequenceTableQueries._2)
+          stopQuery(singleTableQuery)
+          stopQuery(indexTableQueries._1)
+          stopQuery(indexTableQueries._2)
+          stopQuery(countTableQuery)
+        }
+      }
+    })
+
+
     sequenceTableQueries._1.awaitTermination()
     sequenceTableQueries._2.awaitTermination()
     singleTableQuery.awaitTermination()
     indexTableQueries._1.awaitTermination()
     indexTableQueries._2.awaitTermination()
     countTableQuery.awaitTermination()
+
+
 
 
   }
