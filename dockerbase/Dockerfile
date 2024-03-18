@@ -38,10 +38,12 @@ ENV s3accessKeyAws=minioadmin
 ENV s3ConnectionTimeout=600000
 ENV s3endPointLoc=http://minio:9000
 ENV s3secretKeyAws=minioadmin
+ENV KAFKA_BROKER=kafka:9093
+ENV KAFKA_TOPIC=test
 ENV POSTGRES_ENDPOINT=postgres:5432/metrics
 ENV POSTGRES_USERNAME=admin
 ENV POSTGRES_PASSWORD=admin
 
 
-ENTRYPOINT ["/opt/spark/bin/spark-submit","--master","local[12]","--conf","spark.driver.memory","15g","preprocess.jar"]
+ENTRYPOINT ["/opt/spark/bin/spark-submit","--master","local[12]","--conf","spark.driver.memory=15g","--packages","io.delta:delta-core_2.12:0.8.0","preprocess.jar"]
 CMD ["--logname","test","--delete_prev"]

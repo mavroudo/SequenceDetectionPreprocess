@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
   "org.apache.spark" %% "spark-sql" % sparkVersion % "provided")
 
-
+libraryDependencies += "org.postgresql" % "postgresql" % "42.4.0"
 //
 dependencyOverrides ++= {
   Seq(

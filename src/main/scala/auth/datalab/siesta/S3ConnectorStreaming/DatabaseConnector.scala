@@ -1,10 +1,18 @@
 package auth.datalab.siesta.S3ConnectorStreaming
+
+import auth.datalab.siesta.Utils.Utilities
+
 import java.sql.{Connection, DriverManager, SQLException, Statement}
 
 object DatabaseConnector {
-  val url = "jdbc:postgresql://localhost:5432/metrics"
-  val username = "admin"
-  val password = "admin"
+  //  val url = "jdbc:postgresql://localhost:5432/metrics"
+  //  val username = "admin"
+  //  val password = "admin"
+
+  private val endpoint: String = Utilities.readEnvVariable("POSTGRES_ENDPOINT")
+  val url = s"jdbc:postgresql://$endpoint"
+  val username: String = Utilities.readEnvVariable("POSTGRES_USERNAME")
+  val password: String = Utilities.readEnvVariable("POSTGRES_PASSWORD")
 
   def getConnection: Connection = {
     try {

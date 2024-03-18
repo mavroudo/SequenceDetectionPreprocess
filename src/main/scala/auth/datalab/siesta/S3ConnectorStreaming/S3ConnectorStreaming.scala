@@ -149,10 +149,11 @@ class S3ConnectorStreaming {
 
     val conf = new SparkConf()
       .setAppName("Siesta incremental")
-      .setMaster("local[*]")
+//      .setMaster("local[*]")
       .set("spark.sql.sources.partitionOverwriteMode", "dynamic")
       .set("spark.sql.parquet.compression.codec", config.compression)
       .set("spark.sql.parquet.filterPushdown", "true")
+
 
 
     val spark = SparkSession.builder().config(conf).getOrCreate()
