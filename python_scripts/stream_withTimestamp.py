@@ -8,6 +8,7 @@ Created on Wed Jun  7 10:54:20 2023
 
 import sys,random,time,requests
 import socket,json
+import os
 from kafka import KafkaProducer
 
 def read_file(file):
@@ -41,19 +42,22 @@ def reorder_events(data,events_per_second):
 
 
 if __name__ == "__main__":
-    #file = sys.argv[1]
-    #eventsPerSecond = int(sys.argv[2])
+    file = sys.argv[1]
+    eventsPerSecond = int(sys.argv[2])
 # =============================================================================
 #     Demo params for now
 # =============================================================================
-    file="python_scripts/logs/6.withTimestamp"
-    eventsPerSecond=200
+    #file="python_scripts/logs/6.withTimestamp"
+    #eventsPerSecond=200
+    kafka_endpoint = os.getenv("KAFKA_ENDPOINT","localhost:9092")
+    print(kafka_endpoint)
+    kafka_topic = os.getenv("KAFKA_TOPIC","test")
     print("Streaming {} file, with {} events per second".format(file,eventsPerSecond))
-    producer = KafkaProducer(bootstrap_servers='localhost:29092',value_serializer=lambda v: json.dumps(v).encode('utf-8'),key_serializer=lambda k: str(k).encode('utf-8'))
+    producer = KafkaProducer(bootstrap_servers=kafka_endpoint,value_serializer=lambda v: json.dumps(v).encode('utf-8'),key_serializer=lambda k: str(k).encode('utf-8'))
     data=read_file(file)
     print("Number of events in this logfile: {}".format(len(data)))
     for event in reorder_events(data,eventsPerSecond):
         print("sending {}".format(str(event)))
-        producer.send('test',key=event["trace"], value=event)
+        producer.send(kafka_topic,key=event["trace"], value=event)
 
 

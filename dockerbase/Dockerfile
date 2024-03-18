@@ -36,9 +36,12 @@ ENV cassandra_write_consistency_level=ONE
 ENV cassandra_gc_grace_seconds=864000
 ENV s3accessKeyAws=minioadmin
 ENV s3ConnectionTimeout=600000
-ENV s3endPointLoc=http://minio-contact:9000
+ENV s3endPointLoc=http://minio:9000
 ENV s3secretKeyAws=minioadmin
+ENV POSTGRES_ENDPOINT=postgres:5432/metrics
+ENV POSTGRES_USERNAME=admin
+ENV POSTGRES_PASSWORD=admin
 
 
-ENTRYPOINT ["/opt/spark/bin/spark-submit","--master","local[*]","preprocess.jar"]
+ENTRYPOINT ["/opt/spark/bin/spark-submit","--master","local[12]","--conf","spark.driver.memory","15g","preprocess.jar"]
 CMD ["--logname","test","--delete_prev"]

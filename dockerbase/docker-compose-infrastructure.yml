@@ -1,0 +1,84 @@
+version: '3.7'
+services:
+  minio:
+    container_name: minio
+    image: minio/minio:RELEASE.2023-11-01T01-57-10Z
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_storage:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server --console-address ":9001" /data
+    networks:
+      - siesta-net
+
+#    cassandra:
+#      image: 'cassandra:4.0'
+#      container_name: cassandra
+#      ports:
+#        - '7000:7000'
+#        - '9042:9042'
+#      volumes:
+#        - './cassandra/data:/var/lib/cassandra'
+#      environment:
+#        PROJECT_NAME: siesta
+#        CASSANDRA_SEEDS: cassandra
+#        CASSANDRA_PASSWORD_SEEDER: yes
+#        CASSANDRA_PASSWORD: cassandra
+#      networks:
+#        - siesta-net
+
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - siesta-net
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9093,OUTSIDE://localhost:9092
+      KAFKA_LISTENERS: INSIDE://:9093,OUTSIDE://:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zookeeper
+    networks:
+      - siesta-net
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: metrics
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - siesta-net
+
+networks:
+  siesta-net:
+    name: siesta-net
+    external: true
+
+volumes:
+  postgres-data: {}
+  minio_storage: {}
+
