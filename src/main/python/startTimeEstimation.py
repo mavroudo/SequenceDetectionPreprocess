@@ -6,7 +6,15 @@ import sys
         *   key = trace index: int
         *   value = array<struct<event_type: str, start_timestamp: datetime, end_timestamp: datetime, resourse: str>>
 
-    The start time of an activity instance (task) is determined in two phases:
+    We define concurency of two activity instances (a.k.a. tasks) as described in the paper "Split Miner:
+    Discovering Accurate and Simple Business Process Models from Event Logs" (Augusto et al. 2017, https://kodu.ut.ee/~dumas/pubs/icdm2017-split-miner.pdf).
+    Tasks A and B are concurrent iff:
+        *   there are 2 traces in log L such that in one trace A is directly followed by B, and in the other trace B is directly followed by A.
+        *   there is no trace in log L such that A is directly followed by B and B is directly followed by A.
+        *   the ratio (| |A->B| - |B->A| |) / (|A->B| + |B->A|) is less than 1.
+
+    The start time of an activity instance (task) is determined in two phases as described in the paper "Repairing Activity Start Times
+    to Improve Business Process Simulation" (Chapela-Campa, Dumas 2017, https://arxiv.org/pdf/2208.12224.pdf):
         1.  Calculate the enablement time of the tasks based on the concurrency of the tasks.
             The enablement time of a task is defined as:
             *   the pre-defined trace start time, if the task is first in the trace.
@@ -14,17 +22,7 @@ import sys
                 is not concurrent with it.
         2.  Fix the enablement time of the tasks based on the resource availability.
             The start time of the task is defined as the maximum of: the enablement time of the task, and the end time of the last task
-            of the same resource in the trace.
-
-    Let the start time of trace to be defined as the first task's start time in exact hour.
-    E.g. if the first task starts at 10:15, the trace start time will be 10:00.
-
-    We define concurency of two activity instances (a.k.a. tasks) as described in the paper "Split Miner:
-    Discovering Accurate and Simple Business Process Models from Event Logs" (Augusto et al. 2017, https://kodu.ut.ee/~dumas/pubs/icdm2017-split-miner.pdf).
-    Tasks A and B are concurrent iff:
-        *   there are 2 traces in log L such that in one trace A is directly followed by B, and in the other trace B is directly followed by A.
-        *   there is no trace in log L such that A is directly followed by B and B is directly followed by A.
-        *   the ratio (| |A->B| - |B->A| |) / (|A->B| + |B->A|) is less than 1.
+            of the same resource which is previous to its end time.
 '''
 
 
@@ -167,7 +165,7 @@ def determine_enablement_times(traces, concurrents):
 def fix_start_times(traces, resources):
     for trace_index, tasks in traces.items():
         for task in tasks:
-            max_available_time = max([t.end_timestamp for t in resources[task.resource] if t.end_timestamp < task.start_timestamp])
+            max_available_time = max([t.end_timestamp for t in resources[task.resource] if t.end_timestamp < task.end_timestamp])
             if task.start_timestamp < max_available_time:
                 task.start_timestamp = max_available_time
 
