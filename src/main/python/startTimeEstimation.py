@@ -86,9 +86,6 @@ def ingest_data(file_name, separator, delimiter):
                         pairs[type + tasks[i+1].split(delimiter)[0]] = 1
                         pairs[tasks[i+1].split(delimiter)[0] + type] = 0
 
-    for resource in resources.values():
-        resource.sort(key=lambda x: x.end_timestamp)
-
     return traces, pairs, types, resources
 
 
