@@ -163,6 +163,9 @@ def determine_enablement_times(traces, concurrents):
 
 
 def fix_start_times(traces, resources):
+    # Fix the start time of the tasks based on the resource availability.
+    # The start time of the task is defined as the maximum of: the enablement time of the task,
+    # and the end time of the last task of the same resource which is previous to its end time.
     for trace_index, tasks in traces.items():
         for task in tasks:
             available_times = [t.end_timestamp for t in resources[task.resource] if t.end_timestamp < task.end_timestamp]
