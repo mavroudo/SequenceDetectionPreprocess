@@ -72,7 +72,7 @@ def ingest_data(file_name, separator, delimiter):
 
                 task = Task(event_type=type, end_timestamp=end, resource=resource)
 
-                if resources not in resources.keys():
+                if resource not in resources.keys():
                     resources[resource] = [task]
                 else:
                     resources[resource].append(task)
@@ -165,9 +165,9 @@ def determine_enablement_times(traces, concurrents):
 def fix_start_times(traces, resources):
     for trace_index, tasks in traces.items():
         for task in tasks:
-            max_available_time = max([t.end_timestamp for t in resources[task.resource] if t.end_timestamp < task.end_timestamp])
-            if task.start_timestamp < max_available_time:
-                task.start_timestamp = max_available_time
+            available_times = [t.end_timestamp for t in resources[task.resource] if t.end_timestamp < task.end_timestamp]
+            if available_times and task.start_timestamp < max(available_times):
+                task.start_timestamp = max(available_times)
 
 
 if __name__ == '__main__':
