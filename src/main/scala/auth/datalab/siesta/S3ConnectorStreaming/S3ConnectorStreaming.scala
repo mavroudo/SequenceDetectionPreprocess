@@ -7,6 +7,7 @@ import auth.datalab.siesta.BusinessLogic.StreamingProcess.StreamingProcess
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.Utils.Utilities
 import io.delta.tables.DeltaTable
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.catalyst.ScalaReflection
@@ -15,6 +16,7 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql._
 import org.apache.spark.sql.streaming.StreamingQueryListener.{QueryProgressEvent, QueryStartedEvent, QueryTerminatedEvent}
 
+import java.net.URI
 import java.sql.SQLException
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -22,7 +24,7 @@ import scala.collection.mutable
 
 class S3ConnectorStreaming {
   var seq_table: String = _
-  var meta_table: String = _
+  var delta_meta_table: String = _
   var single_table: String = _
   var last_checked_table: String = _
   var index_table: String = _
@@ -35,12 +37,25 @@ class S3ConnectorStreaming {
    */
   def initialize_db(config: Config): Unit = {
     val spark = SparkSession.builder().getOrCreate()
+    val bucket = "siesta-test"
+    val fs = FileSystem.get(new URI(s"s3a://$bucket/"), spark.sparkContext.hadoopConfiguration)
     //initialize table names base don the given logname
-    meta_table = s"""s3a://siesta-test/${config.log_name}/meta/"""
-    seq_table = s"""s3a://siesta-test/${config.log_name}/seq/"""
-    single_table = s"""s3a://siesta-test/${config.log_name}/single/"""
-    index_table = s"""s3a://siesta-test/${config.log_name}/index/"""
-    count_table = s"""s3a://siesta-test/${config.log_name}/count/"""
+    delta_meta_table = s"""s3a://$bucket/${config.log_name}/meta/"""
+    seq_table = s"""s3a://$bucket/${config.log_name}/seq/"""
+    single_table = s"""s3a://$bucket/${config.log_name}/single/"""
+    index_table = s"""s3a://$bucket/${config.log_name}/index/"""
+    count_table = s"""s3a://$bucket/${config.log_name}/count/"""
+
+    //check for delete previous
+    if (config.delete_previous) {
+      fs.delete(new Path(s"""s3a://$bucket/${config.log_name}/"""), true)
+    }
+    //delete all stored indices in this db
+    if (config.delete_all) {
+      for (l <- fs.listStatus(new Path(s"""s3a://$bucket/"""))) {
+        fs.delete(l.getPath, true)
+      }
+    }
 
     val connection = DatabaseConnector.getConnection
     try {
@@ -155,7 +170,6 @@ class S3ConnectorStreaming {
       .set("spark.sql.parquet.filterPushdown", "true")
 
 
-
     val spark = SparkSession.builder().config(conf).getOrCreate()
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.endpoint", s3endPointLoc)
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", s3accessKeyAws)
@@ -182,7 +196,8 @@ class S3ConnectorStreaming {
     val spark = SparkSession.builder().getOrCreate()
     val schema = ScalaReflection.schemaFor[MetaData].dataType.asInstanceOf[StructType]
     val metaDataObj = try {
-      spark.read.schema(schema).json(meta_table)
+      //      spark.read.schema(schema).json(delta_meta_table)
+      spark.read.format("delta").load(delta_meta_table)
     } catch {
       case _: org.apache.spark.sql.AnalysisException => null
     }
@@ -191,7 +206,7 @@ class S3ConnectorStreaming {
     val metaData = if (metaDataObj == null) {
       SetMetadata.initialize_metadata(config)
     } else {
-      SetMetadata.load_metadata(metaDataObj)
+      SetMetadata.load_metadata_delta(metaDataObj)
     }
     metaData
   }
@@ -229,10 +244,7 @@ class S3ConnectorStreaming {
           .foreach(x => unique_traces.add(x))
         metadata.events = metadata.events + batchEventCount
         metadata.traces = unique_traces.size
-        //        Logger.getLogger(s"SequenceTable").log(Level.INFO,
-        //          s"Batch: $batchId: Total events: ${metadata.events}. Total traces ${metadata.traces}.")
-        spark.sparkContext.parallelize(Seq(metadata)).toDF()
-          .write.mode(SaveMode.Overwrite).json(meta_table)
+//        updateMetadata()
       })
       .start()
 
@@ -282,10 +294,7 @@ class S3ConnectorStreaming {
       .foreachBatch((batchDF: DataFrame, batchId: Long) => {
         val countPairs = batchDF.count()
         metadata.pairs = metadata.pairs + countPairs
-        spark.sparkContext.parallelize(Seq(metadata)).toDF()
-          .write.mode(SaveMode.Overwrite).json(meta_table)
-        Logger.getLogger(s"IndexTable").log(Level.INFO,
-          s"Batch: $batchId: Ingesting pairs: $countPairs.")
+        updateMetadata()
       })
       .start()
     (indexTable, logging)
@@ -317,8 +326,6 @@ class S3ConnectorStreaming {
       .format("delta")
       .foreachBatch((microBatchOutputDF: DataFrame, batchId: Long) => {
         val c = microBatchOutputDF.count()
-        //        Logger.getLogger(s"CountTable").log(Level.INFO,
-        //          s"Handling Batch: $batchId, storing $c metrics")
         countTable.as("p")
           .merge(
             microBatchOutputDF.as("n"),
@@ -330,6 +337,21 @@ class S3ConnectorStreaming {
       .outputMode(OutputMode.Append)
       .option("checkpointLocation", f"${count_table}_checkpoints/")
       .start()
+  }
+
+  private def updateMetadata(): Unit = {
+    if (!DeltaTable.isDeltaTable(delta_meta_table)) {
+      SetMetadata.transformToDF(metadata).write.format("delta").mode(SaveMode.Overwrite).save(delta_meta_table)
+    } else {
+
+      val deltaTable = DeltaTable.forPath(delta_meta_table)
+      deltaTable.as("oldData").merge(SetMetadata.transformToDF(metadata).as("newData"), "oldData.key=newData.key")
+        .whenMatched()
+        .updateAll()
+        .whenNotMatched()
+        .insertAll()
+        .execute()
+    }
   }
 
 
