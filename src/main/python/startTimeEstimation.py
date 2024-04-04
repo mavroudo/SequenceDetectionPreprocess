@@ -1,5 +1,6 @@
 from datetime import datetime
 import sys
+import pm4py
 
 '''
     This script reads a file with sequences of activity instances and their end-time timestamps, and creates a dict with the following schema:
@@ -29,7 +30,7 @@ import sys
 class Task:
     def __init__(self, event_type, end_timestamp, start_timestamp=None, resource=None):
         self.event_type: str = event_type
-        self.end_timestamp: datetime = datetime.strptime(end_timestamp, '%Y-%m-%d %H:%M:%S')
+        self.end_timestamp: datetime = end_timestamp #datetime.strptime(end_timestamp, '%Y-%m-%d %H:%M:%S')
         self.start_timestamp: datetime = datetime.strptime(start_timestamp, '%Y-%m-%d %H:%M:%S') if start_timestamp else None
         self.resource: str = resource
 
@@ -45,8 +46,7 @@ def printTasks(traces, duration=False):
             if duration:
                 print(f"-> {divmod((task.end_timestamp - task.start_timestamp).total_seconds(), 60)[0]} min")
 
-
-def ingest_data(file_name, separator, delimiter):
+def ingest_data_txt(file_name, separator, delimiter):
     # Set of types of activity instances, e.g. "A", "B", "C"
     types = set()
     # Pairs of activity instances, e.g. "A->B", "B->C"
@@ -89,6 +89,52 @@ def ingest_data(file_name, separator, delimiter):
     return traces, pairs, types, resources
 
 
+def ingest_data(file_name, separator=None, delimiter=None):
+    if (not file_name.endswith(".xes")):
+        return ingest_data_txt(file_name, separator, delimiter)
+
+    # Set of types of activity instances, e.g. "A", "B", "C"
+    types = set()
+    # Pairs of activity instances, e.g. "A->B", "B->C"
+    pairs = dict()
+    # Dict of resources and their tasks
+    resources = dict()
+    # Dictionary of traces and their tasks
+    traces = dict()
+
+    # Read the XES file
+    log = pm4py.read_xes(file_name)
+
+    for index, event in log.iterrows():
+        type = event['concept:name']
+        end = event['time:timestamp']
+        resource = event['org:resource']
+
+        types.add(type)
+
+        task = Task(event_type=type, end_timestamp=end, resource=resource)
+
+        if not event['case:Rfp_id'] in traces.keys():
+            last_event = None
+            traces[event['case:Rfp_id']] = [task]
+        else:
+            last_event = traces[event['case:Rfp_id']][-1].event_type
+            traces[event['case:Rfp_id']].append(task)
+
+        if not resource in resources.keys():
+            resources[resource] = [task]
+        else:
+            resources[resource].append(task)
+
+        if last_event is not None:
+            if last_event + type in pairs.keys():
+                pairs[last_event + '~~' + type] += 1
+            else:
+                pairs[last_event + '~~' + type] = 1
+                pairs[type + '~~' + last_event] = 0
+
+    return traces, pairs, types, resources
+
 def find_concurrency(traces, pairs, types) -> set:
     non_concurrents = set()
     candidates = set()
@@ -98,18 +144,18 @@ def find_concurrency(traces, pairs, types) -> set:
     for i in types:
         for j in types:
             if i != j:
-                candidates.add(i + j)
+                candidates.add(i + '~~' + j)
 
     # Exonerate certain non-concurrent pairs based on the first condition
     # O(n) but since n is small, it's ok
     for candidate in candidates:
         if candidate not in pairs.keys():
             non_concurrents.add(candidate)
-            non_concurrents.add(candidate[::-1])
+            non_concurrents.add(candidate.split('~~')[1] + '~~' + candidate.split('~~')[0])
         else:
             if pairs[candidate] == 0:
                 non_concurrents.add(candidate)
-                non_concurrents.add(candidate[::-1])
+                non_concurrents.add(candidate.split('~~')[1] + '~~' + candidate.split('~~')[0])
 
     # Exonerate certain non-concurrent pairs based on the second condition
     # O(m*n) but since n is small, it's ok
@@ -126,9 +172,10 @@ def find_concurrency(traces, pairs, types) -> set:
 
     # Exonerate certain non-concurrent pairs based on the third condition
     for candidate in candidates:
-        if abs(pairs[candidate] - pairs[candidate[::-1]]) / (pairs[candidate] + pairs[candidate[::-1]]) >= 1:
+        candidate_reversed = candidate.split('~~')[1] + '~~' + candidate.split('~~')[0]
+        if abs(pairs[candidate] - pairs[candidate_reversed]) / (pairs[candidate] + pairs[candidate[candidate_reversed]]) >= 1:
             non_concurrents.add(candidate)
-            non_concurrents.add(candidate[::-1])
+            non_concurrents.add(candidate[candidate_reversed])
 
     # Final cleaning the candidates set from the non-concurrent pairs
     for nc in non_concurrents:
@@ -182,7 +229,7 @@ if __name__ == '__main__':
 
     """ Pipeline """
     # Dictionary of traces and their tasks
-    traces , pairs , types, resources = ingest_data(file_name, separator, delimiter)
+    traces , pairs , types, resources = ingest_data(file_name)
 
     # Set of concurrent pairs of tasks
     concurrents = find_concurrency(traces, pairs, types)
@@ -194,6 +241,6 @@ if __name__ == '__main__':
     fix_start_times(traces, resources)
 
     # print(f"Pairs: {pairs}")
-    print(f"Types: {types}")
+    # print(f"Types: {types}")
     print(f"Concurrents: {concurrents if concurrents else 'No concurrent pairs found'}")
     printTasks(traces, duration=True)
