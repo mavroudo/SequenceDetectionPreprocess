@@ -25,6 +25,17 @@ object ReadLogFile {
    * @param separator Defines how the events are separated (can be changed to match new txt format)
    * @return The RDD that contains the parsed traces
    */
+
+  def readLogDetailed(fileName: String, separator: String = ",") : RDD[Structs.DetailedSequence] = {
+    if (fileName.split('.')(1) == "xes") {
+      this.readFromXesDetailed(fileName)
+    } else if (fileName.split('.')(1) == "withTimestamp") {
+      this.readWithTimestampsDetailed(fileName, ",", "/delab/")
+    } else {
+      throw new Exception("Not recognised file type")
+    }
+  }
+
   def readLog(fileName: String, separator: String = ","): RDD[Structs.Sequence] = {
     if (fileName.split('.')(1) == "txt") { //there is no time limitations
       this.readFromTxt(fileName, separator)
@@ -35,7 +46,6 @@ object ReadLogFile {
     } else {
       throw new Exception("Not recognised file type")
     }
-
   }
 
   /**
@@ -55,6 +65,28 @@ object ReadLogFile {
       Structs.Sequence(sequence.toList, index)
     }
   }
+
+  private def readWithTimestampsDetailed(fileName: String, separator: String, delimiter: String): RDD[Structs.DetailedSequence] = {
+    val spark = SparkSession.builder().getOrCreate()
+
+    val reader = new Scanner(new File(fileName))
+    val ar:ArrayBuffer[Structs.DetailedSequence] = new ArrayBuffer[Structs.DetailedSequence]()
+    while(reader.hasNextLine){
+      val line = reader.nextLine()
+      val index = line.split("::")(0).toInt
+      val events = line.split("::")(1)
+      val sequence = events.split(separator).map(event => {
+        new Structs.DetailedEvent(event_type = new Structs.EventType(event.split(delimiter)(0)),
+                                  end_timestamp = event.split(delimiter)(1),
+                                  resource = event.split(delimiter)(2),
+                                  trace_id = index.toString)
+      })
+      ar.append(new Structs.DetailedSequence(sequence.toList, index))
+    }
+    val par = spark.sparkContext.parallelize(ar)
+    par
+  }
+
 
   /**
    * Xes files are standard for the Business Process Management. They use an XML format with predefined field names.
@@ -87,6 +119,37 @@ object ReadLogFile {
         Structs.Event(df2.format(df4.parse(timestamp_occurred)), event_name)
       }).toList
       Structs.Sequence(list, index.toLong)
+    }
+    val par = spark.sparkContext.parallelize(data)
+    par
+  }
+
+  private def readFromXesDetailed(fileName: String): RDD[Structs.DetailedSequence] = {
+    val spark = SparkSession.builder().getOrCreate()
+    val file_Object = new File(fileName)
+    var parsed_logs: List[XLog] = null
+    val parsers_iterator = XParserRegistry.instance().getAvailable.iterator()
+    while (parsers_iterator.hasNext) {
+      val p = parsers_iterator.next
+      if (p.canParse(file_Object)) {
+        parsed_logs = p.parse(new FileInputStream(file_Object)).toList
+      }
+    }
+
+    //val df = new SimpleDateFormat("MMM d, yyyy HH:mm:ss a") //read this pattern from xes
+    //val df3 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    val df4 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+    val df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss") // transform it to this patter
+
+    val data = parsed_logs.head.zipWithIndex map { case (trace: XTrace, index: Int) =>
+      val list = trace.map(event => {
+        val event_type = new Structs.EventType(event.getAttributes.get("concept:name").toString)
+        val end_timestamp = event.getAttributes.get("time:timestamp").toString
+        val resource = event.getAttributes.get("org:resource").toString
+        val trace_id = trace.getAttributes.get("case:Rfp_id").toString
+        new Structs.DetailedEvent(event_type = event_type, end_timestamp = df2.format(df4.parse(end_timestamp)), resource = resource, trace_id = trace_id)
+      }).toList
+      new Structs.DetailedSequence(list, index.toLong)
     }
     val par = spark.sparkContext.parallelize(data)
     par

@@ -29,6 +29,7 @@ package auth.datalab.siesta.CommandLineParser
  * @param length_max This parameter concerns the random generator. Defines the maximum length of the generated traces.
  * @param k Specifies the number of frequent events that will be used in the Signature method. If -1 is set it will use
  *          k=|unique event types|
+ * @param duration_determination Flag parameter determines if the duration of the events will be calculated and stored in.
  *
  * @see [[ParsingArguments]], which describes how the parameters are parsed from the command line and what are the
  *      available values for each parameter.
@@ -49,6 +50,6 @@ case class Config(
                    event_types: Int = 10,
                    length_min: Int = 10,
                    length_max: Int = 90,
-                   k: Int = -1
-
+                   k: Int = -1,
+                   duration_determination: Boolean = false
                  )

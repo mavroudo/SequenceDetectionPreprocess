@@ -7,7 +7,7 @@ import pm4py
         *   key = trace index: int
         *   value = array<struct<event_type: str, start_timestamp: datetime, end_timestamp: datetime, resourse: str>>
 
-    We define concurency of two activity instances (a.k.a. tasks) as described in the paper "Split Miner:
+    We define concurrency of two activity instances (a.k.a. tasks) as described in the paper "Split Miner:
     Discovering Accurate and Simple Business Process Models from Event Logs" (Augusto et al. 2017, https://kodu.ut.ee/~dumas/pubs/icdm2017-split-miner.pdf).
     Tasks A and B are concurrent iff:
         *   there are 2 traces in log L such that in one trace A is directly followed by B, and in the other trace B is directly followed by A.
@@ -32,6 +32,7 @@ class Task:
         self.event_type: str = event_type
         self.end_timestamp: datetime = end_timestamp #datetime.strptime(end_timestamp, '%Y-%m-%d %H:%M:%S')
         self.start_timestamp: datetime = datetime.strptime(start_timestamp, '%Y-%m-%d %H:%M:%S') if start_timestamp else None
+        self.waiting_time: int = 0
         self.resource: str = resource
 
     def __str__(self) -> str:

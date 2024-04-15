@@ -47,6 +47,10 @@ object SiestaPipeline {
 
       //Main pipeline starts here:s
       val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
+      if (c.duration_determination) {
+        val detailedSequenceRDD: RDD[Structs.DetailedSequence] = IngestingProcess.getDataDetailed(c)
+      }
+
       sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)
       //Extract the last positions of all the traces that are already indexed
       val last_positions: RDD[Structs.LastPosition] = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence table

@@ -171,6 +171,9 @@ class S3Connector extends DBConnector {
     combined.map(x => Structs.LastPosition(x.sequence_id, x.events.size))
   }
 
+
+
+
   /**
    * This method writes traces to the auxiliary SingleTable. The rdd that comes to this method is not persisted.
    * Database should persist it before store it and unpersist it at the end.
