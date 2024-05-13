@@ -21,7 +21,7 @@ object Structs {
   class DetailedEvent(var event_type: EventType,
                       var start_timestamp: String = "undefined",
                       var end_timestamp: String,
-                      var waiting_time: Long = -1,
+                      var waiting_time: Long = 0,
                       var resource: String,
                       var trace_id: String) extends Serializable
   class DetailedSequence(var events: List[DetailedEvent],
