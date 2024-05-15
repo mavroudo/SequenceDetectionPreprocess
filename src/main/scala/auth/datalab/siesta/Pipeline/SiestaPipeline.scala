@@ -49,6 +49,7 @@ object SiestaPipeline {
       val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
       if (c.duration_determination) {
         val detailedSequenceRDD: RDD[Structs.DetailedSequence] = IngestingProcess.getDataDetailed(c)
+        dbConnector.write_detailed_events_table(detailedSequenceRDD, metadata)
       }
 
       sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)

@@ -17,7 +17,7 @@ object Structs {
   case class Sequence(events: List[Event], sequence_id: Long) extends Serializable
   case class IdTime(id:Long, time: String)
   case class IdTimePositionList(id: Long, times: List[String], positions:List[Int])
-  class EventType(var event_name: String) extends Serializable
+  case class EventType(var event_name: String) extends Serializable
   class DetailedEvent(var event_type: EventType,
                       var start_timestamp: String = "undefined",
                       var end_timestamp: String,

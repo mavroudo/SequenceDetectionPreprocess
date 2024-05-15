@@ -26,6 +26,7 @@ import java.net.URI
  */
 class S3Connector extends DBConnector {
   private var seq_table: String = _
+  private var detailed_table: String = _
   private var meta_table: String = _
   private var single_table: String = _
   private var last_checked_table: String = _
@@ -69,6 +70,7 @@ class S3Connector extends DBConnector {
 
     //define name tables
     seq_table = s"""s3a://siesta/${config.log_name}/seq.parquet/"""
+    detailed_table = s"""s3a://siesta/${config.log_name}/detailed.parquet/"""
     meta_table = s"""s3a://siesta/${config.log_name}/meta.parquet/"""
     single_table = s"""s3a://siesta/${config.log_name}/single.parquet/"""
     last_checked_table = s"""s3a://siesta/${config.log_name}/last_checked.parquet/"""
@@ -171,8 +173,44 @@ class S3Connector extends DBConnector {
     combined.map(x => Structs.LastPosition(x.sequence_id, x.events.size))
   }
 
+  /**
+   * Read data as an rdd from the Detailed Events Table
+   *
+   * @param metaData Object containing the metadata
+   * @return Object containing the metadata
+   */
+  override def read_detailed_events_table(metaData: MetaData): RDD[Structs.DetailedSequence] = {
+    val spark = SparkSession.builder().getOrCreate()
+    try {
+      val df = spark.read.parquet(detailed_table)
+      S3Transformations.transformDetailedToRDD(df)
+    } catch {
+      case _: org.apache.spark.sql.AnalysisException => null
+    }
+  }
 
 
+  /**
+   * This method writes traces to the auxiliary Detailed Events Table.
+   *
+   * @param detailedEventsRDD The RDD containing the detailed traces
+   * @param metaData    Object containing the metadata
+   * @return An RDD with the last position of the event stored per trace
+   */
+  override def write_detailed_events_table(detailedEventsRDD: RDD[Structs.DetailedSequence], metaData: MetaData): RDD[Structs.LastPosition] = {
+    Logger.getLogger("Detailed Events Table Write").log(Level.INFO, s"Start writing detailed events table")
+    val start = System.currentTimeMillis()
+    val previousSequences = this.read_detailed_events_table(metaData) //get previous
+    val combined = this.combine_detailed_events_table(detailedEventsRDD, previousSequences) //combine them
+    val df = S3Transformations.transformDetailedToDF(combined) //write them back
+    metaData.traces = df.count() //update metadata
+    df.write
+      .mode(SaveMode.Overwrite)
+      .parquet(detailed_table)
+    val total = System.currentTimeMillis() - start
+    Logger.getLogger("Detailed Events Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+    combined.map(x => Structs.LastPosition(x.sequence_id, x.events.size))
+  }
 
   /**
    * This method writes traces to the auxiliary SingleTable. The rdd that comes to this method is not persisted.

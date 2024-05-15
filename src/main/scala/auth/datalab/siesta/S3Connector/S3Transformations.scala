@@ -30,6 +30,34 @@ object S3Transformations {
   }
 
   /**
+   * The required format is [trace_id, List of events], where each event is [event_type, timestamp]
+   *
+   * @param detailedSequenceRDD The RDD containing the traces
+   * @return The transformed Dataframe
+   */
+  def transformDetailedToDF(detailedSequenceRDD: RDD[Structs.DetailedSequence]): DataFrame = {
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.sqlContext.implicits._
+    detailedSequenceRDD.map(x => {
+      (x.sequence_id, x.events.map(y => (y.event_type, y.start_timestamp, y.end_timestamp, y.waiting_time, y.resource, y.trace_id)))
+    }).toDF("trace_id", "events")
+  }
+
+  /**
+   * The stored format is [trace_id, List of events], where each event is [event_type, timestamp]
+   *
+   * @param df The loaded traces from S3
+   * @return The transformed RDD of traces
+   */
+  def transformDetailedToRDD(df: DataFrame): RDD[Structs.DetailedSequence] = {
+    df.rdd.map(x => {
+      val pEvents = x.getAs[Seq[Row]]("events").map(y => (Structs.EventType(y.getString(0)).event_name, y.getString(1), y.getString(2), y.getLong(3), y.getString(4), y.getString(5)))
+      val concat = pEvents.map(x => new Structs.DetailedEvent(Structs.EventType(x._1),x._2,x._3,x._4,x._5,x._6))
+      new Structs.DetailedSequence(concat.toList, x.getAs[Long]("trace_id"))
+    })
+  }
+
+  /**
    * The stored format is [trace_id, List of events], where each event is [event_type, timestamp]
    *
    * @param df The loaded traces from S3

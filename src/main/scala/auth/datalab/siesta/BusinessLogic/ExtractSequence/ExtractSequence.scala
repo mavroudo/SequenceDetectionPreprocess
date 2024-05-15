@@ -31,6 +31,23 @@ object ExtractSequence {
     z.toList
   }
 
-
+  /**
+   * Merges two subsequences (list of events) into one, by considering that all the events in the first list occurred
+   * before any of the events in second list, and that both lists are ordered in ascending ordering in regards with the
+   * events timestamp.
+   *
+   * Even though it might be restricted, if the above limitations does not hold then the generated event type pairs needs
+   * to be recalculated for this trace. The support for out of order events is not yet implemented
+   *
+   * @param x Already indexed part of the trace
+   * @param y Newly arrived events that extend this trace
+   * @return The combined sequence of events
+   */
+  def combinedDetailedSequences(x: List[Structs.DetailedEvent], y: List[Structs.DetailedEvent]): List[Structs.DetailedEvent] = {
+    val z: ListBuffer[Structs.DetailedEvent] = new ListBuffer[Structs.DetailedEvent]()
+    z ++= x
+    z ++= y
+    z.toList
+  }
 
 }
