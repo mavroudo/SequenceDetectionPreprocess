@@ -171,8 +171,10 @@ object ExtractPairsSimple {
               val interval: Structs.Interval = this.chooseInterval(intervals, eb_ts)
               pairs.append(Structs.PairFull(key1, key2, trace_id, ea_ts, eb_ts, ea._2, eb._2, interval))
               prev = eb_ts
+              i+=1 //remove the event anyways and stop the process because the next events timestamps will be greater
             }
-            i+=1 //remove the event anyways and stop the process because the next events timestamps will be greater
+            //in case lookcback is not satisfied it will iterate back and evaluate the next timestamp from the first list
+            //as a pair with this event
             stop = true
           }
         }
