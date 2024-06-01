@@ -47,6 +47,17 @@ object ParsingArguments {
           }
         })
         .text("Database refers to the database that will be used to store the index"),
+      opt[String]('d', "state_storage")
+        .action((x, c) => c.copy(state_storage = x))
+        .valueName("<state_storage>")
+        .validate(x => {
+          if (x.equals("default") || x.equals("rocksDB") || x.equals("postgres")) {
+            success
+          } else {
+            failure("Supported values for <state_storage> are default, rocksDB or postgres")
+          }
+        })
+        .text("Database refers to the database that will be used to store the index"),
       opt[String]('m', "mode")
         .action((x, c) => c.copy(mode = x))
         .valueName("<mode>")

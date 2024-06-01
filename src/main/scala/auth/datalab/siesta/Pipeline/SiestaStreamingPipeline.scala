@@ -30,6 +30,8 @@ object SiestaStreamingPipeline {
     // Get the streaming context
     val spark = s3Connector.get_spark_context(config = c)
     s3Connector.initialize_db(config = c)
+    // Initialize StreamingProcess
+    StreamingProcess.initialize(config = c)
 
     import spark.implicits._
 

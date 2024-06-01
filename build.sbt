@@ -53,6 +53,8 @@ libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector-assemb
 //delta library
 libraryDependencies += "io.delta" %% "delta-core" % "0.8.0"
 
+libraryDependencies += "org.rocksdb" % "rocksdbjni" % "6.22.1.1"
+
 assembly / assemblyMergeStrategy:= {
   case manifest if manifest.contains("MANIFEST.MF") =>
     MergeStrategy.discard

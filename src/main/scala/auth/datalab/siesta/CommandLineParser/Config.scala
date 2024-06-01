@@ -36,6 +36,7 @@ package auth.datalab.siesta.CommandLineParser
 case class Config(
                    system: String = "streaming",
                    database: String = "s3",
+                   state_storage: String = "postgres",
                    mode: String = "positions",
                    filename: String = "synthetic",
                    log_name: String = "synthetic",

@@ -48,5 +48,61 @@ object DatabaseConnector {
     }
   }
 
+  def createCustomStateTableIfNotExists(connection: Connection): Unit = {
+    val createTableSQL =
+      """
+        |CREATE TABLE IF NOT EXISTS custom_state (
+        |    id  SERIAL PRIMARY KEY,
+        |    number_of_events BIGINT
+        |);
+        |""".stripMargin
+
+    val createTable2SQL =
+      """
+        |CREATE TABLE IF NOT EXISTS custom_state_events (
+        |    id  SERIAL PRIMARY KEY,
+        |    state_id INT REFERENCES custom_state(id) ON DELETE CASCADE,
+        |    event_key VARCHAR(100),
+        |    event_timestamp TIMESTAMP,
+        |    event_value INT
+        |);
+        |""".stripMargin
+
+    var statement: Statement = null
+    try {
+      statement = connection.createStatement()
+      statement.execute(createTableSQL)
+      statement.execute(createTable2SQL)
+    } catch {
+      case e: SQLException => e.printStackTrace()
+    } finally {
+      if (statement != null) statement.close()
+    }
+  }
+
+  def createCountStateTableIfNotExists(connection: Connection): Unit = {
+    val createTableSQL =
+      """
+        |CREATE TABLE count_state (
+        |    id SERIAL PRIMARY KEY,
+        |    event_pair TEXT UNIQUE,
+        |    sum_duration BIGINT,
+        |    count INT,
+        |    min_duration BIGINT,
+        |    max_duration BIGINT
+        |);
+        |""".stripMargin
+
+    var statement: Statement = null
+    try {
+      statement = connection.createStatement()
+      statement.execute(createTableSQL)
+    } catch {
+      case e: SQLException => e.printStackTrace()
+    } finally {
+      if (statement != null) statement.close()
+    }
+  }
+
 
 }

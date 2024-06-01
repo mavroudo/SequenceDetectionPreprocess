@@ -2,6 +2,8 @@ package auth.datalab.siesta.BusinessLogic.StreamingProcess
 
 import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.BusinessLogic.Model.Structs.EventStream
+import auth.datalab.siesta.CommandLineParser.Config
+import auth.datalab.siesta.S3ConnectorStreaming.DatabaseConnector
 import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
 import org.apache.spark.sql.streaming.GroupState
 
@@ -10,15 +12,30 @@ import scala.collection.mutable
 
 object StreamingProcess {
 
-  case class CustomState(number_of_events: Int, events: mutable.HashMap[String, Array[(Timestamp, Int)]]) extends Serializable
+  case class CustomState(number_of_events: Int, events: mutable.HashMap[String, Array[(Timestamp, Int)]]) extends Serializable // state 1
 
-  case class CountState(sum_duration:Long,count:Int,min_duration:Long,max_duration:Long) extends Serializable
+  case class CountState(sum_duration:Long,count:Int,min_duration:Long,max_duration:Long) extends Serializable // state 3
 
-  case class LastEventState(lastEvent:mutable.HashMap[Long,Timestamp])
+  case class LastEventState(lastEvent:mutable.HashMap[Long,Timestamp]) // state 3
 
   implicit val stateEncoder: Encoder[CustomState] = Encoders.kryo[CustomState]
 
   implicit  val countStateEncoder: Encoder[CountState] = Encoders.kryo[CountState]
+
+  var state_storage = ""
+
+  def initialize(config: Config): Unit = {
+    state_storage = config.state_storage
+    if (config.state_storage.equals("postgres")) {
+      val connection = DatabaseConnector.getConnection
+      try {
+        DatabaseConnector.createCustomStateTableIfNotExists(connection)
+        DatabaseConnector.createCountStateTableIfNotExists(connection)
+      } finally {
+        if (connection != null) connection.close()
+      }
+    }
+  }
 
   def createPair(eva:(String,Timestamp,Int),evb:(EventStream,Int)):Structs.StreamingPair={
     Structs.StreamingPair(eva._1, evb._1.event_type, evb._1.trace,eva._2, evb._1.timestamp, eva._3, evb._2)
@@ -27,6 +44,128 @@ object StreamingProcess {
   def createPair(eva:(String,Timestamp,Int),evb:(String,Timestamp,Int),traceId:Int):Structs.StreamingPair={
     Structs.StreamingPair(eva._1, evb._1, traceId,eva._2, evb._2, eva._3, evb._3)
   }
+
+  def insertCustomStateToPostgres(traceId: Long, state: CustomState): Unit = {
+    val connection = DatabaseConnector.getConnection
+    connection.setAutoCommit(false)
+
+    val insertStateQuery = "INSERT INTO custom_state (id, number_of_events) VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET number_of_events = EXCLUDED.number_of_events"
+    val statePreparedStatement = connection.prepareStatement(insertStateQuery)
+    statePreparedStatement.setLong(1, traceId)
+    statePreparedStatement.setInt(2, state.number_of_events)
+    statePreparedStatement.executeUpdate()
+
+    val insertEventQuery = "INSERT INTO custom_state_events (state_id, event_key, event_timestamp, event_value) VALUES (?, ?, ?, ?)"
+    val eventPreparedStatement = connection.prepareStatement(insertEventQuery)
+
+    state.events.foreach { case (key, eventArray) =>
+      eventArray.foreach { case (timestamp, value) =>
+        eventPreparedStatement.setLong(1, traceId)
+        eventPreparedStatement.setString(2, key)
+        eventPreparedStatement.setTimestamp(3, timestamp)
+        eventPreparedStatement.setInt(4, value)
+        eventPreparedStatement.addBatch()
+      }
+    }
+
+    eventPreparedStatement.executeBatch()
+    connection.commit()
+
+    statePreparedStatement.close()
+    eventPreparedStatement.close()
+    connection.close()
+  }
+
+  def retrieveCustomStateFromPostgres(traceId: Long): CustomState = {
+    val connection = DatabaseConnector.getConnection
+
+    val selectStateQuery = "SELECT number_of_events FROM custom_state WHERE id = ?"
+    val statePreparedStatement = connection.prepareStatement(selectStateQuery)
+    statePreparedStatement.setLong(1, traceId)
+    val stateResultSet = statePreparedStatement.executeQuery()
+
+    var numberOfEvents = 0
+    if (stateResultSet.next()) {
+      numberOfEvents = stateResultSet.getInt("number_of_events")
+    }
+
+    val selectEventQuery = "SELECT event_key, event_timestamp, event_value FROM custom_state_events WHERE state_id = ?"
+    val eventPreparedStatement = connection.prepareStatement(selectEventQuery)
+    eventPreparedStatement.setLong(1, traceId)
+    val eventResultSet = eventPreparedStatement.executeQuery()
+
+    val events = mutable.HashMap[String, Array[(Timestamp, Int)]]()
+    while (eventResultSet.next()) {
+      val key = eventResultSet.getString("event_key")
+      val timestamp = eventResultSet.getTimestamp("event_timestamp")
+      val value = eventResultSet.getInt("event_value")
+      val eventArray = events.getOrElse(key, Array())
+      events.update(key, eventArray :+ (timestamp -> value))
+    }
+
+    stateResultSet.close()
+    statePreparedStatement.close()
+    eventResultSet.close()
+    eventPreparedStatement.close()
+    connection.close()
+
+    CustomState(numberOfEvents, events)
+  }
+
+  def upsertCountState(eventPair: String, state: CountState): Unit = {
+    val connection = DatabaseConnector.getConnection
+    connection.setAutoCommit(false)
+
+    val upsertStateQuery =
+      """
+        |INSERT INTO count_state (event_pair, sum_duration, count, min_duration, max_duration)
+        |VALUES (?, ?, ?, ?, ?)
+        |ON CONFLICT (event_pair) DO UPDATE
+        |SET sum_duration = EXCLUDED.sum_duration,
+        |    count = EXCLUDED.count,
+        |    min_duration = EXCLUDED.min_duration,
+        |    max_duration = EXCLUDED.max_duration
+      """.stripMargin
+    val preparedStatement = connection.prepareStatement(upsertStateQuery)
+    preparedStatement.setString(1, eventPair)
+    preparedStatement.setLong(2, state.sum_duration)
+    preparedStatement.setInt(3, state.count)
+    preparedStatement.setLong(4, state.min_duration)
+    preparedStatement.setLong(5, state.max_duration)
+    preparedStatement.executeUpdate()
+
+    preparedStatement.close()
+    connection.commit()
+    connection.close()
+  }
+
+  def retrieveCountState(eventPair: String): CountState = {
+    val connection = DatabaseConnector.getConnection
+
+    val selectStateQuery = "SELECT sum_duration, count, min_duration, max_duration FROM count_state WHERE event_pair = ?"
+    val preparedStatement = connection.prepareStatement(selectStateQuery)
+    preparedStatement.setString(1, eventPair)
+    val resultSet = preparedStatement.executeQuery()
+
+    val initialState = new CountState(0, 0, Long.MaxValue, Long.MinValue)
+    val state = if (resultSet.next()) {
+      CountState(
+        resultSet.getLong("sum_duration"),
+        resultSet.getInt("count"),
+        resultSet.getLong("min_duration"),
+        resultSet.getLong("max_duration")
+      )
+    } else {
+      initialState
+    }
+
+    resultSet.close()
+    preparedStatement.close()
+    connection.close()
+
+    state
+  }
+
 
   /**
    * Function that calculates the pairs of the events in an online manner
@@ -37,12 +176,19 @@ object StreamingProcess {
    */
   def calculatePairs(traceId: Long, eventStream: Iterator[Structs.EventStream], groupState: GroupState[CustomState]): Iterator[Structs.StreamingPair] = {
 
-    //TODO: handle lookback, mode (positions/timestamps)
-
-
     val values = eventStream.toSeq
-    val initialState = new CustomState(0, new mutable.HashMap[String, Array[(Timestamp, Int)]])
-    val oldState = groupState.getOption.getOrElse(initialState)
+
+    var oldState: CustomState = null
+    if (state_storage.equals("default")) {
+      val initialState = new CustomState(0, new mutable.HashMap[String, Array[(Timestamp, Int)]])
+      oldState = groupState.getOption.getOrElse(initialState)
+    } else if (state_storage.equals("rocksDB")) {
+      oldState = RocksDBClient.getState(traceId.toString + "_trace")
+        .map(bytes => SerializationUtils.deserialize(bytes).asInstanceOf[CustomState])
+        .getOrElse(new CustomState(0, mutable.HashMap[String, Array[(Timestamp, Int)]]()))
+    } else if (state_storage.equals("postgres")) {
+      oldState = retrieveCustomStateFromPostgres(traceId)
+    }
 
     val alreadyStoredEvents: Int = oldState.number_of_events
     val newEventsWithIndex = values.zip(Iterator.range(alreadyStoredEvents, alreadyStoredEvents + values.size).toSeq)
@@ -95,24 +241,42 @@ object StreamingProcess {
                 generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toInt))
                 i = 3
               } else {
-                i += 1;
+                i += 1
               }
             }
           }
         }
       }
     }
-    //Update the previous state with the new one
+
     val newState = new CustomState(oldState.number_of_events + values.size, oldState.events)
-    groupState.update(newState)
-    // return the pairs
+    if (state_storage.equals("default")) {
+      groupState.update(newState)
+    } else if (state_storage.equals("rocksDB")) {
+      RocksDBClient.saveState(traceId.toString + "_trace", SerializationUtils.serialize(newState))
+    } else if (state_storage.equals("postgres")) {
+      insertCustomStateToPostgres(traceId, newState)
+    }
+
     generatedPairs.iterator
   }
 
+
   def calculateMetrics(eventPair:(String,String), c:Iterator[Structs.Count],groupState:GroupState[CountState]):Iterator[Structs.Count]={
     val values = c.toSeq
-    val initialState = new CountState(0, 0,Long.MaxValue,0)
-    val oldState = groupState.getOption.getOrElse(initialState)
+    var oldState: CountState = null
+    val eventPairStr = eventPair._1 + eventPair._2
+
+    if (state_storage.equals("default")) {
+      val initialState = new CountState(0, 0, Long.MaxValue, 0)
+      oldState = groupState.getOption.getOrElse(initialState)
+    } else if (state_storage.equals("rocksDB")) {
+      oldState = RocksDBClient.getState(eventPairStr)
+        .map(bytes => SerializationUtils.deserialize(bytes).asInstanceOf[CountState])
+        .getOrElse(new CountState(0, 0, Long.MaxValue, Long.MinValue))
+    } else if (state_storage.equals("postgres")) {
+      oldState = retrieveCountState(eventPairStr)
+    }
 
     val sum_durations =values.map(_.sum_duration).sum + oldState.sum_duration
     val min_duration = Math.min(values.map(_.min_duration).min,oldState.min_duration)
@@ -120,7 +284,15 @@ object StreamingProcess {
     val counts = values.size+oldState.count
 
     val newState = CountState(sum_durations,counts,min_duration, max_duration)
-    groupState.update(newState)
+
+    if (state_storage.equals("default")) {
+      groupState.update(newState)
+    } else if (state_storage.equals("rocksDB")) {
+      RocksDBClient.saveState(eventPairStr, SerializationUtils.serialize(newState))
+    } else if (state_storage.equals("postgres")) {
+      upsertCountState(eventPairStr, newState)
+    }
+
     Iterator(Structs.Count(eventPair._1,eventPair._2,sum_durations,counts,min_duration, max_duration))
   }
 
