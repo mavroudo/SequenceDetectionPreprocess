@@ -1,7 +1,7 @@
 package auth.datalab.siesta.Pipeline
 
 import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
-import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, ExtractPairsSimple, Intervals}
+import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairsSimple, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs

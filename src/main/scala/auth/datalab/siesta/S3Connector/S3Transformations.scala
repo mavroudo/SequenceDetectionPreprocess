@@ -51,8 +51,8 @@ object S3Transformations {
    */
   def transformDetailedToRDD(df: DataFrame): RDD[Structs.DetailedSequence] = {
     df.rdd.map(x => {
-      val pEvents = x.getAs[Seq[Row]]("events").map(y => (Structs.EventType(y.getString(0)).event_name, y.getString(1), y.getString(2), y.getLong(3), y.getString(4), y.getString(5)))
-      val concat = pEvents.map(x => new Structs.DetailedEvent(Structs.EventType(x._1),x._2,x._3,x._4,x._5,x._6))
+      val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1), y.getString(2), y.getLong(3), y.getString(4), y.getString(5)))
+      val concat = pEvents.map(x => new Structs.DetailedEvent(x._1,x._2,x._3,x._4,x._5,x._6))
       new Structs.DetailedSequence(concat.toList, x.getAs[Long]("trace_id"))
     })
   }

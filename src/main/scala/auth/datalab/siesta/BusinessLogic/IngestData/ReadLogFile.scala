@@ -76,7 +76,7 @@ object ReadLogFile {
       val index = line.split("::")(0).toInt
       val events = line.split("::")(1)
       val sequence = events.split(separator).map(event => {
-        new Structs.DetailedEvent(event_type = new Structs.EventType(event.split(delimiter)(0)),
+        new Structs.DetailedEvent(event_type = event.split(delimiter)(0),
                                   end_timestamp = event.split(delimiter)(1),
                                   resource = event.split(delimiter)(2),
                                   trace_id = index.toString)
@@ -143,7 +143,7 @@ object ReadLogFile {
 
     val data = parsed_logs.head.zipWithIndex map { case (trace: XTrace, index: Int) =>
       val list = trace.map(event => {
-        val event_type = new Structs.EventType(event.getAttributes.get("concept:name").toString)
+        val event_type = event.getAttributes.get("concept:name").toString
         val end_timestamp = event.getAttributes.get("time:timestamp").toString
         val resource = event.getAttributes.get("org:resource").toString
         val trace_id = trace.getAttributes.get("case:Rfp_id").toString

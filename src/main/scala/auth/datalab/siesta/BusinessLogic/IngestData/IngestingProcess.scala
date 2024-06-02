@@ -39,7 +39,7 @@ object IngestingProcess {
     // Parse the logged data
     var detailedSequenceRDD: RDD[Structs.DetailedSequence] = ReadLogFile.readLogDetailed(c.filename)
     // Find all the event types captured
-    val eventTypes: Array[Structs.EventType] = detailedSequenceRDD.flatMap(_.events.map(_.event_type)).distinct().collect()
+    val eventTypes: Array[String] = detailedSequenceRDD.flatMap(_.events.map(_.event_type)).distinct().collect()
     // Find all the resources captured
     val resources: List[(String, List[Structs.DetailedEvent])] = detailedSequenceRDD
       .flatMap(_.events.map(event => (event.resource, event)))
@@ -48,14 +48,14 @@ object IngestingProcess {
       .collect()
       .toList
     // Find all 2-sets of events captured in direct-following order in some trace
-    val pairs: Map[(Structs.EventType, Structs.EventType), Long] = detailedSequenceRDD.map(seq => createEventPairs(seq.events))
+    val pairs: Map[(String, String), Long] = detailedSequenceRDD.map(seq => createEventPairs(seq.events))
       .collect()
       .flatten
       .map { case (key1, key2, value) => ((key1, key2), value) }
       .groupBy(_._1)
       .mapValues(_.map(_._2).sum)
     // Find all concurrent events in some trace
-    val concurrentEventPairs: Set[(Structs.EventType, Structs.EventType)] = findConcurrency(detailedSequenceRDD, pairs, eventTypes)
+    val concurrentEventPairs: Set[(String, String)] = findConcurrency(detailedSequenceRDD, pairs, eventTypes)
     // Determine enablement time (temporarily as start time) for every event
     detailedSequenceRDD = determineEnablementTime(detailedSequenceRDD, concurrentEventPairs)
     // Determine start time for every event
@@ -63,8 +63,8 @@ object IngestingProcess {
     detailedSequenceRDD
   }
 
-  private def createEventPairs(events: List[Structs.DetailedEvent]): Array[(Structs.EventType, Structs.EventType, Long)] = {
-    val pairCounter = Map[(Structs.EventType, Structs.EventType), Int]().withDefaultValue(0)
+  private def createEventPairs(events: List[Structs.DetailedEvent]): Array[(String, String, Long)] = {
+    val pairCounter = Map[(String, String), Int]().withDefaultValue(0)
     val eventPairs = events.sliding(2).collect {
       case List(event1, event2) =>
         val pair = (event1.event_type, event2.event_type)
@@ -82,9 +82,9 @@ object IngestingProcess {
    *  - there is no trace in log L such that A is directly followed by B and B is directly followed by A.
    *  - the ratio (| |A->B| - |B->A| |) / (|A->B| + |B->A|) is less than 1.
    */
-  private def findConcurrency(traces: RDD[Structs.DetailedSequence], pairs: Map[(Structs.EventType, Structs.EventType), Long], types: Array[Structs.EventType]): Set[(Structs.EventType, Structs.EventType)] = {
-    var nonConcurrents = Set[(Structs.EventType, Structs.EventType)]()
-    var candidates = Set[(Structs.EventType, Structs.EventType)]()
+  private def findConcurrency(traces: RDD[Structs.DetailedSequence], pairs: Map[(String, String), Long], types: Array[String]): Set[(String, String)] = {
+    var nonConcurrents = Set[(String, String)]()
+    var candidates = Set[(String, String)]()
 
     // Find all candidate concurrent activity pairs
     // O(n^2) but since n is small, it's ok
@@ -142,7 +142,7 @@ object IngestingProcess {
     triplets.toList
   }
 
-  private def determineEnablementTime(sequences: RDD[Structs.DetailedSequence], concurrents: Set[(Structs.EventType, Structs.EventType)]): RDD[Structs.DetailedSequence] = {
+  private def determineEnablementTime(sequences: RDD[Structs.DetailedSequence], concurrents: Set[(String, String)]): RDD[Structs.DetailedSequence] = {
     /*  Start time policy for the first task of a trace:
      *   - If the first task's end time is not at the exact hour, then the start time is the exact hour.
      *   - If the first task's end time is at the exact hour, then the start time is the exact hour minus one hour.
