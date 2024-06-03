@@ -122,6 +122,10 @@ object ParsingArguments {
       opt[Int]("lmax")
         .valueName("<max length>")
         .action((x, c) => c.copy(length_max = x)),
+      opt[Boolean]("duration_determination")
+        .valueName("<true|false>")
+        .text("Include activity duration calculation (default=false)")
+        .action((x,c) => c.copy(duration_determination = x)),
       help("help").text("prints this usage text")
     )
   }

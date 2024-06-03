@@ -292,7 +292,6 @@ class ApacheCassandraConnector extends DBConnector {
     rdd
   }
 
-
   /**
    * This method writes traces to the auxiliary SeqTable. Since RDD will be used as intermediate results it is already persisted
    * and should not be modified.
@@ -519,4 +518,20 @@ class ApacheCassandraConnector extends DBConnector {
     Logger.getLogger("Count Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
   }
 
+  /**
+   * Read data as an rdd from the Detailed Events Table
+   *
+   * @param metaData Object containing the metadata
+   * @return Object containing the metadata
+   */
+  override def read_detailed_events_table(metaData: MetaData): RDD[Structs.DetailedSequence] = ???
+
+  /**
+   * This method writes traces to the auxiliary Detailed Events Table.
+   *
+   * @param sequenceRDD The RDD containing the traces
+   * @param metaData    Object containing the metadata
+   * @return An RDD with the last position of the event stored per trace
+   */
+  override def write_detailed_events_table(sequenceRDD: RDD[Structs.DetailedSequence], metaData: MetaData): RDD[Structs.LastPosition] = ???
 }

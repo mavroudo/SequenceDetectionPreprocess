@@ -17,6 +17,14 @@ object Structs {
   case class Sequence(events: List[Event], sequence_id: Long) extends Serializable
   case class IdTime(id:Long, time: String)
   case class IdTimePositionList(id: Long, times: List[String], positions:List[Int])
+  class DetailedEvent(var event_type: String,
+                      var start_timestamp: String = "undefined",
+                      var end_timestamp: String,
+                      var waiting_time: Long = 0,
+                      var resource: String,
+                      var trace_id: String) extends Serializable
+  class DetailedSequence(var events: List[DetailedEvent],
+                         var sequence_id: Long) extends Serializable
 
   //For the single inverted table
   case class InvertedSingle(event_name: String, times: List[IdTimePositionList])
