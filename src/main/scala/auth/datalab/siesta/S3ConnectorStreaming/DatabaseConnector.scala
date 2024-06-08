@@ -83,7 +83,7 @@ object DatabaseConnector {
   def createCountStateTableIfNotExists(connection: Connection): Unit = {
     val createTableSQL =
       """
-        |CREATE TABLE count_state (
+        |CREATE TABLE IF NOT EXISTS count_state (
         |    id SERIAL PRIMARY KEY,
         |    event_pair TEXT UNIQUE,
         |    sum_duration BIGINT,

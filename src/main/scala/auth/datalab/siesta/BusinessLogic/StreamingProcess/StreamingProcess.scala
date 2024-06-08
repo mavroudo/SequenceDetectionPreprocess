@@ -4,11 +4,17 @@ import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.BusinessLogic.Model.Structs.EventStream
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3ConnectorStreaming.DatabaseConnector
+import auth.datalab.siesta.Utils.Utilities
 import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
 import org.apache.spark.sql.streaming.GroupState
 
 import java.sql.Timestamp
 import scala.collection.mutable
+import java.util.Properties
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
+import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
+import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer, StringDeserializer, StringSerializer}
+import scala.collection.JavaConverters._
 
 object StreamingProcess {
 
@@ -166,6 +172,46 @@ object StreamingProcess {
     state
   }
 
+  object KafkaClient {
+    private val kafkaBrokers = Utilities.readEnvVariable("KAFKA_BROKER")
+
+    val producerProps: Properties = {
+      val props = new Properties()
+      props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers)
+      props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer].getName)
+      props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[ByteArraySerializer].getName)
+      props
+    }
+
+    val consumerProps: Properties = {
+      val props = new Properties()
+      props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers)
+      props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer].getName)
+      props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
+      props.put(ConsumerConfig.GROUP_ID_CONFIG, "state-consumer-group")
+      props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+      props
+    }
+
+    def saveState(key: String, state: Any): Unit = {
+      val producer = new KafkaProducer[String, Array[Byte]](producerProps)
+      val serializedState = SerializationUtils.serialize(state.asInstanceOf[Serializable])
+      val record = new ProducerRecord[String, Array[Byte]](key, key, serializedState)
+      producer.send(record)
+      producer.close()
+    }
+
+    def getState[T](key: String)(implicit m: Manifest[T]): Option[T] = {
+      val consumer = new KafkaConsumer[String, Array[Byte]](consumerProps)
+      consumer.subscribe(java.util.Collections.singletonList(key))
+      val records = consumer.poll(java.time.Duration.ofMillis(1000))
+      consumer.unsubscribe()
+      val record = records.records(key).iterator().asScala.toList
+      val state: Option[T] = record.lastOption.map(r => SerializationUtils.deserialize(r.value()).asInstanceOf[T])
+      consumer.close()
+      state
+    }
+  }
 
   /**
    * Function that calculates the pairs of the events in an online manner
@@ -188,6 +234,9 @@ object StreamingProcess {
         .getOrElse(new CustomState(0, mutable.HashMap[String, Array[(Timestamp, Int)]]()))
     } else if (state_storage.equals("postgres")) {
       oldState = retrieveCustomStateFromPostgres(traceId)
+    } else if (state_storage.equals("kafka")) {
+      oldState = KafkaClient.getState[CustomState](traceId.toString + "_trace")
+        .getOrElse(new CustomState(0, mutable.HashMap[String, Array[(Timestamp, Int)]]()))
     }
 
     val alreadyStoredEvents: Int = oldState.number_of_events
@@ -256,6 +305,8 @@ object StreamingProcess {
       RocksDBClient.saveState(traceId.toString + "_trace", SerializationUtils.serialize(newState))
     } else if (state_storage.equals("postgres")) {
       insertCustomStateToPostgres(traceId, newState)
+    } else if (state_storage.equals("kafka")) {
+      KafkaClient.saveState(traceId.toString + "_trace", newState)
     }
 
     generatedPairs.iterator
@@ -276,6 +327,9 @@ object StreamingProcess {
         .getOrElse(new CountState(0, 0, Long.MaxValue, Long.MinValue))
     } else if (state_storage.equals("postgres")) {
       oldState = retrieveCountState(eventPairStr)
+    } else if (state_storage.equals("kafka")) {
+      oldState = KafkaClient.getState[CountState](eventPairStr)
+        .getOrElse(new CountState(0, 0, Long.MaxValue, Long.MinValue))
     }
 
     val sum_durations =values.map(_.sum_duration).sum + oldState.sum_duration
@@ -291,6 +345,8 @@ object StreamingProcess {
       RocksDBClient.saveState(eventPairStr, SerializationUtils.serialize(newState))
     } else if (state_storage.equals("postgres")) {
       upsertCountState(eventPairStr, newState)
+    } else if (state_storage.equals("kafka")) {
+      KafkaClient.saveState(eventPairStr, newState)
     }
 
     Iterator(Structs.Count(eventPair._1,eventPair._2,sum_durations,counts,min_duration, max_duration))

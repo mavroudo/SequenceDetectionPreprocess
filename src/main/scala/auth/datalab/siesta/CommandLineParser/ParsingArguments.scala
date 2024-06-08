@@ -51,7 +51,7 @@ object ParsingArguments {
         .action((x, c) => c.copy(state_storage = x))
         .valueName("<state_storage>")
         .validate(x => {
-          if (x.equals("default") || x.equals("rocksDB") || x.equals("postgres")) {
+          if (x.equals("default") || x.equals("rocksDB") || x.equals("postgres") || x.equals("kafka")) {
             success
           } else {
             failure("Supported values for <state_storage> are default, rocksDB or postgres")
