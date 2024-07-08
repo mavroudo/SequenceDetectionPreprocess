@@ -1,7 +1,7 @@
 package auth.datalab.siesta.CommandLineParser
 
 /**
- * This class is the configuration object that is initialized in [[auth.datalab.siesta.Main]] from the command arguments.
+ * This class is the configuration object that is initialized in [[auth.datalab.siesta.siesta_main]] from the command arguments.
  * It holds the following information
  * @param system What system will be used for indexing (Signature, Set-Containment, SIESTA or online SIESTA)
  * @param database In what database the data will be stored. Note that for Signature and Set-Containment only Cassandra

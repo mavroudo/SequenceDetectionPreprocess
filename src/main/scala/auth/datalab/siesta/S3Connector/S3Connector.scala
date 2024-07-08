@@ -38,7 +38,7 @@ class S3Connector extends DBConnector {
   override def initialize_spark(config: Config): Unit = {
     lazy val spark = SparkSession.builder()
       .appName("SIESTA indexing")
-//      .master("local[*]")
+      .master("local[*]")
       .getOrCreate()
 
     val s3accessKeyAws = Utilities.readEnvVariable("s3accessKeyAws")
@@ -50,14 +50,19 @@ class S3Connector extends DBConnector {
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", s3accessKeyAws)
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", s3secretKeyAws)
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.connection.timeout", s3ConnectionTimeout)
-    //    spark.sparkContext.hadoopConfiguration.set("spark.sql.debug.maxToStringFields", "100")
+
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.path.style.access", "true")
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.connection.ssl.enabled", "true")
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.bucket.create.enabled", "true")
+
+//    spark.sparkContext.hadoopConfiguration.set("fs.s3a.committer.name", "magic")
+//    spark.sparkContext.hadoopConfiguration.set("fs.s3a.committer.magic.enabled", "true")
+
     spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")
     spark.conf.set("spark.sql.parquet.compression.codec", config.compression)
     spark.conf.set("spark.sql.parquet.filterPushdown", "true")
+    spark.sparkContext.setLogLevel("WARN")
   }
 
   /**
@@ -101,7 +106,7 @@ class S3Connector extends DBConnector {
     //get previous values if exists
     val schema = ScalaReflection.schemaFor[MetaData].dataType.asInstanceOf[StructType]
     val metaDataObj = try {
-      spark.read.schema(schema).json(meta_table)
+      spark.read.parquet(meta_table)
     } catch {
       case _: org.apache.spark.sql.AnalysisException => null
     }
@@ -127,7 +132,7 @@ class S3Connector extends DBConnector {
     import spark.implicits._
     val rdd = spark.sparkContext.parallelize(Seq(metaData))
     val df = rdd.toDF()
-    df.write.mode(SaveMode.Overwrite).json(meta_table)
+    df.write.mode(SaveMode.Overwrite).parquet(meta_table)
   }
 
   /**

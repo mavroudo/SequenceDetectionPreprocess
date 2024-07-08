@@ -4,7 +4,6 @@ import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
 import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.Model.Structs
-import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.rdd.RDD
@@ -14,8 +13,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.BeforeAndAfterAll
 
 class TestMetaData extends AnyFlatSpec with BeforeAndAfterAll {
-//  @transient var dbConnector = new S3Connector()
-  @transient var dbConnector = new ApacheCassandraConnector()
+  @transient var dbConnector = new S3Connector()
 
   it should "Get metadata for the first time" in {
     val c = Config(delete_previous = true, log_name = "test")

@@ -128,7 +128,7 @@ object ParsingArguments {
 
   /**
    * This method utilizes the above builder to parse the parameters and return the Configuration object back in the
-   * [[auth.datalab.siesta.Main]] before deciding the appropriate pipeline to be executed.
+   * [[auth.datalab.siesta.siesta_main]] before deciding the appropriate pipeline to be executed.
    * @param args The command line argumends
    * @return The Configuration object that contains all the parameters (after being evaluated)
    */

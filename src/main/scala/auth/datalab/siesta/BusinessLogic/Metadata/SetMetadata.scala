@@ -9,7 +9,7 @@ import org.apache.spark.sql.DataFrame
 object SetMetadata {
 
   /**
-   * Create a new metadata object based on the given configuration object (passed from the [[auth.datalab.siesta.Main]].
+   * Create a new metadata object based on the given configuration object (passed from the [[auth.datalab.siesta.siesta_main]].
    * This method is called if there are no previous records indexed, i.e. it is a new log database
    * @param config The configuration file with the command line parameters
    * @return A new Metadata object
