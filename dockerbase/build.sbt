@@ -1,7 +1,5 @@
 val sparkVersion = "3.5.1"
 val hadoopVersion= "3.3.4"
-import sbt.Keys._
-import sbtassembly.AssemblyPlugin.autoImport._
 ThisBuild / name := "Siesta"
 ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.12.17"
@@ -9,7 +7,7 @@ ThisBuild / organization := "auth.datalab"
 ThisBuild / Test / parallelExecution := false
 
 assembly / test := {}
-assembly / mainClass := Some("auth.datalab.siesta.Main")
+assembly / mainClass := Some("auth.datalab.siesta.siesta_main")
 scalacOptions += "-deprecation"
 javacOptions ++= Seq("-source", "11", "-target", "11")
 
@@ -20,12 +18,10 @@ libraryDependencies += "com.github.scopt" %% "scopt" % "4.1.0" //parser for the 
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
-  "org.apache.spark" %% "spark-sql" % sparkVersion % "provided")
+  "org.apache.spark" %% "spark-sql" % sparkVersion  % "provided") //% "provided"
 libraryDependencies += "org.apache.hadoop" % "hadoop-common" % hadoopVersion
 libraryDependencies += "org.apache.hadoop" % "hadoop-client" % hadoopVersion
 libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % hadoopVersion //3.0.3
-//libraryDependencies += "org.apache.hadoop" % "hadoop-mapreduce-client-core" % hadoopVersion //3.0.3
-//libraryDependencies += "org.apache.spark" %% "spark-hadoop-cloud"% sparkVersion
 
 
 

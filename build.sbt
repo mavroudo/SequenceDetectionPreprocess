@@ -21,15 +21,11 @@ libraryDependencies += "com.github.scopt" %% "scopt" % "4.1.0" //parser for the 
 //to debug in IDE the '  "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion , //"2.0.0",' section must be in comments
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion, //% "provided"
-  "org.apache.spark" %% "spark-sql" % sparkVersion)
+  "org.apache.spark" %% "spark-sql" % sparkVersion )
 libraryDependencies += "org.apache.hadoop" % "hadoop-common" % hadoopVersion
 libraryDependencies += "org.apache.hadoop" % "hadoop-client" % hadoopVersion
 libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % hadoopVersion //3.0.3
 libraryDependencies += "com.amazonaws" % "aws-java-sdk-bundle" % "1.12.262"
-//libraryDependencies += "org.apache.hadoop" % "hadoop-mapreduce-client-core" % hadoopVersion //3.0.3
-//libraryDependencies += "org.apache.spark" %% "spark-hadoop-cloud"% sparkVersion
-
-//compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "resources"
 
 
 assembly / assemblyMergeStrategy:= {
