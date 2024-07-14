@@ -26,16 +26,6 @@ RUN curl -O https://dlcdn.apache.org/spark/spark-3.5.1/spark-3.5.1-bin-hadoop3.t
 tar xvf spark-3.5.1-bin-hadoop3.tgz && mv spark-3.5.1-bin-hadoop3/ /opt/spark && rm spark-3.5.1-bin-hadoop3.tgz
 COPY --from=builder /app/preprocess.jar preprocess.jar
 
-ENV cassandra_host=cassandra
-ENV cassandra_port=9042
-ENV cassandra_user=cassandra
-ENV cassandra_pass=cassandra
-ENV cassandra_keyspace_name=siesta
-ENV cassandra_replication_class=SimpleStrategy
-ENV cassandra_replication_rack=replication_factor
-ENV cassandra_replication_factor=3
-ENV cassandra_write_consistency_level=ONE
-ENV cassandra_gc_grace_seconds=864000
 ENV s3accessKeyAws=minioadmin
 ENV s3ConnectionTimeout=600000
 ENV s3endPointLoc=http://minio:9000

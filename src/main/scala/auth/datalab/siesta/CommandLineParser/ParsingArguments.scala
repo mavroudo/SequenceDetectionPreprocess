@@ -29,7 +29,7 @@ object ParsingArguments {
         .action((x, c) => c.copy(system = x))
         .valueName("<system>")
         .validate(x => {
-          if (x.equals("siesta") || x.equals("signatures") || x.equals("set-containment")) {
+          if (x.equals("siesta")) { //can be used to add other systems or competitors
             success
           } else {
             failure("Supported values for <system> are siesta, signatures or set-containment")
@@ -40,7 +40,7 @@ object ParsingArguments {
         .action((x, c) => c.copy(database = x))
         .valueName("<database>")
         .validate(x => {
-          if (x.equals("s3") || x.equals("cassandra")) {
+          if (x.equals("s3")) { //can be used to add another scalable db
             success
           } else {
             failure("Supported values for <database> are s3 or cassandra")

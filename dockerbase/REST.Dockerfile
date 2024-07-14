@@ -45,16 +45,6 @@ RUN mkdir uploadedfiles
 COPY --from=builder /app/preprocess.jar /app/preprocess.jar
 
 # import default variables or can be changed here
-ENV cassandra_host=cassandra
-ENV cassandra_port=9042
-ENV cassandra_user=cassandra
-ENV cassandra_pass=cassandra
-ENV cassandra_keyspace_name=siesta
-ENV cassandra_replication_class=SimpleStrategy
-ENV cassandra_replication_rack=replication_factor
-ENV cassandra_replication_factor=3
-ENV cassandra_write_consistency_level=ONE
-ENV cassandra_gc_grace_seconds=864000
 ENV s3accessKeyAws=minioadmin
 ENV s3ConnectionTimeout=600000
 ENV s3endPointLoc=http://minio:9000
