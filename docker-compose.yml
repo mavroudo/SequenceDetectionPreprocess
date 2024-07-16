@@ -4,6 +4,7 @@ services:
     image: mavroudo/siesta-preprocess:2
     ports:
       - "8000:8000"
+      - "4040:4040"
     networks:
       - siesta-net
     volumes:
@@ -79,21 +80,19 @@ services:
     networks:
       - siesta-net
 
-#  cassandra:
-#    image: 'cassandra:4.0'
-#    container_name: cassandra
-#    ports:
-#      - '7000:7000'
-#      - '9042:9042'
-#    volumes:
-#      - './cassandra/data:/var/lib/cassandra'
-#    environment:
-#      PROJECT_NAME: siesta
-#      CASSANDRA_SEEDS: cassandra
-#      CASSANDRA_PASSWORD_SEEDER: yes
-#      CASSANDRA_PASSWORD: cassandra
-#    networks:
-#      - siesta-net
+  createbuckets: #automatically creates the required bucket
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/siesta;
+      /usr/bin/mc policy download myminio/siesta;
+      exit 0;
+      "
+    networks:
+      - siesta-net
 
 
 networks:

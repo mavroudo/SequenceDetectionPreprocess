@@ -1,6 +1,6 @@
 package auth.datalab.siesta.BusinessLogic.ExtractPairs
 
-import auth.datalab.siesta.BusinessLogic.Model.Structs
+import auth.datalab.siesta.BusinessLogic.Model.{Sequence, Structs}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 
@@ -68,7 +68,7 @@ object Intervals {
    * @param split_every_days The parameter that describes the time window for each interval
    * @return The list with the time intervals
    */
-  def intervals(sequenceRDD:RDD[Structs.Sequence],last_interval:String,split_every_days:Int):List[Structs.Interval]={
+  def intervals(sequenceRDD:RDD[Sequence],last_interval:String,split_every_days:Int):List[Structs.Interval]={
     implicit def ordered:Ordering[Timestamp] = (x: Timestamp, y: Timestamp) => {
       x compareTo y
     }

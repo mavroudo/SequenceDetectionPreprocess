@@ -1,17 +1,16 @@
 package auth.datalab.siesta.BusinessLogic.IngestData
 
-import auth.datalab.siesta.BusinessLogic.Model.Structs
+import auth.datalab.siesta.BusinessLogic.Model.{DetailedEvent, Event, Sequence, Structs}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.deckfour.xes.in.XParserRegistry
 import org.deckfour.xes.model.{XLog, XTrace}
 
-
-
 import java.io.{File, FileInputStream}
 import java.text.SimpleDateFormat
 import java.util.Scanner
-import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.convert.ImplicitConversions.`list asScalaBuffer`
+//import scala.collection.JavaConversions.asScalaBuffer
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -26,7 +25,7 @@ object ReadLogFile {
    * @return The RDD that contains the parsed traces
    */
 
-  def readLogDetailed(fileName: String, separator: String = ",") : RDD[Structs.DetailedSequence] = {
+  def readLogDetailed(fileName: String, separator: String = ",") : RDD[Sequence] = {
     if (fileName.split('.')(1) == "xes") {
       this.readFromXesDetailed(fileName)
     } else if (fileName.split('.')(1) == "withTimestamp") {
@@ -36,7 +35,7 @@ object ReadLogFile {
     }
   }
 
-  def readLog(fileName: String, separator: String = ","): RDD[Structs.Sequence] = {
+  def readLog(fileName: String, separator: String = ","): RDD[Sequence] = {
     if (fileName.split('.')(1) == "txt") { //there is no time limitations
       this.readFromTxt(fileName, separator)
     } else if (fileName.split('.')(1) == "xes") {
@@ -56,32 +55,32 @@ object ReadLogFile {
    * @param seperator The separator of the events that belongs in the same trace
    * @return The RDD that contains the parsed traces
    */
-  private def readFromTxt(fileName: String, seperator: String): RDD[Structs.Sequence] = {
+  private def readFromTxt(fileName: String, seperator: String): RDD[Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
     spark.sparkContext.textFile(fileName).zipWithIndex map { case (line, index) =>
-      val sequence = line.split(seperator).zipWithIndex map { case (event, inner_index) =>
-        Structs.Event(inner_index.toString, event)
+      val sequence:Array[Event] = line.split(seperator).zipWithIndex map { case (event, inner_index) =>
+        new Event(inner_index.toString, event)
       }
-      Structs.Sequence(sequence.toList, index)
+      new Sequence(sequence.toList, index)
     }
   }
 
-  private def readWithTimestampsDetailed(fileName: String, separator: String, delimiter: String): RDD[Structs.DetailedSequence] = {
+  private def readWithTimestampsDetailed(fileName: String, separator: String, delimiter: String): RDD[Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
 
     val reader = new Scanner(new File(fileName))
-    val ar:ArrayBuffer[Structs.DetailedSequence] = new ArrayBuffer[Structs.DetailedSequence]()
+    val ar:ArrayBuffer[Sequence] = new ArrayBuffer[Sequence]()
     while(reader.hasNextLine){
       val line = reader.nextLine()
       val index = line.split("::")(0).toInt
       val events = line.split("::")(1)
       val sequence = events.split(separator).map(event => {
-        new Structs.DetailedEvent(event_type = event.split(delimiter)(0),
-                                  end_timestamp = event.split(delimiter)(1),
+        new DetailedEvent(event_type = event.split(delimiter)(0),
+                                  timestamp = event.split(delimiter)(1),
                                   resource = event.split(delimiter)(2),
                                   trace_id = index.toString)
       })
-      ar.append(new Structs.DetailedSequence(sequence.toList, index))
+      ar.append(new Sequence(sequence.toList, index))
     }
     val par = spark.sparkContext.parallelize(ar)
     par
@@ -94,7 +93,7 @@ object ReadLogFile {
    * @param fileName The name of the log file
    * @return The RDD that contains the parsed traces
    */
-  private def readFromXes(fileName: String): RDD[Structs.Sequence] = {
+  private def readFromXes(fileName: String): RDD[Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
     val file_Object = new File(fileName)
     var parsed_logs: List[XLog] = null
@@ -116,15 +115,15 @@ object ReadLogFile {
       val list = trace.map(event => {
         val event_name = event.getAttributes.get("concept:name").toString
         val timestamp_occurred = event.getAttributes.get("time:timestamp").toString
-        Structs.Event(df2.format(df4.parse(timestamp_occurred)), event_name)
+         new Event(df2.format(df4.parse(timestamp_occurred)), event_name)
       }).toList
-      Structs.Sequence(list, index.toLong)
+      new Sequence(list, index.toLong)
     }
     val par = spark.sparkContext.parallelize(data)
     par
   }
 
-  private def readFromXesDetailed(fileName: String): RDD[Structs.DetailedSequence] = {
+  private def readFromXesDetailed(fileName: String): RDD[Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
     val file_Object = new File(fileName)
     var parsed_logs: List[XLog] = null
@@ -147,9 +146,9 @@ object ReadLogFile {
         val end_timestamp = event.getAttributes.get("time:timestamp").toString
         val resource = event.getAttributes.get("org:resource").toString
         val trace_id = trace.getAttributes.get("case:Rfp_id").toString
-        new Structs.DetailedEvent(event_type = event_type, end_timestamp = df2.format(df4.parse(end_timestamp)), resource = resource, trace_id = trace_id)
+        new DetailedEvent(event_type = event_type, timestamp = df2.format(df4.parse(end_timestamp)), resource = resource, trace_id = trace_id)
       }).toList
-      new Structs.DetailedSequence(list, index.toLong)
+      new Sequence(list, index.toLong)
     }
     val par = spark.sparkContext.parallelize(data)
     par
@@ -164,19 +163,19 @@ object ReadLogFile {
    * @param delimiter The separator between the event_type and the event timestamp
    * @return The RDD that contains the parsed traces
    */
-  private def readWithTimestamps(fileName: String, seperator: String, delimiter: String): RDD[Structs.Sequence] = {
+  private def readWithTimestamps(fileName: String, seperator: String, delimiter: String): RDD[Sequence] = {
     val spark = SparkSession.builder().getOrCreate()
 
     val reader = new Scanner(new File(fileName))
-    val ar:ArrayBuffer[Structs.Sequence] = new ArrayBuffer[Structs.Sequence]()
+    val ar:ArrayBuffer[Sequence] = new ArrayBuffer[Sequence]()
     while(reader.hasNextLine){
       val line = reader.nextLine()
       val index = line.split("::")(0).toInt
       val events = line.split("::")(1)
       val sequence = events.split(seperator).map(event => {
-        Structs.Event(event.split(delimiter)(1), event.split(delimiter)(0))
+        new Event(event.split(delimiter)(1), event.split(delimiter)(0))
       })
-      ar.append(Structs.Sequence(sequence.toList, index))
+      ar.append(new Sequence(sequence.toList, index))
     }
     val par = spark.sparkContext.parallelize(ar)
     par

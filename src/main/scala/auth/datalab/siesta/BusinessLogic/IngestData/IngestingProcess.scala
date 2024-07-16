@@ -1,15 +1,15 @@
 package auth.datalab.siesta.BusinessLogic.IngestData
 
-import auth.datalab.siesta.BusinessLogic.Model.Structs
-import auth.datalab.siesta.BusinessLogic.Model.Structs.DetailedSequence
+
+import auth.datalab.siesta.BusinessLogic.Model.{DetailedEvent, EventTrait, Sequence}
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.TraceGenerator.TraceGenerator
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SparkSession
 
-import java.time.{Instant, LocalDateTime}
+import java.sql.Timestamp
 import java.time.format.DateTimeFormatter
-import scala.util.Try
+import java.time.{Instant, LocalDateTime}
+import scala.collection.mutable
 
 /**
  * Creates the RDD containing the traces either based on an input file or based on randomly generated traces
@@ -26,7 +26,7 @@ object IngestingProcess {
    * @see [[ReadLogFile]],[[auth.datalab.siesta.TraceGenerator.TraceGenerator]] they are responsible for parsing a logfile
    *      or generate random traces respectively.
    */
-  def getData(c: Config): RDD[Structs.Sequence] = {
+  def getData(c: Config): RDD[Sequence] = {
     if (c.filename != "synthetic") {
       ReadLogFile.readLog(c.filename)
     } else {
@@ -35,14 +35,20 @@ object IngestingProcess {
     }
   }
 
-  def getDataDetailed(c: Config): RDD[Structs.DetailedSequence] = {
+  def getDataDetailed(c: Config): RDD[Sequence] = {
     // Parse the logged data
-    var detailedSequenceRDD: RDD[Structs.DetailedSequence] = ReadLogFile.readLogDetailed(c.filename)
+    var detailedSequenceRDD: RDD[Sequence] = ReadLogFile.readLogDetailed(c.filename)
     // Find all the event types captured
     val eventTypes: Array[String] = detailedSequenceRDD.flatMap(_.events.map(_.event_type)).distinct().collect()
     // Find all the resources captured
-    val resources: List[(String, List[Structs.DetailedEvent])] = detailedSequenceRDD
-      .flatMap(_.events.map(event => (event.resource, event)))
+    val resources: List[(String, List[DetailedEvent])] = detailedSequenceRDD
+      .flatMap(_.events.map {
+        case detailedEvent: DetailedEvent =>
+          Some((detailedEvent.resource, detailedEvent))
+        case _ =>
+          None
+      })
+      .filter(x => x.isDefined).map(_.get)
       .groupBy(_._1)
       .mapValues(_.map(_._2).toList)
       .collect()
@@ -63,8 +69,8 @@ object IngestingProcess {
     detailedSequenceRDD
   }
 
-  private def createEventPairs(events: List[Structs.DetailedEvent]): Array[(String, String, Long)] = {
-    val pairCounter = Map[(String, String), Int]().withDefaultValue(0)
+  private def createEventPairs(events: List[EventTrait]): Array[(String, String, Long)] = {
+    val pairCounter = mutable.Map[(String, String), Long]().withDefaultValue(0)
     val eventPairs = events.sliding(2).collect {
       case List(event1, event2) =>
         val pair = (event1.event_type, event2.event_type)
@@ -82,15 +88,15 @@ object IngestingProcess {
    *  - there is no trace in log L such that A is directly followed by B and B is directly followed by A.
    *  - the ratio (| |A->B| - |B->A| |) / (|A->B| + |B->A|) is less than 1.
    */
-  private def findConcurrency(traces: RDD[Structs.DetailedSequence], pairs: Map[(String, String), Long], types: Array[String]): Set[(String, String)] = {
-    var nonConcurrents = Set[(String, String)]()
-    var candidates = Set[(String, String)]()
+  private def findConcurrency(traces: RDD[Sequence], pairs: Map[(String, String), Long], types: Array[String]): Set[(String, String)] = {
+    var nonConcurrents = mutable.Set[(String, String)]()
+    var candidates = mutable.Set[(String, String)]()
 
     // Find all candidate concurrent activity pairs
     // O(n^2) but since n is small, it's ok
     for (i <- types; j <- types) {
       if (i != j) {
-        candidates += (i, j)
+        candidates += ((i, j))
       }
     }
 
@@ -99,14 +105,14 @@ object IngestingProcess {
     for (candidate <- candidates) {
       if (!pairs.contains(candidate) || pairs(candidate) == 0) {
         nonConcurrents += candidate
-        nonConcurrents += (candidate._2, candidate._1)
+        nonConcurrents += ((candidate._2, candidate._1))
       }
     }
 
     // Exonerate certain non-concurrent pairs based on the second condition
     traces.flatMap(findNoSelfLoopsTriplets).foreach { case (x, y, z) =>
-      nonConcurrents += (x.event_type, y.event_type)
-      nonConcurrents += (y.event_type, x.event_type)
+      nonConcurrents += ((x.event_type, y.event_type))
+      nonConcurrents += ((y.event_type, x.event_type))
     }
 
     // Clear the candidates set from the non-concurrent pairs
@@ -124,10 +130,10 @@ object IngestingProcess {
     // Final cleaning the candidates set from the non-concurrent pairs
     candidates --= nonConcurrents
 
-    candidates
+    candidates.toSet
   }
 
-  private def findNoSelfLoopsTriplets(sequence: Structs.DetailedSequence): List[(Structs.DetailedEvent, Structs.DetailedEvent, Structs.DetailedEvent)] = {
+  private def findNoSelfLoopsTriplets(sequence: Sequence): List[(EventTrait, EventTrait, EventTrait)] = {
     val events = sequence.events
     val n = events.length
 
@@ -142,63 +148,71 @@ object IngestingProcess {
     triplets.toList
   }
 
-  private def determineEnablementTime(sequences: RDD[Structs.DetailedSequence], concurrents: Set[(String, String)]): RDD[Structs.DetailedSequence] = {
+  private def determineEnablementTime(sequences: RDD[Sequence], concurrents: Set[(String, String)]): RDD[Sequence] = {
     /*  Start time policy for the first task of a trace:
      *   - If the first task's end time is not at the exact hour, then the start time is the exact hour.
      *   - If the first task's end time is at the exact hour, then the start time is the exact hour minus one hour.
      */
+
     sequences.map { sequence =>
-      sequence.events.zipWithIndex.map { case (event, index) =>
-        val endTimestamp = LocalDateTime.parse(event.end_timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-        val startTimestamp = if (index == 0) {
-          if (endTimestamp.getMinute != 0 || endTimestamp.getSecond != 0) {
-            endTimestamp.withMinute(0).withSecond(0).withNano(0)
-          } else if (endTimestamp.getHour == 0) {
-            endTimestamp.withHour(23).withMinute(0).withSecond(0).withNano(0)
+      sequence.events.zipWithIndex.map {
+        case (event: DetailedEvent, index) =>
+          val customFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+          val endTimestamp = LocalDateTime.parse(event.timestamp, customFormatter)
+          val startTimestamp = if (index == 0) {
+            if (endTimestamp.getMinute != 0 || endTimestamp.getSecond != 0) {
+              endTimestamp.withMinute(0).withSecond(0).withNano(0)
+            } else if (endTimestamp.getHour == 0) {
+              endTimestamp.withHour(23).withMinute(0).withSecond(0).withNano(0)
+            } else {
+              endTimestamp.withHour(endTimestamp.getHour - 1).withMinute(0)
+            }
           } else {
-            endTimestamp.withHour(endTimestamp.getHour - 1).withMinute(0)
+            val previousEvent = sequence.events(index - 1).asInstanceOf[DetailedEvent]
+            val previousEndTimestamp = LocalDateTime.parse(previousEvent.timestamp, customFormatter)
+            if (concurrents.contains((previousEvent.event_type, event.event_type))) {
+              previousEndTimestamp
+            } else {
+              previousEvent.start_timestamp
+            }
           }
-        } else {
-          val previousEvent = sequence.events(index - 1)
-          val previousEndTimestamp = LocalDateTime.parse(previousEvent.end_timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-          if (concurrents.contains((previousEvent.event_type, event.event_type))) {
-            previousEndTimestamp
-          } else {
-            previousEvent.start_timestamp
-          }
-        }
-        event.start_timestamp = startTimestamp.toString
-        event
+          event.start_timestamp = startTimestamp.toString
+          event
       }
       sequence
     }
   }
 
-  private def determineStartTime(sequences: RDD[Structs.DetailedSequence], resources: List[(String, List[Structs.DetailedEvent])]): RDD[Structs.DetailedSequence] = {
+  private def determineStartTime(sequences: RDD[Sequence], resources: List[(String, List[DetailedEvent])]): RDD[Sequence] = {
     /*  Fix the start time of the tasks based on the resource availability.
      *  The start time of the task is defined as the maximum of: the enablement time of the task,
      *  and the end time of the last task of the same resource which is previous to its end time.
      */
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    //TODO: check if this function is correct, because I am not sure it does what it suppose to
 
     sequences.map { sequence =>
-      sequence.events.map { event =>
-        val available_times = resources.filter(_._1 == event.resource)
-          .flatMap(_._2) // Keep the List of events using the current resource
-          .filter(event => Instant.parse(event.end_timestamp).isBefore(Instant.parse(event.end_timestamp)))
+      sequence.events.map {
+        case event: DetailedEvent =>
+          val available_times = resources.filter(_._1 == event.resource)
+            .flatMap(_._2) // Keep the List of events using the current resource
+          //The below filter seems unnecessary
+//            .filter(event => Instant.parse(event.end_timestamp).isBefore(Instant.parse(event.end_timestamp)))
 
-        if (available_times.nonEmpty) {
-          val maxTime = available_times.maxBy(event => Instant.parse(event.end_timestamp))
-          val maxTimeInstant = Instant.parse(maxTime.end_timestamp)
-          val eventStartInstant = Instant.parse(event.start_timestamp)
+          if (available_times.nonEmpty) {
+            //modified Instant.parse ->Timestamp.valueOf (which seems to be ok with T missing in the timestamp)
+            val maxTime = available_times.maxBy(event => Timestamp.valueOf(event.timestamp).getTime)
+            val maxTimeInstant = Timestamp.valueOf(maxTime.timestamp).toInstant
 
-          if (eventStartInstant.isBefore(maxTimeInstant)) {
-            val waitingTime = Math.abs(maxTimeInstant.getEpochSecond - eventStartInstant.getEpochSecond)
-            event.waiting_time = waitingTime
-            event.start_timestamp = maxTime.end_timestamp
+            //->start time is undefined here for all eventss
+            val eventStartInstant = Timestamp.valueOf(maxTime.start_timestamp).toInstant
+
+            if (eventStartInstant.isBefore(maxTimeInstant)) {
+              val waitingTime = Math.abs(maxTimeInstant.getEpochSecond - eventStartInstant.getEpochSecond)
+              event.waiting_time = waitingTime
+              event.start_timestamp = maxTime.timestamp
+            }
           }
-        }
-        event
+          event
       }
       sequence
     }

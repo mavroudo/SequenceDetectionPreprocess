@@ -1,9 +1,10 @@
 package auth.datalab.siesta.S3Connector
 
 import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
-import auth.datalab.siesta.BusinessLogic.Model.Structs
 import auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked
+import auth.datalab.siesta.BusinessLogic.Model.{DetailedEvent, Event, Sequence, Structs}
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.types.{LongType, StringType, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 import java.sql.Timestamp
@@ -21,11 +22,11 @@ object S3Transformations {
    * @param sequenceRDD The RDD containing the traces
    * @return The transformed Dataframe
    */
-  def transformSeqToDF(sequenceRDD: RDD[Structs.Sequence]): DataFrame = {
+  def transformSeqToDF(sequenceRDD: RDD[Sequence]): DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
     sequenceRDD.map(x => {
-      (x.sequence_id, x.events.map(y => (y.event, y.timestamp)))
+      (x.sequence_id, x.events.map(y => (y.event_type, y.timestamp)))
     }).toDF("trace_id", "events")
   }
 
@@ -35,11 +36,14 @@ object S3Transformations {
    * @param detailedSequenceRDD The RDD containing the traces
    * @return The transformed Dataframe
    */
-  def transformDetailedToDF(detailedSequenceRDD: RDD[Structs.DetailedSequence]): DataFrame = {
+  def transformDetailedToDF(detailedSequenceRDD: RDD[Sequence]): DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
     detailedSequenceRDD.map(x => {
-      (x.sequence_id, x.events.map(y => (y.event_type, y.start_timestamp, y.end_timestamp, y.waiting_time, y.resource, y.trace_id)))
+      (x.sequence_id, x.events.map {
+        case y: DetailedEvent =>
+          (y.event_type, y.start_timestamp, y.timestamp, y.waiting_time, y.resource)
+      })
     }).toDF("trace_id", "events")
   }
 
@@ -49,11 +53,11 @@ object S3Transformations {
    * @param df The loaded traces from S3
    * @return The transformed RDD of traces
    */
-  def transformDetailedToRDD(df: DataFrame): RDD[Structs.DetailedSequence] = {
+  def transformDetailedToRDD(df: DataFrame): RDD[Sequence] = {
     df.rdd.map(x => {
       val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1), y.getString(2), y.getLong(3), y.getString(4), y.getString(5)))
-      val concat = pEvents.map(x => new Structs.DetailedEvent(x._1,x._2,x._3,x._4,x._5,x._6))
-      new Structs.DetailedSequence(concat.toList, x.getAs[Long]("trace_id"))
+      val concat = pEvents.map(x => new DetailedEvent(x._1, x._2, x._3, x._4, x._5, x._6))
+      new Sequence(concat.toList, x.getAs[Long]("trace_id"))
     })
   }
 
@@ -63,11 +67,11 @@ object S3Transformations {
    * @param df The loaded traces from S3
    * @return The transformed RDD of traces
    */
-  def transformSeqToRDD(df: DataFrame): RDD[Structs.Sequence] = {
+  def transformSeqToRDD(df: DataFrame): RDD[Sequence] = {
     df.rdd.map(x => {
       val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1)))
-      val concat = pEvents.map(x => Structs.Event(x._2, x._1))
-      Structs.Sequence(concat.toList, x.getAs[Long]("trace_id"))
+      val concat = pEvents.map(x => new Event(x._2, x._1))
+      new Sequence(concat.toList, x.getAs[Long]("trace_id"))
     })
   }
 

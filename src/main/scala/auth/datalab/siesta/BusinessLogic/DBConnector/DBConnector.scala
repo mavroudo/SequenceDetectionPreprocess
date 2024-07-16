@@ -3,7 +3,7 @@ package auth.datalab.siesta.BusinessLogic.DBConnector
 import auth.datalab.siesta.BusinessLogic.ExtractSequence.ExtractSequence
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
-import auth.datalab.siesta.BusinessLogic.Model.Structs
+import auth.datalab.siesta.BusinessLogic.Model.{EventTrait, Sequence, Structs}
 import auth.datalab.siesta.BusinessLogic.Model.Structs.{InvertedSingleFull, LastChecked}
 import auth.datalab.siesta.CommandLineParser.Config
 import org.apache.spark.rdd.RDD
@@ -65,24 +65,7 @@ trait DBConnector {
    * @param metaData Object containing the metadata
    * @return Object containing the metadata
    */
-  def read_sequence_table(metaData: MetaData):RDD[Structs.Sequence]
-
-  /**
-   * Read data as an rdd from the Detailed Events Table
-   *
-   * @param metaData Object containing the metadata
-   * @return Object containing the metadata
-   */
-  def read_detailed_events_table(metaData: MetaData): RDD[Structs.DetailedSequence]
-
-  /**
-   * This method writes traces to the auxiliary Detailed Events Table.
-   *
-   * @param sequenceRDD The RDD containing the traces
-   * @param metaData    Object containing the metadata
-   * @return An RDD with the last position of the event stored per trace
-   */
-  def write_detailed_events_table(sequenceRDD:RDD[Structs.DetailedSequence],metaData: MetaData): RDD[Structs.LastPosition]
+  def read_sequence_table(metaData: MetaData, detailed:Boolean=false):RDD[Sequence]
 
   /**
    * This method writes traces to the auxiliary SeqTable. Since RDD will be used as intermediate results it is already persisted
@@ -93,7 +76,7 @@ trait DBConnector {
    * @param metaData Object containing the metadata
    * @return An RDD with the last position of the event stored per trace
    */
-  def write_sequence_table(sequenceRDD:RDD[Structs.Sequence],metaData: MetaData): RDD[Structs.LastPosition]
+  def write_sequence_table(sequenceRDD:RDD[Sequence],metaData: MetaData, detailed:Boolean=false): RDD[Structs.LastPosition]
 
   /**
    * This method is responsible to combine the newly arrived events with the ones previously stored,
@@ -102,34 +85,18 @@ trait DBConnector {
    * @param previousSequences The previous sequences that are already indexed
    * @return A combined rdd with all the traces combined
    */
-  def combine_sequence_table(newSequences:RDD[Structs.Sequence],previousSequences:RDD[Structs.Sequence]):RDD[Structs.Sequence]= {
+  def combine_sequence_table(newSequences:RDD[Sequence],previousSequences:RDD[Sequence]):RDD[Sequence]= {
     if (previousSequences == null) return newSequences
     val combined = previousSequences.keyBy(_.sequence_id)
       .fullOuterJoin(newSequences.keyBy(_.sequence_id))
-      .map(x => {
-        val prevEvents = x._2._1.getOrElse(Structs.Sequence(List(), -1)).events
-        val newEvents = x._2._2.getOrElse(Structs.Sequence(List(), -1)).events
-        Structs.Sequence(ExtractSequence.combineSequences(prevEvents, newEvents), x._1)
-      })
-    combined
-  }
+      .map{
+        case(id,(prevOpt,newOpt))=>
+          val prevEvents = prevOpt.map(_.events).getOrElse(List.empty[EventTrait])
+          val newEvents = newOpt.map(_.events).getOrElse(List.empty[EventTrait])
+          val combinedEvents = ExtractSequence.combineSequences(prevEvents, newEvents)
 
-  /**
-   * This method is responsible to combine the newly arrived events with the ones previously stored,
-   * in order to support incremental indexing.
-   * @param newDetailedSequences The new sequences to be indexed
-   * @param previousSequences The previous sequences that are already indexed
-   * @return A combined rdd with all the traces combined
-   */
-  def combine_detailed_events_table(newDetailedSequences:RDD[Structs.DetailedSequence],previousSequences:RDD[Structs.DetailedSequence]):RDD[Structs.DetailedSequence]= {
-    if (previousSequences == null) return newDetailedSequences
-    val combined = previousSequences.keyBy(_.sequence_id)
-      .fullOuterJoin(newDetailedSequences.keyBy(_.sequence_id))
-      .map(x => {
-        val prevEvents = x._2._1.getOrElse(new Structs.DetailedSequence(List(), -1)).events
-        val newEvents = x._2._2.getOrElse(new Structs.DetailedSequence(List(), -1)).events
-        new Structs.DetailedSequence(ExtractSequence.combinedDetailedSequences(prevEvents, newEvents), x._1)
-      })
+          new Sequence(combinedEvents,id)
+          }
     combined
   }
 

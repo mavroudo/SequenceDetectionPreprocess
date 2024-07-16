@@ -29,7 +29,7 @@ object ParsingArguments {
         .action((x, c) => c.copy(system = x))
         .valueName("<system>")
         .validate(x => {
-          if (x.equals("siesta") || x.equals("signatures") || x.equals("set-containment")) {
+          if (x.equals("siesta")) { //can be used to add other systems or competitors
             success
           } else {
             failure("Supported values for <system> are siesta, signatures or set-containment")
@@ -40,7 +40,7 @@ object ParsingArguments {
         .action((x, c) => c.copy(database = x))
         .valueName("<database>")
         .validate(x => {
-          if (x.equals("s3") || x.equals("cassandra")) {
+          if (x.equals("s3")) { //can be used to add another scalable db
             success
           } else {
             failure("Supported values for <database> are s3 or cassandra")
@@ -122,17 +122,16 @@ object ParsingArguments {
       opt[Int]("lmax")
         .valueName("<max length>")
         .action((x, c) => c.copy(length_max = x)),
-      opt[Boolean]("duration_determination")
-        .valueName("<true|false>")
-        .text("Include activity duration calculation (default=false)")
-        .action((x,c) => c.copy(duration_determination = x)),
+      opt[Unit]("duration_determination")
+        .action((_, c) => c.copy(duration_determination = true))
+        .text("Include activity duration calculation"),
       help("help").text("prints this usage text")
     )
   }
 
   /**
    * This method utilizes the above builder to parse the parameters and return the Configuration object back in the
-   * [[auth.datalab.siesta.Main]] before deciding the appropriate pipeline to be executed.
+   * [[auth.datalab.siesta.siesta_main]] before deciding the appropriate pipeline to be executed.
    * @param args The command line argumends
    * @return The Configuration object that contains all the parameters (after being evaluated)
    */

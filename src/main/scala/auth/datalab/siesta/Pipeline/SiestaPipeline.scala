@@ -4,8 +4,7 @@ import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
 import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairsSimple, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
-import auth.datalab.siesta.BusinessLogic.Model.Structs
-import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
+import auth.datalab.siesta.BusinessLogic.Model.{Sequence, Structs}
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.log4j.{Level, Logger}
@@ -33,8 +32,9 @@ object SiestaPipeline {
 
   def execute(c: Config): Unit = {
 
-    val dbConnector = if (c.database == "cassandra") {
-      new ApacheCassandraConnector()
+    // define db connector based on the given param
+    val dbConnector = if (c.database == "s3") {
+      new S3Connector()
     } else {
       new S3Connector()
     }
@@ -45,12 +45,21 @@ object SiestaPipeline {
     val spark = SparkSession.builder().getOrCreate()
     spark.time({
 
-      //Main pipeline starts here:s
-      val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
-      if (c.duration_determination) {
-        val detailedSequenceRDD: RDD[Structs.DetailedSequence] = IngestingProcess.getDataDetailed(c)
-        dbConnector.write_detailed_events_table(detailedSequenceRDD, metadata)
+      val sequenceRDD: RDD[Sequence] = if (!c.duration_determination){
+        IngestingProcess.getData(c)
+      }else{
+        val detailedSequenceRDD: RDD[Sequence] = IngestingProcess.getDataDetailed(c)
+        dbConnector.write_sequence_table(detailedSequenceRDD, metadata,detailed = true)
+        detailedSequenceRDD
       }
+
+
+      //Main pipeline starts here:s
+//      val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
+//      if (c.duration_determination) {
+//        val detailedSequenceRDD: RDD[Structs.DetailedSequence] = IngestingProcess.getDataDetailed(c)
+//        dbConnector.write_detailed_events_table(detailedSequenceRDD, metadata)
+//      }
 
       sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)
       //Extract the last positions of all the traces that are already indexed
