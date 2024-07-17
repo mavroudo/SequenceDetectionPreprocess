@@ -2,6 +2,8 @@ package auth.datalab.siesta.BusinessLogic.Model
 
 
 
+import org.apache.spark.streaming.StreamingContext
+
 import java.sql.Timestamp
 
 /**
@@ -11,22 +13,15 @@ import java.sql.Timestamp
  */
 object Structs {
 
+  //For streaming
+
+  case class StreamingPair(eventA: String, eventB: String, id: Long, timeA: Timestamp, timeB: Timestamp, positionA: Int, positionB: Int)
+
   //General Model
   case class EventWithPosition(event_name:String,timestamp:Timestamp,position:Int)
+
   case class IdTime(id:Long, time: String)
   case class IdTimePositionList(id: Long, times: List[String], positions:List[Int])
-
-//  case class Sequence(events: List[Event], sequence_id: Long) extends Serializable
-//  case class Event(timestamp: String, event: String) extends Serializable
-//
-//  class DetailedEvent(var event_type: String,
-//                      var start_timestamp: String = "undefined",
-//                      var end_timestamp: String,
-//                      var waiting_time: Long = 0,
-//                      var resource: String,
-//                      var trace_id: String) extends Serializable
-//  class DetailedSequence(var events: List[DetailedEvent],
-//                         var sequence_id: Long) extends Serializable
 
   //For the single inverted table
   case class InvertedSingle(event_name: String, times: List[IdTimePositionList])
@@ -46,10 +41,5 @@ object Structs {
   //Count
   case class CountList(eventA:String,counts:List[(String,Long,Int,Long,Long)])
   case class Count(eventA:String,eventB:String,sum_duration:Long,count:Int,min_duration:Long,max_duration:Long)
-
-
-  case class UnsupportedEventTypeException(private val message: String = "",
-                                           private val cause: Throwable = None.orNull)
-    extends Exception(message, cause)
 
 }
