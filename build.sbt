@@ -34,7 +34,7 @@ libraryDependencies += "com.amazonaws" % "aws-java-sdk-bundle" % "1.12.262"
 
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion
 libraryDependencies += "org.apache.spark" %% "spark-sql-kafka-0-10" % sparkVersion
-libraryDependencies += "io.delta" %% "delta-core" % "2.4.0"
+//libraryDependencies += "io.delta" %% "delta-core" % "2.4.0"
 libraryDependencies += "io.delta" %% "delta-spark" % "3.2.0"
 libraryDependencies += "org.postgresql" % "postgresql" % "42.7.3"
 

@@ -55,7 +55,7 @@ object SiestaStreamingPipeline {
       .as(Encoders.bean(classOf[EventStream]))
 
     // writing in Sequence Table
-//    val sequenceTableQueries = s3Connector.write_sequence_table(df_events)
+    val sequenceTableQueries = s3Connector.write_sequence_table(df_events)
 
     //writing in Single Table
     val singleTableQuery = s3Connector.write_single_table(df_events)
@@ -75,8 +75,8 @@ object SiestaStreamingPipeline {
     //write in CountTable
     val countTableQuery = s3Connector.write_count_table(pairs)
 
-//    sequenceTableQueries._1.awaitTermination()
-//    sequenceTableQueries._2.awaitTermination()
+    sequenceTableQueries._1.awaitTermination()
+    sequenceTableQueries._2.awaitTermination()
     singleTableQuery.awaitTermination()
     indexTableQueries._1.awaitTermination()
     indexTableQueries._2.awaitTermination()

@@ -172,6 +172,7 @@ class S3ConnectorStreaming {
       .set("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
 
 
+
     val spark = SparkSession.builder().config(conf).getOrCreate()
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.endpoint", s3endPointLoc)
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", s3accessKeyAws)
@@ -182,7 +183,7 @@ class S3ConnectorStreaming {
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.connection.ssl.enabled", "true")
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.bucket.create.enabled", "true")
 
-
+    spark.sparkContext.setLogLevel("WARN")
     spark
   }
 
