@@ -41,7 +41,7 @@ object IngestingProcess {
     // Find all the event types captured
     val eventTypes: Array[String] = detailedSequenceRDD.flatMap(_.events.map(_.event_type)).distinct().collect()
     // Find all the resources captured
-    val resources: List[(String, List[DetailedEvent])] = detailedSequenceRDD
+    var resources: List[(String, List[DetailedEvent])] = detailedSequenceRDD
       .flatMap(_.events.map {
         case detailedEvent: DetailedEvent =>
           Some((detailedEvent.resource, detailedEvent))
@@ -64,6 +64,8 @@ object IngestingProcess {
     val concurrentEventPairs: Set[(String, String)] = findConcurrency(detailedSequenceRDD, pairs, eventTypes)
     // Determine enablement time (temporarily as start time) for every event
     detailedSequenceRDD = determineEnablementTime(detailedSequenceRDD, concurrentEventPairs)
+    // Update the event copies on the resources mapping struct
+    resources = updateEventInstances(detailedSequenceRDD, resources)
     // Determine start time for every event
     detailedSequenceRDD = determineStartTime(detailedSequenceRDD, resources)
     detailedSequenceRDD
@@ -188,23 +190,25 @@ object IngestingProcess {
      *  The start time of the task is defined as the maximum of: the enablement time of the task,
      *  and the end time of the last task of the same resource which is previous to its end time.
      */
-    //TODO: check if this function is correct, because I am not sure it does what it suppose to
 
     sequences.map { sequence =>
       sequence.events.map {
         case event: DetailedEvent =>
           val available_times = resources.filter(_._1 == event.resource)
-            .flatMap(_._2) // Keep the List of events using the current resource
-          //The below filter seems unnecessary
-//            .filter(event => Instant.parse(event.end_timestamp).isBefore(Instant.parse(event.end_timestamp)))
+            // Keep the List of events using the current resource
+            .flatMap(_._2)
+            // Keep the events that end at most at the ts of the current event
+            .filter(event2 => !Timestamp.valueOf(event2.timestamp).after(Timestamp.valueOf(event.timestamp)))
+
 
           if (available_times.nonEmpty) {
-            //modified Instant.parse ->Timestamp.valueOf (which seems to be ok with T missing in the timestamp)
-            val maxTime = available_times.maxBy(event => Timestamp.valueOf(event.timestamp).getTime)
+            val maxTime = available_times.maxBy(event2 => Timestamp.valueOf(event2.timestamp).getTime)
             val maxTimeInstant = Timestamp.valueOf(maxTime.timestamp).toInstant
 
-            //->start time is undefined here for all eventss
-            val eventStartInstant = Timestamp.valueOf(maxTime.start_timestamp).toInstant
+            var enablementTime = event.start_timestamp.replace('T', ' ')
+            if (enablementTime.split(' ')(1).length < 8) enablementTime += ":00"
+
+            val eventStartInstant = Timestamp.valueOf(enablementTime).toInstant
 
             if (eventStartInstant.isBefore(maxTimeInstant)) {
               val waitingTime = Math.abs(maxTimeInstant.getEpochSecond - eventStartInstant.getEpochSecond)
@@ -218,4 +222,30 @@ object IngestingProcess {
     }
   }
 
+  private def updateEventInstances(sequences: RDD[Sequence], resources: List[(String, List[DetailedEvent])]): List[(String, List[DetailedEvent])] = {
+    // Collect all events from the sequences RDD
+    val allEvents: List[DetailedEvent] = sequences.flatMap(_.events.collect { case e: DetailedEvent => e }).collect().toList
+
+    // Define a function to update events in resources based on a given event
+    def updateResourceEvents(event: DetailedEvent, resources: List[(String, List[DetailedEvent])]): List[(String, List[DetailedEvent])] = {
+      resources.map {
+        case (resourceName, events) if resourceName == event.resource =>
+          val updatedEvents: List[DetailedEvent] = events.map { event2 =>
+            if (event2.trace_id == event.trace_id && event2.timestamp == event.timestamp) {
+              event2.start_timestamp = event.start_timestamp // Update the start attribute
+              event2
+            } else {
+              event2
+            }
+          }
+          (resourceName, updatedEvents)
+        case other => other
+      }
+    }
+
+    // Update resources for each event
+    allEvents.foldLeft(resources) { (updatedResources, event) =>
+      updateResourceEvents(event, updatedResources)
+    }
+  }
 }
