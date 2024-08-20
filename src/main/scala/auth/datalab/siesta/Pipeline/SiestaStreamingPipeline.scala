@@ -25,7 +25,6 @@ object SiestaStreamingPipeline {
     s3Connector.initialize_db(config = c)
 
     import spark.implicits._
-    //TODO: pass values by parameters
 
 
 //    val kafkaBroker = "localhost:29092"
@@ -38,9 +37,9 @@ object SiestaStreamingPipeline {
       .format("kafka")
       .option("kafka.bootstrap.servers", kafkaBroker)
       .option("subscribe", topic)
-      .option("startingOffsets","earliest")
-      //      .option("minOffsetsPerTrigger", "5") //process minimum 1000 events per batch
-      //      .option("maxTriggerDelay", "10s") // if not the minOffsetPerTrigger reaches in 10s it will fire a trigger
+      .option("startingOffsets", "latest")
+//      .option("minOffsetsPerTrigger", "100") //process minimum 1000 events per batch
+//      .option("maxTriggerDelay", "10s") // if not the minOffsetPerTrigger reaches in 10s it will fire a trigger
       .load()
 
     val schema = StructType(Seq(
