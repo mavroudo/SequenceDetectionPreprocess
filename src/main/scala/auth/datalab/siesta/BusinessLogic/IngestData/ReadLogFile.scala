@@ -61,7 +61,7 @@ object ReadLogFile {
       val sequence:Array[Event] = line.split(seperator).zipWithIndex map { case (event, inner_index) =>
         new Event(inner_index.toString, event)
       }
-      new Sequence(sequence.toList, index)
+      new Sequence(sequence.toList, index.toString)
     }
   }
 
@@ -80,7 +80,7 @@ object ReadLogFile {
                                   resource = event.split(delimiter)(2),
                                   trace_id = index.toString)
       })
-      ar.append(new Sequence(sequence.toList, index))
+      ar.append(new Sequence(sequence.toList, index.toString))
     }
     val par = spark.sparkContext.parallelize(ar)
     par
@@ -117,7 +117,8 @@ object ReadLogFile {
         val timestamp_occurred = event.getAttributes.get("time:timestamp").toString
          new Event(df2.format(df4.parse(timestamp_occurred)), event_name)
       }).toList
-      new Sequence(list, index.toLong)
+      val case_id = trace.getAttributes.get("concept:name").toString
+      new Sequence(list, case_id)
     }
     val par = spark.sparkContext.parallelize(data)
     par
@@ -176,7 +177,7 @@ object ReadLogFile {
       val sequence = events.split(seperator).map(event => {
         new Event(event.split(delimiter)(1), event.split(delimiter)(0))
       })
-      ar.append(new Sequence(sequence.toList, index))
+      ar.append(new Sequence(sequence.toList, index.toString))
     }
     val par = spark.sparkContext.parallelize(ar)
     par

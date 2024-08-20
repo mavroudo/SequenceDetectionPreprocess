@@ -99,7 +99,7 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
       val timestamp:String= df2.format(new Date(starting_date))
       listevents.append(new Event(timestamp,activity.get))
     }
-    new Sequence(listevents.toList,id)
+    new Sequence(listevents.toList,id.toString)
   }
 
   /**

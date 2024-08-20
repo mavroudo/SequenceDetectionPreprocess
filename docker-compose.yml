@@ -98,7 +98,7 @@ services:
 networks:
   siesta-net:
     name: siesta-net
-    external: true
+#    external: true
 
 volumes:
   minio_storage: {}

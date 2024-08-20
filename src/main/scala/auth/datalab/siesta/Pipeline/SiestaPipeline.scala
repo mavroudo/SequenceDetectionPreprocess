@@ -72,9 +72,11 @@ object SiestaPipeline {
       //extract the trace partitions
       val bsplit = spark.sparkContext.broadcast(metadata.last_checked_split)
       val trace_partitions = if (metadata.last_checked_split > 0) { //evaluate if the partitions are used
-        sequenceRDD.map(_.sequence_id)
-          .map(x => Math.floor(x / bsplit.value).toLong * bsplit.value)
-          .distinct().collect().toList
+        List.empty[Long]
+        //TODO: check if there is an easy way to split trace ids when they are strings
+//        sequenceRDD.map(_.sequence_id)
+//          .map(x => Math.floor(x / bsplit.value).toLong * bsplit.value)
+//          .distinct().collect().toList
       }
       else {
         List.empty[Long]

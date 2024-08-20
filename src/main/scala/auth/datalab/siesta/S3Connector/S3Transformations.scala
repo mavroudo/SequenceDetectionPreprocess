@@ -55,9 +55,10 @@ object S3Transformations {
    */
   def transformDetailedToRDD(df: DataFrame): RDD[Sequence] = {
     df.rdd.map(x => {
-      val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1), y.getString(2), y.getLong(3), y.getString(4), y.getString(5)))
-      val concat = pEvents.map(x => new DetailedEvent(x._1, x._2, x._3, x._4, x._5, x._6))
-      new Sequence(concat.toList, x.getAs[Long]("trace_id"))
+      val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1), y.getString(2), y.getLong(3), y.getString(4)))
+      val trace_id = x.getAs[String]("trace_id")
+      val concat = pEvents.map(x => new DetailedEvent(x._1, x._2, x._3, x._4, x._5, trace_id))
+      new Sequence(concat.toList, trace_id)
     })
   }
 
@@ -71,7 +72,7 @@ object S3Transformations {
     df.rdd.map(x => {
       val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1)))
       val concat = pEvents.map(x => new Event(x._2, x._1))
-      new Sequence(concat.toList, x.getAs[Long]("trace_id"))
+      new Sequence(concat.toList, x.getAs[String]("trace_id"))
     })
   }
 
@@ -86,7 +87,7 @@ object S3Transformations {
   def transformSingleToRDD(df: DataFrame): RDD[Structs.InvertedSingleFull] = {
     df.rdd.flatMap(x => {
       val event_name = x.getAs[String]("event_type")
-      val occurrences = x.getAs[Seq[Row]]("occurrences").map(y => (y.getLong(0), y.getAs[Seq[String]](1), y.getAs[Seq[Int]](2)))
+      val occurrences = x.getAs[Seq[Row]]("occurrences").map(y => (y.getString(0), y.getAs[Seq[String]](1), y.getAs[Seq[Int]](2)))
       occurrences.map(o => {
         Structs.InvertedSingleFull(o._1, event_name, o._2.toList, o._3.toList)
       })
@@ -125,7 +126,7 @@ object S3Transformations {
       val eventA = x.getAs[String]("eventA")
       val eventB = x.getAs[String]("eventB")
       x.getAs[Seq[Row]]("occurrences").map(oc => {
-        LastChecked(eventA, eventB, oc.getLong(0), oc.getString(1))
+        LastChecked(eventA, eventB, oc.getString(0), oc.getString(1))
       })
     })
   }
@@ -143,7 +144,7 @@ object S3Transformations {
       val eventA = x.getAs[String]("eventA")
       val eventB = x.getAs[String]("eventB")
       val timestamp = x.getAs[String]("timestamp")
-      val id = x.getAs[Long]("id")
+      val id = x.getAs[String]("id")
       LastChecked(eventA, eventB, id, timestamp)
     })
   }
@@ -180,7 +181,9 @@ object S3Transformations {
     import spark.sqlContext.implicits._
     val bSplit = spark.sparkContext.broadcast(metaData.last_checked_split)
     lastchecked.map(x => {
-      val partition = Math.floor(x.id / bSplit.value).toLong * bSplit.value //calculate partition
+//      val partition = Math.floor(x.id / bSplit.value).toLong * bSplit.value //calculate partition
+      //TODO: check partitions here
+      val partition = 0
       Structs.LastCheckedPartitionedDF(x.eventA, x.eventB, timestamp = x.timestamp, id = x.id, partition = partition)
     }).toDF("eventA", "eventB", "timestamp", "id", "partition")
   }
@@ -204,7 +207,7 @@ object S3Transformations {
         val eventA = row.getAs[String]("eventA")
         val eventB = row.getAs[String]("eventB")
         row.getAs[Seq[Row]]("occurrences").flatMap(oc => {
-          val id = oc.getLong(0)
+          val id = oc.getString(0)
           oc.getAs[Seq[Row]](1).map(o => {
             Structs.PairFull(eventA, eventB, id, null, null, o.getInt(0), o.getInt(1), Structs.Interval(start, end))
           })
@@ -218,7 +221,7 @@ object S3Transformations {
         val eventA = row.getAs[String]("eventA")
         val eventB = row.getAs[String]("eventB")
         row.getAs[Seq[Row]]("occurrences").flatMap(oc => {
-          val id = oc.getLong(0)
+          val id = oc.getString(0)
           oc.getAs[Seq[Row]](1).map(o => {
             Structs.PairFull(eventA, eventB, id, Timestamp.valueOf(o.getString(0)), Timestamp.valueOf(o.getString(1)), -1, -1, Structs.Interval(start, end))
           })
@@ -245,7 +248,7 @@ object S3Transformations {
     if (metaData.mode == "positions") {
       pairs.groupBy(a => (a.interval, a.eventA, a.eventB))
         .map(b => {
-          val occs: List[(Long, List[(Int, Int)])] = b._2.groupBy(_.id)
+          val occs: List[(String, List[(Int, Int)])] = b._2.groupBy(_.id)
             .map(c => {
               (c._1, c._2.map(d => (d.positionA, d.positionB)).toList)
             }).toList
@@ -255,7 +258,7 @@ object S3Transformations {
     } else { //timestamps instead of positions
       pairs.groupBy(a => (a.interval, a.eventA, a.eventB))
         .map(b => {
-          val occs: List[(Long, List[(String, String)])] = b._2.groupBy(_.id)
+          val occs: List[(String, List[(String, String)])] = b._2.groupBy(_.id)
             .map(c => {
               (c._1, c._2.map(d => (d.timeA.toString, d.timeB.toString)).toList)
             }).toList

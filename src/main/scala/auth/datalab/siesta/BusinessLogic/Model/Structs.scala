@@ -13,8 +13,8 @@ object Structs {
 
   //General Model
   case class EventWithPosition(event_name:String,timestamp:Timestamp,position:Int)
-  case class IdTime(id:Long, time: String)
-  case class IdTimePositionList(id: Long, times: List[String], positions:List[Int])
+  case class IdTime(id:String, time: String)
+  case class IdTimePositionList(id: String, times: List[String], positions:List[Int])
 
 //  case class Sequence(events: List[Event], sequence_id: Long) extends Serializable
 //  case class Event(timestamp: String, event: String) extends Serializable
@@ -30,16 +30,16 @@ object Structs {
 
   //For the single inverted table
   case class InvertedSingle(event_name: String, times: List[IdTimePositionList])
-  case class InvertedSingleFull(id: Long, event_name: String, times:List[String], positions:List[Int])
-  case class LastPosition (id:Long, position:Int)
+  case class InvertedSingleFull(id: String, event_name: String, times:List[String], positions:List[Int])
+  case class LastPosition (id:String, position:Int)
 
   //For last_checked
-  case class LastChecked (eventA:String,eventB:String, id: Long, timestamp:String)
+  case class LastChecked (eventA:String,eventB:String, id: String, timestamp:String)
   case class LastCheckedDF (eventA:String, eventB:String,occurrences: List[IdTime])
-  case class LastCheckedPartitionedDF(eventA:String,eventB:String,timestamp: String, id:Long, partition:Long)
+  case class LastCheckedPartitionedDF(eventA:String,eventB:String,timestamp: String, id:String, partition:Long)
 
   //Extract Pairs
-  case class PairFull(eventA:String,eventB:String,id:Long,timeA:Timestamp,timeB:Timestamp,positionA:Int,positionB:Int,interval:Interval)
+  case class PairFull(eventA:String,eventB:String,id:String,timeA:Timestamp,timeB:Timestamp,positionA:Int,positionB:Int,interval:Interval)
   //Intervals
   case class Interval(start:Timestamp,end:Timestamp) extends Serializable
 

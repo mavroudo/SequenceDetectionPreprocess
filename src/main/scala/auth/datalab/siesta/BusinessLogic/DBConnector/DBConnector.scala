@@ -129,9 +129,9 @@ trait DBConnector {
     if (previousSingle == null) return newSingle
     val combined = previousSingle.keyBy(x => (x.id, x.event_name)).fullOuterJoin(newSingle.keyBy(x => (x.id, x.event_name)))
       .map(x => {
-        val previous = x._2._1.getOrElse(Structs.InvertedSingleFull(-1, "", List(), List()))
+        val previous = x._2._1.getOrElse(Structs.InvertedSingleFull("", "", List(), List()))
         val prevOc = previous.times.zip(previous.positions)
-        val newly = x._2._2.getOrElse(Structs.InvertedSingleFull(-1, "", List(), List()))
+        val newly = x._2._2.getOrElse(Structs.InvertedSingleFull("", "", List(), List()))
         val newOc = newly.times.zip(newly.positions)
         val combine = (prevOc ++ newOc).distinct
         val event = if (previous.event_name == "") newly.event_name else previous.event_name
@@ -177,8 +177,8 @@ trait DBConnector {
     val combined = previousLastChecked.keyBy(x => (x.id, x.eventA, x.eventB))
       .fullOuterJoin(newLastChecked.keyBy(x => (x.id, x.eventA, x.eventB)))
       .map(x => {
-        val prevLC = x._2._1.getOrElse(Structs.LastChecked("", "", -1, ""))
-        val newLC = x._2._2.getOrElse(Structs.LastChecked("", "", -1, ""))
+        val prevLC = x._2._1.getOrElse(Structs.LastChecked("", "", "", ""))
+        val newLC = x._2._2.getOrElse(Structs.LastChecked("", "", "", ""))
         val time = if (newLC.timestamp == "") prevLC.timestamp else newLC.timestamp
         val events = if (newLC.eventA == "") (prevLC.eventA, prevLC.eventB) else (newLC.eventA, newLC.eventB)
         val id = if (newLC.id == -1) prevLC.id else newLC.id

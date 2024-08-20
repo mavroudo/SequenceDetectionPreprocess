@@ -127,7 +127,7 @@ object ExtractPairs {
    * @return The list with all the extracted event type pairs
    */
   private def createTuples(events: List[String], timestamps: List[List[(String, Int)]], bintervals: Broadcast[List[Structs.Interval]],
-                           lookback: Int, last_checked: Structs.LastChecked, id: Long): List[Structs.PairFull] = {
+                           lookback: Int, last_checked: Structs.LastChecked, id: String): List[Structs.PairFull] = {
     var e = Structs.EventWithPosition("", null, -1)
     val oc: ListBuffer[Structs.EventWithPosition] = new ListBuffer[Structs.EventWithPosition]
     var list_id = 0 //begin at first
