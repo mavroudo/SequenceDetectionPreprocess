@@ -163,11 +163,8 @@ class S3ConnectorStreaming {
     val s3endPointLoc: String = Utilities.readEnvVariable("s3endPointLoc")
 
     val conf = new SparkConf()
-      .setAppName("Siesta incremental")
+      .setAppName("Siesta streaming")
       .setMaster("local[*]")
-//      .set("spark.sql.sources.partitionOverwriteMode", "dynamic")
-//      .set("spark.sql.parquet.compression.codec", config.compression)
-//      .set("spark.sql.parquet.filterPushdown", "true")
       .set("spark.sql.extensions","io.delta.sql.DeltaSparkSessionExtension")
       .set("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
 
@@ -209,7 +206,7 @@ class S3ConnectorStreaming {
     val metaData = if (metaDataObj == null) {
       SetMetadata.initialize_metadata(config)
     } else {
-      SetMetadata.load_metadata(metaDataObj)
+      SetMetadata.load_metadata_delta(metaDataObj)
     }
     metaData
   }
