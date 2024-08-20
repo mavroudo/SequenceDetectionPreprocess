@@ -145,10 +145,11 @@ object ReadLogFile {
         val event_type = event.getAttributes.get("concept:name").toString
         val end_timestamp = event.getAttributes.get("time:timestamp").toString
         val resource = event.getAttributes.get("org:resource").toString
-        val trace_id = trace.getAttributes.get("case:Rfp_id").toString
+        val trace_id = trace.getAttributes.get("concept:name").toString
         new DetailedEvent(event_type = event_type, timestamp = df2.format(df4.parse(end_timestamp)), resource = resource, trace_id = trace_id)
       }).toList
-      new Sequence(list, index.toLong)
+      val case_id = trace.getAttributes.get("concept:name").toString
+      new Sequence(list, case_id)
     }
     val par = spark.sparkContext.parallelize(data)
     par
