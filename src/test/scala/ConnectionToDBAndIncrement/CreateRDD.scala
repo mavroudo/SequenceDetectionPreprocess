@@ -15,7 +15,7 @@ object CreateRDD {
       new Event("2020-08-15 12:39:50", "b"), new Event("2020-08-15 12:45:22", "d"))
     val events3: List[Event] = List(new Event("2020-08-15 12:31:04", "a"),
       new Event("2020-08-15 13:12:59", "b"), new Event("2020-08-15 14:08:49", "a"))
-    spark.sparkContext.parallelize(List(new Sequence(events, 0),new Sequence(events2, 1), new Sequence(events3, 2)))
+    spark.sparkContext.parallelize(List(new Sequence(events, "0"),new Sequence(events2, "1"), new Sequence(events3, "2")))
   }
 
   def createRDD_1: List[Sequence] = {
@@ -26,7 +26,7 @@ object CreateRDD {
       new Event("2020-08-16 12:11:54", "c"))
     val events3: List[Event] = List(new Event("2020-08-15 12:31:04", "c"),
       new Event("2020-08-16 12:31:04", "b"), new Event("2020-08-18 12:31:04", "a"))
-    List(new Sequence(events, 0), new Sequence(events2, 1), new Sequence(events3, 2))
+    List(new Sequence(events, "0"), new Sequence(events2, "1"), new Sequence(events3, "2"))
   }
 
   def createRDD_2: List[Sequence] = {
@@ -35,7 +35,7 @@ object CreateRDD {
     val events2: List[Event] = List(new Event("2020-08-19 12:11:54", "a"))
     val events3: List[Event] = List(new Event("2020-09-07 12:31:04", "c"),
       new Event("2020-09-08 12:31:04", "a"))
-    List(new Sequence(events, 0), new Sequence(events2, 1), new Sequence(events3, 2))
+    List(new Sequence(events, "0"), new Sequence(events2, "1"), new Sequence(events3, "2"))
   }
 
 }

@@ -1,5 +1,5 @@
 FROM ubuntu:20.04
-RUN apt-get update && apt-get install -y gnupg2 curl wget openjdk-11-jdk
+RUN apt-get update && apt-get install -y gnupg2 curl wget openjdk-17-jdk
 
 RUN wget https://downloads.lightbend.com/scala/2.12.12/scala-2.12.12.deb
 RUN dpkg -i scala-2.12.12.deb
