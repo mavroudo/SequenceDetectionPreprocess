@@ -44,8 +44,8 @@ object Structs {
   case class Interval(start:Timestamp,end:Timestamp) extends Serializable
 
   //Count
-  case class CountList(eventA:String,counts:List[(String,Long,Int,Long,Long)])
-  case class Count(eventA:String,eventB:String,sum_duration:Long,count:Int,min_duration:Long,max_duration:Long)
+  case class CountList(eventA:String,counts:List[(String,Long,Int,Long,Long,Double)])
+  case class Count(eventA:String, eventB:String, sum_duration:Long, count:Int, min_duration:Long, max_duration:Long, sum_squares:Double)
 
 
   case class UnsupportedEventTypeException(private val message: String = "",

@@ -256,8 +256,8 @@ trait DBConnector {
     newCounts.keyBy(x => (x.eventA, x.eventB))
       .fullOuterJoin(prevCounts.keyBy(x => (x.eventA, x.eventB)))
       .map(y => {
-        val c1 = y._2._1.getOrElse(Structs.Count(y._1._1, y._1._2, 0, 0, -1, -1))
-        val c2 = y._2._2.getOrElse(Structs.Count(y._1._1, y._1._2, 0, 0, -1, -1))
+        val c1 = y._2._1.getOrElse(Structs.Count(y._1._1, y._1._2, 0, 0, -1, -1, 0))
+        val c2 = y._2._2.getOrElse(Structs.Count(y._1._1, y._1._2, 0, 0, -1, -1, 0))
         val m = if(c1.min_duration == -1) c2.min_duration
         else if(c2.min_duration == -1) c1.min_duration
         else Math.min(c1.min_duration,c2.min_duration)
@@ -265,7 +265,7 @@ trait DBConnector {
         else if (c2.max_duration == -1) c1.max_duration
         else Math.max(c1.max_duration, c2.max_duration)
         Structs.Count(c1.eventA, c1.eventB, c1.sum_duration + c2.max_duration, c1.count + c2.count,
-          m, ma)
+          m, ma, Math.pow(c1.sum_duration + c2.max_duration, 2))
       })
   }
 
