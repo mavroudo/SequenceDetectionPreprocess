@@ -3,6 +3,8 @@ package auth.datalab.siesta.BusinessLogic.Metadata
 import auth.datalab.siesta.CommandLineParser.Config
 import org.apache.spark.sql.DataFrame
 
+import scala.util.Try
+
 /**
  * This class facilitates the initialization and loading of the Metadata object
  */
@@ -18,7 +20,7 @@ object SetMetadata {
     MetaData(traces = 0, events = 0, pairs = 0L, lookback = config.lookback_days,
       split_every_days = config.split_every_days, last_interval = "", has_previous_stored = false,
       filename = config.filename, log_name = config.log_name, mode = config.mode, compression = config.compression,
-      last_checked_split = config.last_checked_split)
+      last_checked_split = config.last_checked_split, last_declare_mined = "")
   }
 
   /**
@@ -28,6 +30,7 @@ object SetMetadata {
    */
   def load_metadata(metaDataObj:DataFrame):MetaData = {
     metaDataObj.collect().map(x => {
+      val last_declare_mined = Try(x.getAs[String]("last_declare_mined")).getOrElse("")
       MetaData(traces = x.getAs("traces"),
         events = x.getAs("events"),
         pairs = x.getAs("pairs"),
@@ -35,7 +38,7 @@ object SetMetadata {
         last_interval = x.getAs("last_interval"), has_previous_stored = true,
         filename = x.getAs("filename"), log_name = x.getAs("log_name"), mode = x.getAs("mode"),
         compression = x.getAs("compression"),
-        last_checked_split = x.getAs("last_checked_split"))}).head
+        last_checked_split = x.getAs("last_checked_split"), last_declare_mined)}).head
   }
 
 }
