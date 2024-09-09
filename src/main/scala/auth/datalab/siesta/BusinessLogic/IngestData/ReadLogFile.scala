@@ -72,15 +72,15 @@ object ReadLogFile {
     val ar:ArrayBuffer[Sequence] = new ArrayBuffer[Sequence]()
     while(reader.hasNextLine){
       val line = reader.nextLine()
-      val index = line.split("::")(0).toInt
+      val index = line.split("::")(0)
       val events = line.split("::")(1)
       val sequence = events.split(separator).map(event => {
         new DetailedEvent(event_type = event.split(delimiter)(0),
                                   timestamp = event.split(delimiter)(1),
                                   resource = event.split(delimiter)(2),
-                                  trace_id = index.toString)
+                                  trace_id = index)
       })
-      ar.append(new Sequence(sequence.toList, index.toString))
+      ar.append(new Sequence(sequence.toList, index))
     }
     val par = spark.sparkContext.parallelize(ar)
     par
@@ -172,12 +172,12 @@ object ReadLogFile {
     val ar:ArrayBuffer[Sequence] = new ArrayBuffer[Sequence]()
     while(reader.hasNextLine){
       val line = reader.nextLine()
-      val index = line.split("::")(0).toInt
+      val index = line.split("::")(0)
       val events = line.split("::")(1)
       val sequence = events.split(seperator).map(event => {
         new Event(event.split(delimiter)(1), event.split(delimiter)(0))
       })
-      ar.append(new Sequence(sequence.toList, index.toString))
+      ar.append(new Sequence(sequence.toList, index))
     }
     val par = spark.sparkContext.parallelize(ar)
     par
