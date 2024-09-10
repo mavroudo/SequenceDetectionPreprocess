@@ -276,7 +276,7 @@ class S3Connector extends DBConnector {
     try {
       val parqDF = spark.read.parquet(this.last_checked_table) //loads data
       if (metaData.last_checked_split == 0) {
-        S3Transformations.transformLastCheckedToRDD(parqDF)
+        S3Transformations.transformPartitionLastCheckedToRDD(parqDF)
       } else {
         val parkSQL = parqDF.filter(parqDF("partition").isin(partitions:_*))
         S3Transformations.transformPartitionLastCheckedToRDD(parkSQL)

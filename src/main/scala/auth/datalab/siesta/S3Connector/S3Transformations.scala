@@ -8,6 +8,7 @@ import org.apache.spark.sql.types.{LongType, StringType, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 import java.sql.Timestamp
+import java.time.format.DateTimeFormatter
 
 /**
  * This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline.
@@ -144,7 +145,7 @@ object S3Transformations {
       val eventA = x.getAs[String]("eventA")
       val eventB = x.getAs[String]("eventB")
       val timestamp = x.getAs[String]("timestamp")
-      val id = x.getAs[String]("id")
+      val id = x.getAs[String]("trace_id")
       LastChecked(eventA, eventB, id, timestamp)
     })
   }
@@ -161,11 +162,18 @@ object S3Transformations {
   def transformLastCheckedToDF(lastchecked: RDD[LastChecked]): DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
-    lastchecked.groupBy(x => (x.eventA, x.eventB))
-      .map(x => {
-        val occurrences = x._2.map(y => Structs.IdTime(y.id, y.timestamp))
-        Structs.LastCheckedDF(x._1._1, x._1._2, occurrences.toList)
-      }).toDF("eventA", "eventB", "occurrences")
+    lastchecked.map(x=>{
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val ts = Timestamp.valueOf(x.timestamp).toLocalDateTime.toLocalDate
+        (x.eventA,x.eventA,x.id,x.timestamp,ts.format(formatter))
+      })
+      .toDF("eventA", "eventB","trace_id", "timestamp","day")
+
+//      .groupBy(x => (x.eventA, x.eventB))
+//      .map(x => {
+//        val occurrences = x._2.map(y => Structs.IdTime(y.id, y.timestamp))
+//        Structs.LastCheckedDF(x._1._1, x._1._2, occurrences.toList)
+//      }).
   }
 
   /**
