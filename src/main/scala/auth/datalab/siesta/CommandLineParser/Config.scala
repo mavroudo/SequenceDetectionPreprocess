@@ -45,7 +45,7 @@ case class Config(
                    delete_previous: Boolean = false,
                    split_every_days: Int = 30,
                    lookback_days: Int = 30,
-                   last_checked_split:Int = 0,
+                   last_checked_split:String = "month",
                    traces: Int = 100,
                    event_types: Int = 10,
                    length_min: Int = 10,

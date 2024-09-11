@@ -159,21 +159,21 @@ object S3Transformations {
    * @param lastchecked The RDD containing the last timestamps for each event type pair per trace
    * @return The transformed Dataframe
    */
-  def transformLastCheckedToDF(lastchecked: RDD[LastChecked]): DataFrame = {
+  def transformLastCheckedToDF(lastchecked: RDD[LastChecked], metaData: MetaData): DataFrame = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.sqlContext.implicits._
     lastchecked.map(x=>{
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val formatter = if (metaData.last_checked_split.equals("day")){
+          DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        }else if (metaData.last_checked_split.equals("month")){
+          DateTimeFormatter.ofPattern("yyyy-MM")
+        }else{
+          DateTimeFormatter.ofPattern("yyyy")
+        }
         val ts = Timestamp.valueOf(x.timestamp).toLocalDateTime.toLocalDate
         (x.eventA,x.eventA,x.id,x.timestamp,ts.format(formatter))
       })
-      .toDF("eventA", "eventB","trace_id", "timestamp","day")
-
-//      .groupBy(x => (x.eventA, x.eventB))
-//      .map(x => {
-//        val occurrences = x._2.map(y => Structs.IdTime(y.id, y.timestamp))
-//        Structs.LastCheckedDF(x._1._1, x._1._2, occurrences.toList)
-//      }).
+      .toDF("eventA", "eventB","trace_id", "timestamp","partition")
   }
 
   /**

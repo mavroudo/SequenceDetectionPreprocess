@@ -96,12 +96,16 @@ object ParsingArguments {
         .validate(x => {
           if (x > 0) success else failure("Value <s> has to be a positive number")
         }),
-      opt[Int]("last_checked_split")
+      opt[String]("last_checked_split")
         .action((x, c) => c.copy(last_checked_split = x))
-        .text("Split the last checked table every last_checked_split traces (default=1000)")
+        .valueName("<last_checked_split>")
+        .text("Split the last checked table every day, month or year (default=month)")
         .validate(x => {
-          if (x >= 0) success else failure("Value last_checked_split has to be a positive number or 0 if no" +
-            "partition is required (this will affect incremental building time)")
+          if (x.equals("day") || x.equals("month")|| x.equals("year")) {
+            success
+          } else {
+            failure("Value <last_checked_split> must be one of the [day, month, year]")
+          }
         }),
       note(sys.props("line.separator") + "The parameters below are used if the file was not set and data will be randomly generated"),
       opt[Int]('t', "traces")

@@ -39,7 +39,7 @@ class S3Connector extends DBConnector {
   override def initialize_spark(config: Config): Unit = {
     lazy val spark = SparkSession.builder()
       .appName("SIESTA indexing")
-//      .master("local[*]")
+      .master("local[*]")
       .getOrCreate()
 
     val s3accessKeyAws = Utilities.readEnvVariable("s3accessKeyAws")
@@ -250,37 +250,7 @@ class S3Connector extends DBConnector {
     val spark = SparkSession.builder().getOrCreate()
     try {
       val df = spark.read.parquet(last_checked_table)
-      if (metaData.last_checked_split == 0) {
-        S3Transformations.transformLastCheckedToRDD(df)
-      } else {
         S3Transformations.transformPartitionLastCheckedToRDD(df)
-      }
-
-    } catch {
-      case _: org.apache.spark.sql.AnalysisException => null
-    }
-  }
-
-  /**
-   * Returns records from LastChecked Table that corresponds to the given partitions
-   * @param metaData Object containing the metadata
-   * @param partitions Contains the partitions of the required records from LastChecked. If the list is empty all
-   *                   the records from LastChecked will be read.
-   *  @return An RDD with the last timestamps per event type pair per trace
-   */
-  override def read_last_checked_partitioned_table(metaData: MetaData, partitions: List[Long]): RDD[Structs.LastChecked] = {
-    if(partitions.isEmpty){
-      return read_last_checked_table(metaData)
-    }
-    val spark = SparkSession.builder().getOrCreate()
-    try {
-      val parqDF = spark.read.parquet(this.last_checked_table) //loads data
-      if (metaData.last_checked_split == 0) {
-        S3Transformations.transformPartitionLastCheckedToRDD(parqDF)
-      } else {
-        val parkSQL = parqDF.filter(parqDF("partition").isin(partitions:_*))
-        S3Transformations.transformPartitionLastCheckedToRDD(parkSQL)
-      }
     } catch {
       case _: org.apache.spark.sql.AnalysisException => null
     }
@@ -298,20 +268,12 @@ class S3Connector extends DBConnector {
   override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData): Unit = {
     Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"Start writing LastChecked table")
     val start = System.currentTimeMillis()
-    val spark = SparkSession.builder().getOrCreate()
 
-    if (metaData.last_checked_split == 0) { //no partition was used
-      val df = S3Transformations.transformLastCheckedToDF(lastChecked) //transform them
-      df.repartition(col("day"))
-        .write.partitionBy("day")
-        .mode(SaveMode.Overwrite).parquet(last_checked_table)
-    } else { //transform them using using the partition
-      val df = S3Transformations.transformLastCheckedToPartitionedDF(lastChecked, metaData)
-      df
-        .repartition(col("partition"), col("eventA"))
-        .write.partitionBy("partition", "eventA")
-        .mode(SaveMode.Overwrite).parquet(last_checked_table)
-    }
+    val df = S3Transformations.transformLastCheckedToDF(lastChecked,metaData) //transform them
+    df.repartition(col("partition"))
+      .write.partitionBy("partition")
+      .mode(SaveMode.Overwrite).parquet(last_checked_table)
+
     val total = System.currentTimeMillis() - start
     Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
   }

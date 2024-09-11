@@ -21,5 +21,5 @@ case class MetaData(var traces: Long, var events: Long, var pairs: Long,
                     lookback: Int, split_every_days: Int,
                     var last_interval: String, var has_previous_stored: Boolean,
                     filename: String, log_name: String, mode: String, compression: String,
-                   var last_checked_split:Int, var last_declare_mined:String) extends Serializable {
+                   var last_checked_split:String, var last_declare_mined:String) extends Serializable {
 }

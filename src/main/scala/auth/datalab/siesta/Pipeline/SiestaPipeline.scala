@@ -45,21 +45,21 @@ object SiestaPipeline {
     val spark = SparkSession.builder().getOrCreate()
     spark.time({
 
-      val sequenceRDD: RDD[Sequence] = if (!c.duration_determination){
+      val sequenceRDD: RDD[Sequence] = if (!c.duration_determination) {
         IngestingProcess.getData(c)
-      }else{
+      } else {
         val detailedSequenceRDD: RDD[Sequence] = IngestingProcess.getDataDetailed(c)
-        dbConnector.write_sequence_table(detailedSequenceRDD, metadata,detailed = true)
+        dbConnector.write_sequence_table(detailedSequenceRDD, metadata, detailed = true)
         detailedSequenceRDD
       }
 
 
       //Main pipeline starts here:s
-//      val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
-//      if (c.duration_determination) {
-//        val detailedSequenceRDD: RDD[Structs.DetailedSequence] = IngestingProcess.getDataDetailed(c)
-//        dbConnector.write_detailed_events_table(detailedSequenceRDD, metadata)
-//      }
+      //      val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
+      //      if (c.duration_determination) {
+      //        val detailedSequenceRDD: RDD[Structs.DetailedSequence] = IngestingProcess.getDataDetailed(c)
+      //        dbConnector.write_detailed_events_table(detailedSequenceRDD, metadata)
+      //      }
 
       sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)
       //Extract the last positions of all the traces that are already indexed
@@ -69,24 +69,12 @@ object SiestaPipeline {
       val intervals = Intervals.intervals(sequenceRDD, metadata.last_interval, metadata.split_every_days)
       //Extracts single inverted index (ev_type) -> [(trace_id,ts,pos),...]
       val invertedSingleFull = ExtractSingle.extractFull(sequenceRDD, last_positions)
-      //extract the trace partitions
-      val bsplit = spark.sparkContext.broadcast(metadata.last_checked_split)
-      val trace_partitions = if (metadata.last_checked_split > 0) { //evaluate if the partitions are used
-        List.empty[Long]
-        //TODO: check if there is an easy way to split trace ids when they are strings
-//        sequenceRDD.map(_.sequence_id)
-//          .map(x => Math.floor(x / bsplit.value).toLong * bsplit.value)
-//          .distinct().collect().toList
-      }
-      else {
-        List.empty[Long]
-      }
       sequenceRDD.unpersist()
       last_positions.unpersist()
       //Read and combine the single inverted index with the previous stored
       val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metadata)
       //Read last timestamp for each pair for each event
-      val lastChecked = dbConnector.read_last_checked_partitioned_table(metadata, trace_partitions)
+      val lastChecked = dbConnector.read_last_checked_table(metadata)
       //Extract the new pairs and the update lastchecked for each pair for each trace
       //      val x = ExtractPairs.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
       val x = ExtractPairsSimple.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)

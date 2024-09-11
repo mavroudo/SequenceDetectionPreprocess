@@ -140,14 +140,6 @@ trait DBConnector {
     combined
   }
 
-  /**
-   * Returns data from LastChecked Table only the required partitions
-   * Loads data from the LastChecked Table, which contains the  information of the last timestamp per event type pair
-   * per trace.
-   * @param metaData Object containing the metadata
-   * @return An RDD with the last timestamps per event type pair per trace
-   */
-  def read_last_checked_partitioned_table(metaData: MetaData,partitions:List[Long]):RDD[LastChecked]
 
   /**
    * Returns data from LastChecked Table
