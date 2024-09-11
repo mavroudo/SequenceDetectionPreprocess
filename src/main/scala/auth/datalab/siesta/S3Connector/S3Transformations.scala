@@ -113,24 +113,6 @@ object S3Transformations {
       }).toDF("event_type", "occurrences")
   }
 
-  /**
-   * The stored format is [event_typeA, event_typeB, List of occurrences], where each occurrence has the structure:
-   * [trace_id, last timestamp]. So for each event type pair we maintain the information when was the last time that
-   * this event occurred in each trace. This information is latter utilized to facilitate in the efficient incremental
-   * indexing
-   *
-   * @param df The loaded LastChecked information from S3
-   * @return The transformed RDD
-   */
-  def transformLastCheckedToRDD(df: DataFrame): RDD[LastChecked] = {
-    df.rdd.flatMap(x => {
-      val eventA = x.getAs[String]("eventA")
-      val eventB = x.getAs[String]("eventB")
-      x.getAs[Seq[Row]]("occurrences").map(oc => {
-        LastChecked(eventA, eventB, oc.getString(0), oc.getString(1))
-      })
-    })
-  }
 
   /**
    * The stored format is [event_typeA, event_typeB, timestamp, id, partition]. Therefore, it is easy to extract
@@ -176,25 +158,6 @@ object S3Transformations {
       .toDF("eventA", "eventB","trace_id", "timestamp","partition")
   }
 
-  /**
-   * The required format is [event_typeA, event_typeB, timestamp, trace id, partition]. This format is based on splitting
-   * the last checked using partitions
-   *
-   * @param lastchecked The RDD containing the last timestamps for each event type pair per trace
-   * @param metaData    Containing the metadata
-   * @return The transformed Dataframe
-   */
-  def transformLastCheckedToPartitionedDF(lastchecked: RDD[LastChecked], metaData: MetaData): DataFrame = {
-    val spark = SparkSession.builder().getOrCreate()
-    import spark.sqlContext.implicits._
-    val bSplit = spark.sparkContext.broadcast(metaData.last_checked_split)
-    lastchecked.map(x => {
-//      val partition = Math.floor(x.id / bSplit.value).toLong * bSplit.value //calculate partition
-      //TODO: check partitions here
-      val partition = 0
-      Structs.LastCheckedPartitionedDF(x.eventA, x.eventB, timestamp = x.timestamp, id = x.id, partition = partition)
-    }).toDF("eventA", "eventB", "timestamp", "id", "partition")
-  }
 
   /**
    * The stored format is [interval_start, interval_end, event_typeA, event_typeB, List of occurrences], where

@@ -54,7 +54,7 @@ object SiestaPipeline {
       }
 
 
-      //Main pipeline starts here:s
+      //Main pipeline starts here:
       //      val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
       //      if (c.duration_determination) {
       //        val detailedSequenceRDD: RDD[Structs.DetailedSequence] = IngestingProcess.getDataDetailed(c)

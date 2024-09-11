@@ -39,7 +39,7 @@ class S3Connector extends DBConnector {
   override def initialize_spark(config: Config): Unit = {
     lazy val spark = SparkSession.builder()
       .appName("SIESTA indexing")
-      .master("local[*]")
+//      .master("local[*]")
       .getOrCreate()
 
     val s3accessKeyAws = Utilities.readEnvVariable("s3accessKeyAws")
@@ -270,8 +270,8 @@ class S3Connector extends DBConnector {
     val start = System.currentTimeMillis()
 
     val df = S3Transformations.transformLastCheckedToDF(lastChecked,metaData) //transform them
-    df.repartition(col("partition"))
-      .write.partitionBy("partition")
+    df.repartition(col("partition"),col("eventA"))
+      .write.partitionBy("partition","eventA")
       .mode(SaveMode.Overwrite).parquet(last_checked_table)
 
     val total = System.currentTimeMillis() - start
