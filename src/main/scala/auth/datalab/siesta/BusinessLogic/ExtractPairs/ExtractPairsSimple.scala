@@ -107,49 +107,6 @@ object ExtractPairsSimple {
     (results.toList, l.toList)
   }
 
-//
-//  def createTuples2(key1: String, key2: String, ts1: List[(String, Int)], ts2: List[(String, Int)],
-//                   intervals: Broadcast[List[Structs.Interval]], lookback: Int, last_checked: Structs.LastChecked,
-//                   trace_id: Long):List[Structs.PairFull] = {
-//    val pairs = new ListBuffer[Structs.PairFull]
-//    var prev:Timestamp = null
-//    val ts2_copy:ListBuffer[(Timestamp,Int)] = new ListBuffer[(Timestamp,Int)]
-//    ts2.foreach(t=>ts2_copy.append((Timestamp.valueOf(t._1),t._2)))
-//
-//    //ts ...
-//
-//
-//    for(ea <- ts1){
-//      val ea_ts = Timestamp.valueOf(ea._1)
-//      if((prev == null || !ea_ts.before(prev) ) && //evaluate based on previous
-//        (last_checked==null || !ea_ts.before(Timestamp.valueOf(last_checked.timestamp)))){ // evaluate based on last checked
-//        val to_be_removed = new ListBuffer[Int]
-//        var i = 0
-//        var stop = false
-//        while(i<ts2_copy.size && !stop){ //iterate through what remained of the second list
-//          val eb = ts2_copy(i)
-//          if (!ea_ts.before(eb._1)){ // if the event a is not before the event b we remove it
-//            to_be_removed.append(i)
-//          }else{ // if it is we create a new pair and remove it from consideration in the next iteration
-//            if(ChronoUnit.DAYS.between(ea_ts.toInstant,eb._1.toInstant)<=lookback) { //evaluate lookback
-//              val interval: Structs.Interval = this.chooseInterval(intervals, eb._1)
-//              pairs.append(Structs.PairFull(key1, key2, trace_id, ea_ts, eb._1, ea._2, eb._2, interval))
-//              prev = eb._1
-//            }
-//            to_be_removed.append(i) //remove the event anyways and stop the process because the next events timestamps will be greater
-//            stop=true
-//          }
-//          for{ //remove the elements in the indices detected above
-//            (x,i) <- ts2_copy.zipWithIndex
-//            if !to_be_removed.contains(i)
-//          }yield x
-//          i+=1
-//        }
-//      }
-//    }
-//    pairs.toList
-//  }
-
   def createTuples(key1: String, key2: String, ts1: List[(String, Int)], ts2: List[(String, Int)],
                    intervals: Broadcast[List[Structs.Interval]], lookback: Int, last_checked: Structs.LastChecked,
                    trace_id: String): List[Structs.PairFull] = {
