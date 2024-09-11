@@ -54,14 +54,14 @@ object S3Transformations {
    * @param df The loaded traces from S3
    * @return The transformed RDD of traces
    */
-  def transformDetailedToRDD(df: DataFrame): RDD[Sequence] = {
-    df.rdd.map(x => {
-      val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1), y.getString(2), y.getLong(3), y.getString(4)))
-      val trace_id = x.getAs[String]("trace_id")
-      val concat = pEvents.map(x => new DetailedEvent(x._1, x._2, x._3, x._4, x._5, trace_id))
-      new Sequence(concat.toList, trace_id)
-    })
-  }
+//  def transformDetailedToRDD(df: DataFrame): RDD[Sequence] = {
+//    df.rdd.map(x => {
+//      val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1), y.getString(2), y.getLong(3), y.getString(4)))
+//      val trace_id = x.getAs[String]("trace_id")
+//      val concat = pEvents.map(x => new DetailedEvent(x._1, x._2, x._3, x._4, x._5, trace_id))
+//      new Sequence(concat.toList, trace_id)
+//    })
+//  }
 
   /**
    * The stored format is [trace_id, List of events], where each event is [event_type, timestamp]
@@ -69,13 +69,13 @@ object S3Transformations {
    * @param df The loaded traces from S3
    * @return The transformed RDD of traces
    */
-  def transformSeqToRDD(df: DataFrame): RDD[Sequence] = {
-    df.rdd.map(x => {
-      val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1)))
-      val concat = pEvents.map(x => new Event(x._2, x._1))
-      new Sequence(concat.toList, x.getAs[String]("trace_id"))
-    })
-  }
+//  def transformSeqToRDD(df: DataFrame): RDD[Sequence] = {
+//    df.rdd.map(x => {
+//      val pEvents = x.getAs[Seq[Row]]("events").map(y => (y.getString(0), y.getString(1)))
+//      val concat = pEvents.map(x => new Event(x._2, x._1))
+//      new Sequence(concat.toList, x.getAs[String]("trace_id"))
+//    })
+//  }
 
   /**
    * The stored format is [event_type, List of occurrences], where each occurrence contains the occurrences of this event type

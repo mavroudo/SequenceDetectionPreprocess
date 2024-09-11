@@ -24,7 +24,7 @@ import java.net.URI
  * file we have to rewrite the whole file.
  *
  */
-class S3Connector extends DBConnector {
+class S3Connector {
   private var seq_table: String = _
   private var detailed_table: String = _
   private var meta_table: String = _
@@ -36,7 +36,7 @@ class S3Connector extends DBConnector {
   /**
    * Spark initializes the connection to S3 utilizing the hadoop properties and the aws-bundle library
    */
-  override def initialize_spark(config: Config): Unit = {
+  def initialize_spark(config: Config): Unit = {
     lazy val spark = SparkSession.builder()
       .appName("SIESTA indexing")
 //      .master("local[*]")
@@ -69,7 +69,7 @@ class S3Connector extends DBConnector {
   /**
    * Create the appropriate tables, remove previous ones
    */
-  override def initialize_db(config: Config): Unit = {
+  def initialize_db(config: Config): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     val fs = FileSystem.get(new URI("s3a://siesta/"), spark.sparkContext.hadoopConfiguration)
 
@@ -101,7 +101,7 @@ class S3Connector extends DBConnector {
    * @param config contains the configuration passed during execution
    * @return the metadata
    */
-  override def get_metadata(config: Config): MetaData = {
+  def get_metadata(config: Config): MetaData = {
     Logger.getLogger("Metadata").log(Level.INFO, s"Getting metadata")
     val start = System.currentTimeMillis()
     val spark = SparkSession.builder().getOrCreate()
@@ -129,7 +129,7 @@ class S3Connector extends DBConnector {
    *
    * @param metaData Object containing the metadata
    */
-  override def write_metadata(metaData: MetaData): Unit = {
+  def write_metadata(metaData: MetaData): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._
     val rdd = spark.sparkContext.parallelize(Seq(metaData))
@@ -143,20 +143,20 @@ class S3Connector extends DBConnector {
    * @param metaData Object containing the metadata
    * @return Object containing the metadata
    */
-  override def read_sequence_table(metaData: MetaData, detailed:Boolean=false): RDD[Sequence] = {
-    val spark = SparkSession.builder().getOrCreate()
-    try {
-      if(detailed){
-        val df = spark.read.parquet(detailed_table)
-        S3Transformations.transformDetailedToRDD(df)
-      }else {
-        val df = spark.read.parquet(seq_table)
-        S3Transformations.transformSeqToRDD(df)
-      }
-    } catch {
-      case _: org.apache.spark.sql.AnalysisException => null
-    }
-  }
+//  def read_sequence_table(metaData: MetaData, detailed:Boolean=false): RDD[Sequence] = {
+//    val spark = SparkSession.builder().getOrCreate()
+//    try {
+//      if(detailed){
+//        val df = spark.read.parquet(detailed_table)
+//        S3Transformations.transformDetailedToRDD(df)
+//      }else {
+//        val df = spark.read.parquet(seq_table)
+//        S3Transformations.transformSeqToRDD(df)
+//      }
+//    } catch {
+//      case _: org.apache.spark.sql.AnalysisException => null
+//    }
+//  }
 
   /**
    * This method writes traces to the auxiliary SeqTable. Since RDD will be used as intermediate results it is already persisted
@@ -168,28 +168,28 @@ class S3Connector extends DBConnector {
    * @param metaData    Object containing the metadata
    * @return An RDD with the last position of the event stored per trace
    */
-  override def write_sequence_table(sequenceRDD: RDD[Sequence], metaData: MetaData,detailed:Boolean=false): RDD[Structs.LastPosition] = {
-    Logger.getLogger("Sequence Table Write").log(Level.INFO, s"Start writing sequence table")
-    val start = System.currentTimeMillis()
-    val previousSequences = this.read_sequence_table(metaData,detailed) //get previous
-    val combined = this.combine_sequence_table(sequenceRDD, previousSequences) //combine them
-    if(detailed){
-      val df = S3Transformations.transformDetailedToDF(combined) //write them back
-      metaData.traces = df.count() //update metadata
-      df.write
-        .mode(SaveMode.Overwrite)
-        .parquet(detailed_table)
-    }else{
-      val df = S3Transformations.transformSeqToDF(combined) //write them back
-      metaData.traces = df.count() //update metadata
-      df.write
-        .mode(SaveMode.Overwrite)
-        .parquet(seq_table)
-    }
-    val total = System.currentTimeMillis() - start
-    Logger.getLogger("Sequence Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
-    combined.map(x => Structs.LastPosition(x.sequence_id, x.events.size))
-  }
+//  def write_sequence_table(sequenceRDD: RDD[Sequence], metaData: MetaData,detailed:Boolean=false): RDD[Structs.LastPosition] = {
+//    Logger.getLogger("Sequence Table Write").log(Level.INFO, s"Start writing sequence table")
+//    val start = System.currentTimeMillis()
+//    val previousSequences = this.read_sequence_table(metaData,detailed) //get previous
+//    val combined = this.combine_sequence_table(sequenceRDD, previousSequences) //combine them
+//    if(detailed){
+//      val df = S3Transformations.transformDetailedToDF(combined) //write them back
+//      metaData.traces = df.count() //update metadata
+//      df.write
+//        .mode(SaveMode.Overwrite)
+//        .parquet(detailed_table)
+//    }else{
+//      val df = S3Transformations.transformSeqToDF(combined) //write them back
+//      metaData.traces = df.count() //update metadata
+//      df.write
+//        .mode(SaveMode.Overwrite)
+//        .parquet(seq_table)
+//    }
+//    val total = System.currentTimeMillis() - start
+//    Logger.getLogger("Sequence Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+//    combined.map(x => Structs.LastPosition(x.sequence_id, x.events.size))
+//  }
 
   /**
    * This method writes traces to the auxiliary SingleTable. The rdd that comes to this method is not persisted.
@@ -200,27 +200,27 @@ class S3Connector extends DBConnector {
    * @param singleRDD Contains the newly indexed events in a form of single inverted index
    * @param metaData  Object containing the metadata
    */
-  override def write_single_table(singleRDD: RDD[Structs.InvertedSingleFull], metaData: MetaData): RDD[Structs.InvertedSingleFull] = {
-    Logger.getLogger("Single Table Write").log(Level.INFO, s"Start writing single table")
-    val start = System.currentTimeMillis()
-    val newEvents = singleRDD.map(x => x.times.size).reduce((x, y) => x + y)
-    val new_traces = singleRDD.map(_.id).distinct().collect().toSet
-    val previousSingle = read_single_table(metaData)
-    val combined = combine_single_table(singleRDD, previousSingle)
-    combined.persist(StorageLevel.MEMORY_AND_DISK)
-    val df = S3Transformations.transformSingleToDF(combined) //transform
-    metaData.events += newEvents //count and update metadata
-    //partition based on the event type
-    df
-      .repartition(col("event_type"))
-      .write
-      .partitionBy("event_type")
-      .mode(SaveMode.Overwrite).parquet(single_table) //store to s3
-
-    val total = System.currentTimeMillis() - start
-    Logger.getLogger("Single Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
-    combined.filter(x=>new_traces.contains(x.id))
-  }
+//  def write_single_table(singleRDD: RDD[Structs.InvertedSingleFull], metaData: MetaData): RDD[Structs.InvertedSingleFull] = {
+//    Logger.getLogger("Single Table Write").log(Level.INFO, s"Start writing single table")
+//    val start = System.currentTimeMillis()
+//    val newEvents = singleRDD.map(x => x.times.size).reduce((x, y) => x + y)
+//    val new_traces = singleRDD.map(_.id).distinct().collect().toSet
+//    val previousSingle = read_single_table(metaData)
+//    val combined = combine_single_table(singleRDD, previousSingle)
+//    combined.persist(StorageLevel.MEMORY_AND_DISK)
+//    val df = S3Transformations.transformSingleToDF(combined) //transform
+//    metaData.events += newEvents //count and update metadata
+//    //partition based on the event type
+//    df
+//      .repartition(col("event_type"))
+//      .write
+//      .partitionBy("event_type")
+//      .mode(SaveMode.Overwrite).parquet(single_table) //store to s3
+//
+//    val total = System.currentTimeMillis() - start
+//    Logger.getLogger("Single Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+//    combined.filter(x=>new_traces.contains(x.id))
+//  }
 
   /**
    * Loads the single inverted index from S3, stored in the SingleTable
@@ -228,7 +228,7 @@ class S3Connector extends DBConnector {
    * @param metaData Object containing the metadata
    * @return In RDD the stored data
    */
-  override def read_single_table(metaData: MetaData): RDD[Structs.InvertedSingleFull] = {
+  def read_single_table(metaData: MetaData): RDD[Structs.InvertedSingleFull] = {
     val spark = SparkSession.builder().getOrCreate()
     try {
       val df = spark.read.parquet(single_table)
@@ -246,7 +246,7 @@ class S3Connector extends DBConnector {
    * @param metaData Object containing the metadata
    * @return An RDD with the last timestamps per event type pair per trace
    */
-  override def read_last_checked_table(metaData: MetaData): RDD[Structs.LastChecked] = {
+  def read_last_checked_table(metaData: MetaData): RDD[Structs.LastChecked] = {
     val spark = SparkSession.builder().getOrCreate()
     try {
       val df = spark.read.parquet(last_checked_table)
@@ -265,7 +265,7 @@ class S3Connector extends DBConnector {
    *                    read is avoided
    * @param metaData    Object containing the metadata
    */
-  override def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData): Unit = {
+  def write_last_checked_table(lastChecked: RDD[Structs.LastChecked], metaData: MetaData): Unit = {
     Logger.getLogger("LastChecked Table Write").log(Level.INFO, s"Start writing LastChecked table")
     val start = System.currentTimeMillis()
 
@@ -287,7 +287,7 @@ class S3Connector extends DBConnector {
    *                  if there are any in these periods)
    * @return Loaded records from IndexTable for the given intervals
    */
-  override def read_index_table(metaData: MetaData, intervals: List[Structs.Interval]): RDD[Structs.PairFull] = {
+  def read_index_table(metaData: MetaData, intervals: List[Structs.Interval]): RDD[Structs.PairFull] = {
     val spark = SparkSession.builder().getOrCreate()
     try {
       val parqDF = spark.read.parquet(this.index_table) //loads data
@@ -309,7 +309,7 @@ class S3Connector extends DBConnector {
    * @param metaData Object containing the metadata
    * @return Loaded indexed pairs from IndexTable
    */
-  override def read_index_table(metaData: MetaData): RDD[Structs.PairFull] = {
+  def read_index_table(metaData: MetaData): RDD[Structs.PairFull] = {
     val spark = SparkSession.builder().getOrCreate()
     try {
       val parqDF = spark.read.parquet(this.index_table)
@@ -326,21 +326,21 @@ class S3Connector extends DBConnector {
    * @param metaData  Object containing the metadata
    * @param intervals The period of times that the pairs will be splitted
    */
-  override def write_index_table(newPairs: RDD[Structs.PairFull], metaData: MetaData, intervals: List[Structs.Interval]): Unit = {
-    Logger.getLogger("Index Table Write").log(Level.INFO, s"Start writing Index table")
-    val start = System.currentTimeMillis()
-    val previousIndexed = this.read_index_table(metaData, intervals) //read previously stored
-    val combined = this.combine_index_table(newPairs, previousIndexed, metaData, intervals) //combine them
-    metaData.pairs += newPairs.count() //update metadata
-    val df = S3Transformations.transformIndexToDF(combined, metaData) //transform them
-    //partition by the interval (start and end) and the first event of the event type pair
-    df.repartition(col("interval"),col("eventA"))
-      .select("interval.start", "interval.end", "eventA", "eventB", "occurrences")
-      .write.partitionBy("start", "end", "eventA")
-      .mode(SaveMode.Overwrite).parquet(this.index_table)
-    val total = System.currentTimeMillis() - start
-    Logger.getLogger("Index Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
-  }
+//  def write_index_table(newPairs: RDD[Structs.PairFull], metaData: MetaData, intervals: List[Structs.Interval]): Unit = {
+//    Logger.getLogger("Index Table Write").log(Level.INFO, s"Start writing Index table")
+//    val start = System.currentTimeMillis()
+//    val previousIndexed = this.read_index_table(metaData, intervals) //read previously stored
+//    val combined = this.combine_index_table(newPairs, previousIndexed, metaData, intervals) //combine them
+//    metaData.pairs += newPairs.count() //update metadata
+//    val df = S3Transformations.transformIndexToDF(combined, metaData) //transform them
+//    //partition by the interval (start and end) and the first event of the event type pair
+//    df.repartition(col("interval"),col("eventA"))
+//      .select("interval.start", "interval.end", "eventA", "eventB", "occurrences")
+//      .write.partitionBy("start", "end", "eventA")
+//      .mode(SaveMode.Overwrite).parquet(this.index_table)
+//    val total = System.currentTimeMillis() - start
+//    Logger.getLogger("Index Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+//  }
 
   /**
    * Loads previously stored data in the CountTable
@@ -348,7 +348,7 @@ class S3Connector extends DBConnector {
    * @param metaData Object containing the metadata
    * @return The data stored in the count table
    */
-  override def read_count_table(metaData: MetaData): RDD[Structs.Count] = {
+  def read_count_table(metaData: MetaData): RDD[Structs.Count] = {
     val spark = SparkSession.builder().getOrCreate()
     try {
       val df = spark.read.parquet(this.count_table)
@@ -364,18 +364,18 @@ class S3Connector extends DBConnector {
    * @param counts   Calculated basic statistics per event type pair in order to be stored in the count table
    * @param metaData Object containing the metadata
    */
-  override def write_count_table(counts: RDD[Structs.Count], metaData: MetaData): Unit = {
-    Logger.getLogger("Count Table Write").log(Level.INFO, s" writing Count table")
-    val start = System.currentTimeMillis()
-    val previousIndexed = this.read_count_table(metaData) //read data
-    val combined = this.combine_count_table(counts, previousIndexed, metaData) //combine them
-    val df = S3Transformations.transformCountToDF(combined) //transform them
-    //partition by the first event in the event type pair
-    df.repartition(col("eventA"))
-      .write.partitionBy("eventA")
-      .mode(SaveMode.Overwrite).parquet(this.count_table)
-    val total = System.currentTimeMillis() - start
-    Logger.getLogger("Count Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
-
-  }
+//  def write_count_table(counts: RDD[Structs.Count], metaData: MetaData): Unit = {
+//    Logger.getLogger("Count Table Write").log(Level.INFO, s" writing Count table")
+//    val start = System.currentTimeMillis()
+//    val previousIndexed = this.read_count_table(metaData) //read data
+//    val combined = this.combine_count_table(counts, previousIndexed, metaData) //combine them
+//    val df = S3Transformations.transformCountToDF(combined) //transform them
+//    //partition by the first event in the event type pair
+//    df.repartition(col("eventA"))
+//      .write.partitionBy("eventA")
+//      .mode(SaveMode.Overwrite).parquet(this.count_table)
+//    val total = System.currentTimeMillis() - start
+//    Logger.getLogger("Count Table Write").log(Level.INFO, s"finished in ${total / 1000} seconds")
+//
+//  }
 }

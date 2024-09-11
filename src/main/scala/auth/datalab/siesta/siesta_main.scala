@@ -1,7 +1,7 @@
 package auth.datalab.siesta
 
 import auth.datalab.siesta.CommandLineParser.{Config, ParsingArguments}
-import auth.datalab.siesta.Pipeline.SiestaPipeline
+import auth.datalab.siesta.Pipeline.{SiestaPipeline, SiestaPipelineImproved}
 import org.apache.log4j.{Level, Logger}
 
 
@@ -26,7 +26,8 @@ object siesta_main {
       config = conf.get
     }
     //define batch vs stream
-    SiestaPipeline.execute(config)
+//    SiestaPipeline.execute(config)
+    SiestaPipelineImproved.execute(config)
   }
 
 }

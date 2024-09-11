@@ -92,12 +92,12 @@ class TraceGenerator (val numberOfTraces:Int, val numberOfDifferentActivities:In
     var starting_date = 1600086941
     val r = scala.util.Random
     val listevents:ListBuffer[Event] = new ListBuffer[Event]()
-    for(_<- 0 until events){
+    for(i<- 0 until events){
       val activity = ac.value.lift(Random.nextInt(ac.value.size))
       //get random timestamp
       starting_date+=r.nextInt(60*60*2) //up to 2 hours
       val timestamp:String= df2.format(new Date(starting_date))
-      listevents.append(new Event(timestamp,activity.get))
+      listevents.append(new Event(timestamp=timestamp,event_type=activity.get,position = i, trace_id = id.toString))
     }
     new Sequence(listevents.toList,id.toString)
   }
