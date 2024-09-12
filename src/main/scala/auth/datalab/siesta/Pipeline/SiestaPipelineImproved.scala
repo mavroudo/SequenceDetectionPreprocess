@@ -7,6 +7,7 @@ import auth.datalab.siesta.BusinessLogic.Model.Structs.{InvertedSingleFull, Last
 import auth.datalab.siesta.BusinessLogic.Model.{Event, EventTrait}
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3ConnectorSimple
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
@@ -115,7 +116,7 @@ object SiestaPipelineImproved {
         diff <= 0 || (diff>0 && diff<bDiffInMills.value)
       })
 //        .foreach(x=>(x.eventA,x.eventB,x.id,x.timestamp))
-
+      Logger.getLogger("Last Checked records").log(Level.INFO, s"${filtered_rdd.count()}")
 
       //write merged last checked
       dbConnector.write_last_checked_table(filtered_rdd, metadata)
