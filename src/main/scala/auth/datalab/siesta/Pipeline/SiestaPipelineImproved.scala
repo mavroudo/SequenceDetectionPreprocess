@@ -108,14 +108,14 @@ object SiestaPipelineImproved {
         pairs._2
       }
 
-      merged_rdd.filter(x => { //removing last checked records that are more than 'lookback'- time ago
+      val filtered_rdd = merged_rdd.filter(x => { //removing last checked records that are more than 'lookback'- time ago
         val diff = bmin_ts.value - Timestamp.valueOf(x.timestamp).getTime
         diff > 0 && diff <= bDiffInMills.value
       })
 
 
       //write merged last checked
-      dbConnector.write_last_checked_table(merged_rdd, metadata)
+      dbConnector.write_last_checked_table(filtered_rdd, metadata)
 //      pairs._2.unpersist()
       //write new event pairs
       dbConnector.write_index_table(pairs._1, metadata)
