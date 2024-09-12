@@ -108,14 +108,18 @@ object SiestaPipelineImproved {
         pairs._2
       }
 
-      val filtered_rdd = merged_rdd.filter(x => { //removing last checked records that are more than 'lookback'- time ago
+      //removing last checked records that are more than 'lookback'- time ago
+
+      val filtered_rdd = merged_rdd.filter(x => {
         val diff = bmin_ts.value - Timestamp.valueOf(x.timestamp).getTime
-        diff > 0 && diff <= bDiffInMills.value
+        diff <= 0 || (diff>0 && diff<bDiffInMills.value)
       })
+        .collect()
+//        .foreach(x=>(x.eventA,x.eventB,x.id,x.timestamp))
 
 
       //write merged last checked
-      dbConnector.write_last_checked_table(filtered_rdd, metadata)
+      dbConnector.write_last_checked_table(merged_rdd, metadata)
 //      pairs._2.unpersist()
       //write new event pairs
       dbConnector.write_index_table(pairs._1, metadata)
@@ -130,9 +134,6 @@ object SiestaPipelineImproved {
       metadata.has_previous_stored = true
       metadata.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
       dbConnector.write_metadata(metadata)
-
-      println("up until here")
-
 
     })
   }
