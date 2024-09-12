@@ -293,8 +293,9 @@ class S3ConnectorSimple {
       })
       .toDF("eventA", "eventB", "trace_id", "timestamp", "partition")
 
-    df.repartition(col("partition"))
-      .write.partitionBy("partition")
+    //      .repartition(col("partition"))
+    //      .write.partitionBy("partition")
+    df.write
       .mode(SaveMode.Overwrite).parquet(last_checked_table)
 
     val total = System.currentTimeMillis() - start
