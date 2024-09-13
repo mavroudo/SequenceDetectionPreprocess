@@ -35,20 +35,11 @@ object Structs {
 
   //For last_checked
   case class LastChecked (eventA:String,eventB:String, id: String, timestamp:String)
-  case class LastCheckedDF (eventA:String, eventB:String,occurrences: List[IdTime])
-  case class LastCheckedPartitionedDF(eventA:String,eventB:String,timestamp: String, id:String, partition:Long)
 
   //Extract Pairs
-  case class PairFull(eventA:String,eventB:String,id:String,timeA:Timestamp,timeB:Timestamp,positionA:Int,positionB:Int,interval:Interval)
-  //Intervals
-  case class Interval(start:Timestamp,end:Timestamp) extends Serializable
-
+  case class PairFull(eventA:String,eventB:String,id:String,timeA:Timestamp,timeB:Timestamp,positionA:Int,positionB:Int)
   //Count
   case class CountList(eventA:String,counts:List[(String,Long,Int,Long,Long,Double)])
   case class Count(eventA:String, eventB:String, sum_duration:Long, count:Int, min_duration:Long, max_duration:Long, sum_squares:Double)
-
-  case class UnsupportedEventTypeException(private val message: String = "",
-                                           private val cause: Throwable = None.orNull)
-    extends Exception(message, cause)
 
 }

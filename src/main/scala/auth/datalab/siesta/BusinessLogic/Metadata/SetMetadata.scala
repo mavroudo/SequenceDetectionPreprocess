@@ -17,10 +17,9 @@ object SetMetadata {
    * @return A new Metadata object
    */
   def initialize_metadata(config: Config): MetaData = {
-    MetaData(traces = 0, events = 0, pairs = 0L, lookback = config.lookback_days,
-      split_every_days = config.split_every_days, last_interval = "", has_previous_stored = false,
+    MetaData(traces = 0, events = 0, pairs = 0L, lookback = config.lookback_days,has_previous_stored = false,
       filename = config.filename, log_name = config.log_name, mode = config.mode, compression = config.compression,
-      last_checked_split = config.last_checked_split, last_declare_mined = "")
+      last_declare_mined = "")
   }
 
   /**
@@ -34,11 +33,11 @@ object SetMetadata {
       MetaData(traces = x.getAs("traces"),
         events = x.getAs("events"),
         pairs = x.getAs("pairs"),
-        lookback = x.getAs("lookback"), split_every_days = x.getAs("split_every_days"),
-        last_interval = x.getAs("last_interval"), has_previous_stored = true,
+        lookback = x.getAs("lookback"),
+        has_previous_stored = true,
         filename = x.getAs("filename"), log_name = x.getAs("log_name"), mode = x.getAs("mode"),
         compression = x.getAs("compression"),
-        last_checked_split = x.getAs("last_checked_split"), last_declare_mined)}).head
+        last_declare_mined = last_declare_mined)}).head
   }
 
 }

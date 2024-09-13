@@ -89,24 +89,6 @@ object ParsingArguments {
         .validate(x => {
           if (x > 0) success else failure("Value <lookback> has to be a positive number")
         }),
-      opt[Int]('s', "split_every_days")
-        .valueName("s")
-        .action((x, c) => c.copy(split_every_days = x))
-        .text("Split the inverted index every s days (default=30)")
-        .validate(x => {
-          if (x > 0) success else failure("Value <s> has to be a positive number")
-        }),
-      opt[String]("last_checked_split")
-        .action((x, c) => c.copy(last_checked_split = x))
-        .valueName("<last_checked_split>")
-        .text("Split the last checked table every day, month or year (default=month)")
-        .validate(x => {
-          if (x.equals("day") || x.equals("month")|| x.equals("year")) {
-            success
-          } else {
-            failure("Value <last_checked_split> must be one of the [day, month, year]")
-          }
-        }),
       note(sys.props("line.separator") + "The parameters below are used if the file was not set and data will be randomly generated"),
       opt[Int]('t', "traces")
         .valueName("<#traces>")
