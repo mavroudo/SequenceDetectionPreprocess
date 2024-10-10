@@ -116,10 +116,10 @@ object ReadLogFile {
 
     val data = parsed_logs.head.zipWithIndex map { case (trace: XTrace, index: Int) =>
       val case_id = trace.getAttributes.get("concept:name").toString
-      val list = trace.map(event => {
-        val event_name = event.getAttributes.get("concept:name").toString
-        val timestamp_occurred = event.getAttributes.get("time:timestamp").toString
-        new Event(timestamp = df2.format(df4.parse(timestamp_occurred)), event_type = event_name, trace_id = case_id, position = index)
+      val list = trace.zipWithIndex.map(e => {
+        val event_name = e._1.getAttributes.get("concept:name").toString
+        val timestamp_occurred = e._1.getAttributes.get("time:timestamp").toString
+        new Event(timestamp = df2.format(df4.parse(timestamp_occurred)), event_type = event_name, trace_id = case_id, position = e._2)
       }).toList
 
       new Sequence(list, case_id)
