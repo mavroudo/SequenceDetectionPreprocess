@@ -4,6 +4,8 @@ import auth.datalab.siesta.CommandLineParser.Config
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 
+import scala.util.Try
+
 /**
  * This class facilitates the initialization and loading of the Metadata object
  */
@@ -16,10 +18,9 @@ object SetMetadata {
    * @return A new Metadata object
    */
   def initialize_metadata(config: Config): MetaData = {
-    MetaData(traces = 0, events = 0, pairs = 0L, lookback = config.lookback_days,
-      split_every_days = config.split_every_days, last_interval = "", has_previous_stored = false,
+    MetaData(traces = 0, events = 0, pairs = 0L, lookback = config.lookback_days,has_previous_stored = false,
       filename = config.filename, log_name = config.log_name, mode = config.mode, compression = config.compression,
-      last_checked_split = config.last_checked_split)
+      last_declare_mined = "")
   }
 
   /**
@@ -29,14 +30,15 @@ object SetMetadata {
    */
   def load_metadata(metaDataObj:DataFrame):MetaData = {
     metaDataObj.collect().map(x => {
+      val last_declare_mined = Try(x.getAs[String]("last_declare_mined")).getOrElse("")
       MetaData(traces = x.getAs("traces"),
         events = x.getAs("events"),
         pairs = x.getAs("pairs"),
-        lookback = x.getAs("lookback"), split_every_days = x.getAs("split_every_days"),
-        last_interval = x.getAs("last_interval"), has_previous_stored = true,
+        lookback = x.getAs("lookback"),
+        has_previous_stored = true,
         filename = x.getAs("filename"), log_name = x.getAs("log_name"), mode = x.getAs("mode"),
         compression = x.getAs("compression"),
-        last_checked_split = x.getAs("last_checked_split"))}).head
+        last_declare_mined = last_declare_mined)}).head
   }
 
   def load_metadata_delta(metaDataObj:DataFrame):MetaData ={
@@ -50,14 +52,12 @@ object SetMetadata {
       events = get_key(a,"events").toLong,
       pairs = get_key(a,"pairs").toLong,
       lookback = get_key(a,"lookback").toInt,
-      split_every_days = get_key(a,"split_every_days").toInt,
-      last_interval = get_key(a,"last_interval"),
       has_previous_stored = get_key(a,"has_previous_stored").toBoolean,
       filename = get_key(a,"filename"),
       log_name = get_key(a,"log_name"),
       mode = get_key(a,"mode"),
       compression = get_key(a,"compression"),
-      last_checked_split = get_key(a,"last_checked_split").toInt)
+      last_declare_mined = get_key(a,"last_declare_mined"))
   }
 
   def transformToDF(metaData: MetaData):DataFrame ={
@@ -73,14 +73,11 @@ object SetMetadata {
       Row("events", metaData.events.toString),
       Row("pairs", metaData.pairs.toString),
       Row("lookback", metaData.lookback.toString),
-      Row("split_every_days", metaData.split_every_days.toString),
-      Row("last_interval", metaData.last_interval),
       Row("has_previous_stored", metaData.has_previous_stored.toString),
       Row("filename", metaData.filename),
       Row("log_name", metaData.log_name),
       Row("mode", metaData.mode),
-      Row("compression", metaData.compression),
-      Row("last_checked_split", metaData.last_checked_split.toString)
+      Row("compression", metaData.compression)
     )
 
     // Create a DataFrame from the list of rows and the schema

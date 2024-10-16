@@ -32,4 +32,5 @@ object siesta_main {
       SiestaPipeline.execute(config)
     }
   }
+
 }

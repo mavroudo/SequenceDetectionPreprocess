@@ -24,7 +24,7 @@ object StreamingProcess {
     Structs.StreamingPair(eva._1, evb._1.event_type, evb._1.trace,eva._2, ts_b, eva._3, evb._2)
   }
 
-  def createPair(eva:(String,Timestamp,Int),evb:(String,Timestamp,Int),traceId:Int):Structs.StreamingPair={
+  def createPair(eva:(String,Timestamp,Int),evb:(String,Timestamp,Int),traceId:String):Structs.StreamingPair={
     Structs.StreamingPair(eva._1, evb._1, traceId,eva._2, evb._2, eva._3, evb._3)
   }
 
@@ -35,7 +35,7 @@ object StreamingProcess {
    * @param groupState A State object for each trace that keeps the previous events
    * @return An Iterator with all the generated pairs from this batch
    */
-  def calculatePairs(traceId: Long, eventStream: Iterator[EventStream], groupState: GroupState[CustomState]): Iterator[Structs.StreamingPair] = {
+  def calculatePairs(traceId: String, eventStream: Iterator[EventStream], groupState: GroupState[CustomState]): Iterator[Structs.StreamingPair] = {
 
     //TODO: handle lookback, mode (positions/timestamps)
 
@@ -81,7 +81,7 @@ object StreamingProcess {
           if (key != evb._1.event_type) { //for all the other keys
             val eva = oldState.events(key)(0)
             val eva_transformed = (key, eva._1, eva._2)
-            generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toInt))
+            generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toString))
           }
         }
       } else { //there is a previous event stored
@@ -93,7 +93,7 @@ object StreamingProcess {
               val eva = oldState.events(key)(i)
               if (eva._2 > prev_event._3 && eva._2 < evb._2) {
                 val eva_transformed = (key, eva._1, eva._2)
-                generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toInt))
+                generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toString))
                 i = 3
               } else {
                 i += 1;
@@ -122,7 +122,8 @@ object StreamingProcess {
 
     val newState = CountState(sum_durations,counts,min_duration, max_duration)
     groupState.update(newState)
-    Iterator(Structs.Count(eventPair._1,eventPair._2,sum_durations,counts,min_duration, max_duration))
+    //TODO: fix sum square
+    Iterator(Structs.Count(eventPair._1,eventPair._2,sum_durations,counts,min_duration, max_duration,0))
   }
 
 

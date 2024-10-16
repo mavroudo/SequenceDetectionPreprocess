@@ -43,7 +43,7 @@ object SiestaStreamingPipeline {
       .load()
 
     val schema = StructType(Seq(
-      DataTypes.createStructField("trace", IntegerType, false),
+      DataTypes.createStructField("trace", StringType, false),
       DataTypes.createStructField("event_type", StringType, false),
       DataTypes.createStructField("timestamp", TimestampType, false),
     ))
@@ -60,26 +60,26 @@ object SiestaStreamingPipeline {
     val singleTableQuery = s3Connector.write_single_table(df_events)
 
     //Compute pairs using Stateful function
-    val duration = Duration.ofDays(c.lookback_days)
-    val grouped: KeyValueGroupedDataset[Long, EventStream] = df_events.groupBy("trace").as[Long, EventStream]
-    val pairs: Dataset[Structs.StreamingPair] = grouped.flatMapGroupsWithState(OutputMode.Append,
-      timeoutConf = GroupStateTimeout.NoTimeout)(StreamingProcess.calculatePairs)
-      .filter(x => {
-        val diff = x.timeB.getTime - x.timeA.getTime
-        diff > 0 && diff < duration.toMillis
-      })
+//    val duration = Duration.ofDays(c.lookback_days)
+//    val grouped: KeyValueGroupedDataset[String, EventStream] = df_events.groupBy("trace").as[String, EventStream]
+//    val pairs: Dataset[Structs.StreamingPair] = grouped.flatMapGroupsWithState(OutputMode.Append,
+//      timeoutConf = GroupStateTimeout.NoTimeout)(StreamingProcess.calculatePairs)
+//      .filter(x => {
+//        val diff = x.timeB.getTime - x.timeA.getTime
+//        diff > 0 && diff < duration.toMillis
+//      })
     //writing in IndexTable
-    val indexTableQueries = s3Connector.write_index_table(pairs)
+//    val indexTableQueries = s3Connector.write_index_table(pairs)
 
     //write in CountTable
-    val countTableQuery = s3Connector.write_count_table(pairs)
+//    val countTableQuery = s3Connector.write_count_table(pairs)
 
     sequenceTableQueries._1.awaitTermination()
     sequenceTableQueries._2.awaitTermination()
     singleTableQuery.awaitTermination()
-    indexTableQueries._1.awaitTermination()
-    indexTableQueries._2.awaitTermination()
-    countTableQuery.awaitTermination()
+//    indexTableQueries._1.awaitTermination()
+//    indexTableQueries._2.awaitTermination()
+//    countTableQuery.awaitTermination()
 
 
   }
