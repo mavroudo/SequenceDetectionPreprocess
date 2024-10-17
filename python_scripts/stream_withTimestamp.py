@@ -41,7 +41,6 @@ if __name__ == "__main__":
     data= read_file(file)
     print("Number of events in this logfile: {}".format(len(data)))
     for event in tqdm(data,desc="Events sent",total=len(data)):
-        print("sending {}".format(str(event)))
         producer.send('test',key=event["trace"], value=event)
         #time.sleep(1/eventsPerSecond)
     
