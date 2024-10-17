@@ -15,13 +15,9 @@ package auth.datalab.siesta.CommandLineParser
  * @param delete_all Flag parameter determines if all the previous tables in the database (despite the log database name)
  *                   will be deleted.
  * @param delete_previous Flag parameter determines if the previous tables of this particular log database will be deleted.
- * @param split_every_days Numeric parameter, determines in what intervals the data in IndexTable will be splitted.
- *                         This happens to keep the inverted lists length under control.
  * @param lookback_days Numeric parameter, determines the maximum distance (in days) between two events in order to
  *                      create an event pair. That is if two events' timestamp have difference larger than this parameter
  *                      they will be not stored in IndexTable.
- *  @param last_checked_split This parameter determines every how traces a new partition in the last checked table will be
- *                            generated.
  * @param traces This parameter concerns the random generator. Defines the number of traces that will be random generated.
  * @param event_types This parameter concerns the random generator. Defines the number of event types that will
  *                    be contained in the traces.
@@ -43,9 +39,7 @@ case class Config(
                    compression: String = "snappy",
                    delete_all: Boolean = false,
                    delete_previous: Boolean = false,
-                   split_every_days: Int = 30,
                    lookback_days: Int = 30,
-                   last_checked_split:Int = 1000,
                    traces: Int = 100,
                    event_types: Int = 10,
                    length_min: Int = 10,

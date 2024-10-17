@@ -2,12 +2,13 @@ package auth.datalab.siesta.Pipeline
 
 import auth.datalab.siesta.BusinessLogic.Model.{EventStream, Structs}
 import auth.datalab.siesta.BusinessLogic.StreamingProcess.StreamingProcess
+import auth.datalab.siesta.BusinessLogic.StreamingProcess.StreamingProcess.CustomState
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3ConnectorStreaming.S3ConnectorStreaming
 import auth.datalab.siesta.Utils.Utilities
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
-import org.apache.spark.sql.streaming.{GroupStateTimeout, OutputMode}
+import org.apache.spark.sql.streaming.{GroupState, GroupStateTimeout, OutputMode}
 import org.apache.spark.sql.types._
 
 import java.time.Duration
@@ -38,20 +39,22 @@ object SiestaStreamingPipeline {
       .option("kafka.bootstrap.servers", kafkaBroker)
       .option("subscribe", topic)
       .option("startingOffsets", "latest")
-//      .option("minOffsetsPerTrigger", "100") //process minimum 1000 events per batch
-//      .option("maxTriggerDelay", "10s") // if not the minOffsetPerTrigger reaches in 10s it will fire a trigger
+      .option("minOffsetsPerTrigger", "1000") //process minimum 1000 events per batch
+      .option("maxTriggerDelay", "10s") // if not the minOffsetPerTrigger reaches in 10s it will fire a trigger
       .load()
 
     val schema = StructType(Seq(
-      DataTypes.createStructField("trace", IntegerType, false),
+      DataTypes.createStructField("trace", StringType, false),
       DataTypes.createStructField("event_type", StringType, false),
       DataTypes.createStructField("timestamp", TimestampType, false),
+      DataTypes.createStructField("position",IntegerType,false)
     ))
 
     val df_events: Dataset[EventStream] = df.selectExpr("CAST(value AS STRING) as event")
       .select(functions.from_json(functions.column("event"), schema).as("json"))
       .select("json.*")
       .as(Encoders.bean(classOf[EventStream]))
+      .withWatermark("timestamp","2 minutes")
 
     // writing in Sequence Table
     val sequenceTableQueries = s3Connector.write_sequence_table(df_events)
@@ -61,9 +64,13 @@ object SiestaStreamingPipeline {
 
     //Compute pairs using Stateful function
     val duration = Duration.ofDays(c.lookback_days)
-    val grouped: KeyValueGroupedDataset[Long, EventStream] = df_events.groupBy("trace").as[Long, EventStream]
-    val pairs: Dataset[Structs.StreamingPair] = grouped.flatMapGroupsWithState(OutputMode.Append,
-      timeoutConf = GroupStateTimeout.NoTimeout)(StreamingProcess.calculatePairs)
+    val grouped: KeyValueGroupedDataset[String, EventStream] = df_events.groupBy("trace").as[String, EventStream]
+
+    val pairs: Dataset[Structs.StreamingPair] = grouped
+      .flatMapGroupsWithState(OutputMode.Append,
+      timeoutConf = GroupStateTimeout.EventTimeTimeout)((traceId: String, eventStream: Iterator[EventStream], groupState: GroupState[CustomState])=>{
+        StreamingProcess.calculatePairs(traceId, eventStream, groupState,c.lookback_days)
+      })
       .filter(x => {
         val diff = x.timeB.getTime - x.timeA.getTime
         diff > 0 && diff < duration.toMillis

@@ -22,7 +22,7 @@ FROM openjdk:11 AS execution
 RUN apt-get update && apt-get install -y gnupg2 curl procps
 RUN mkdir /app
 WORKDIR /app
-RUN curl -O https://dlcdn.apache.org/spark/spark-3.5.1/spark-3.5.1-bin-hadoop3.tgz &&\
+RUN curl -O https://archive.apache.org/dist/spark/spark-3.5.1/spark-3.5.1-bin-hadoop3.tgz &&\
 tar xvf spark-3.5.1-bin-hadoop3.tgz && mv spark-3.5.1-bin-hadoop3/ /opt/spark && rm spark-3.5.1-bin-hadoop3.tgz
 COPY --from=builder /app/preprocess.jar preprocess.jar
 

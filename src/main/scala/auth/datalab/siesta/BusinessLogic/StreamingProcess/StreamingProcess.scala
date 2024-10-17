@@ -9,11 +9,12 @@ import scala.collection.mutable
 
 object StreamingProcess {
 
+
   case class CustomState(number_of_events: Int, events: mutable.HashMap[String, Array[(Timestamp, Int)]]) extends Serializable
 
-  case class CountState(sum_duration:Long,count:Int,min_duration:Long,max_duration:Long) extends Serializable
+  case class CountState(sum_duration:Long,count:Int,min_duration:Long,max_duration:Long,sum_squares:Double) extends Serializable
 
-  case class LastEventState(lastEvent:mutable.HashMap[Long,Timestamp])
+  case class LastEventState(lastEvent:mutable.HashMap[String,Timestamp])
 
   implicit val stateEncoder: Encoder[CustomState] = Encoders.kryo[CustomState]
 
@@ -24,7 +25,7 @@ object StreamingProcess {
     Structs.StreamingPair(eva._1, evb._1.event_type, evb._1.trace,eva._2, ts_b, eva._3, evb._2)
   }
 
-  def createPair(eva:(String,Timestamp,Int),evb:(String,Timestamp,Int),traceId:Int):Structs.StreamingPair={
+  def createPair(eva:(String,Timestamp,Int),evb:(String,Timestamp,Int),traceId:String):Structs.StreamingPair={
     Structs.StreamingPair(eva._1, evb._1, traceId,eva._2, evb._2, eva._3, evb._3)
   }
 
@@ -35,7 +36,7 @@ object StreamingProcess {
    * @param groupState A State object for each trace that keeps the previous events
    * @return An Iterator with all the generated pairs from this batch
    */
-  def calculatePairs(traceId: Long, eventStream: Iterator[EventStream], groupState: GroupState[CustomState]): Iterator[Structs.StreamingPair] = {
+  def calculatePairs(traceId: String, eventStream: Iterator[EventStream], groupState: GroupState[CustomState],lookback:Int): Iterator[Structs.StreamingPair] = {
 
     //TODO: handle lookback, mode (positions/timestamps)
 
@@ -81,7 +82,7 @@ object StreamingProcess {
           if (key != evb._1.event_type) { //for all the other keys
             val eva = oldState.events(key)(0)
             val eva_transformed = (key, eva._1, eva._2)
-            generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toInt))
+            generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toString))
           }
         }
       } else { //there is a previous event stored
@@ -93,7 +94,7 @@ object StreamingProcess {
               val eva = oldState.events(key)(i)
               if (eva._2 > prev_event._3 && eva._2 < evb._2) {
                 val eva_transformed = (key, eva._1, eva._2)
-                generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toInt))
+                generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toString))
                 i = 3
               } else {
                 i += 1;
@@ -103,6 +104,7 @@ object StreamingProcess {
         }
       }
     }
+    groupState.setTimeoutTimestamp(groupState.getCurrentWatermarkMs(), s"$lookback day")
     //Update the previous state with the new one
     val newState = new CustomState(oldState.number_of_events + values.size, oldState.events)
     groupState.update(newState)
@@ -112,17 +114,19 @@ object StreamingProcess {
 
   def calculateMetrics(eventPair:(String,String), c:Iterator[Structs.Count],groupState:GroupState[CountState]):Iterator[Structs.Count]={
     val values = c.toSeq
-    val initialState = new CountState(0, 0,Long.MaxValue,0)
+    val initialState = new CountState(0, 0,Long.MaxValue,0,0)
     val oldState = groupState.getOption.getOrElse(initialState)
 
     val sum_durations =values.map(_.sum_duration).sum + oldState.sum_duration
+    val sum_square =  values.map(_.sum_squares).sum + oldState.sum_squares
     val min_duration = Math.min(values.map(_.min_duration).min,oldState.min_duration)
     val max_duration = Math.max(values.map(_.max_duration).max,oldState.max_duration)
     val counts = values.size+oldState.count
 
-    val newState = CountState(sum_durations,counts,min_duration, max_duration)
+    val newState = CountState(sum_durations,counts,min_duration, max_duration,sum_square)
     groupState.update(newState)
-    Iterator(Structs.Count(eventPair._1,eventPair._2,sum_durations,counts,min_duration, max_duration))
+
+    Iterator(Structs.Count(eventPair._1,eventPair._2,sum_durations,counts,min_duration, max_duration,sum_square))
   }
 
 
@@ -133,9 +137,9 @@ object StreamingProcess {
    * @param groupState The state that maintains the last event per trace
    * @return The events that occur after the last stored event in this trace
    */
-  def filterEvents(traceId:Long, eventStream:Iterator[EventStream],groupState: GroupState[LastEventState]):Iterator[EventStream]={
+  def filterEvents(traceId:String, eventStream:Iterator[EventStream],groupState: GroupState[LastEventState]):Iterator[EventStream]={
     val values = eventStream.toSeq
-    val initialState = new LastEventState(new mutable.HashMap[Long,Timestamp]())
+    val initialState = new LastEventState(new mutable.HashMap[String,Timestamp]())
     val oldState = groupState.getOption.getOrElse(initialState)
 
     val lastEvent = oldState.lastEvent.getOrElse(traceId,null)
