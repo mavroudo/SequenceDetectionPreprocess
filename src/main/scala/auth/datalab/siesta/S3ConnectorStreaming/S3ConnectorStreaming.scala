@@ -137,7 +137,8 @@ class S3ConnectorStreaming {
       StructField("sum_duration", LongType, nullable = false),
       StructField("count", IntegerType, nullable = false),
       StructField("min_duration", LongType, nullable = false),
-      StructField("max_duration", LongType, nullable = false)
+      StructField("max_duration", LongType, nullable = false),
+      StructField("sum_squares", DoubleType, nullable = false)
     ))
     val tableExists = DeltaTable.isDeltaTable(spark, count_table)
     if (!tableExists) {
@@ -167,6 +168,7 @@ class S3ConnectorStreaming {
       .setMaster("local[*]")
       .set("spark.sql.extensions","io.delta.sql.DeltaSparkSessionExtension")
       .set("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+      .set("spark.sql.streaming.statefulOperator.checkCorrectness.enabled", "false")
 
 
 
@@ -312,9 +314,8 @@ class S3ConnectorStreaming {
     import spark.implicits._
     //calculate metrics for each pair
     val counts: DataFrame = pairs.map(x => {
-      //TODO: fix sum of square
-        Structs.Count(x.eventA, x.eventB, x.timeB.getTime - x.timeA.getTime, 1,
-          x.timeB.getTime - x.timeA.getTime, x.timeB.getTime - x.timeA.getTime,0)
+      val duration = (x.timeB.getTime-x.timeA.getTime)/1000
+        Structs.Count(x.eventA, x.eventB, duration, 1, duration, duration,Math.pow(duration,2))
       }).groupBy("eventA", "eventB")
       .as[(String, String), Structs.Count]
       .flatMapGroupsWithState(OutputMode.Append,
