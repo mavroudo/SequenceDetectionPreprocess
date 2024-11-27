@@ -8,8 +8,6 @@ package auth.datalab.siesta.BusinessLogic.Metadata
  * @param events The number of indexed events
  * @param pairs The number of indexed pairs
  * @param lookback The value for the parameter lookback
- * @param split_every_days The value for the parameter split_every_days
- * @param last_interval The last interval stored in the database
  * @param has_previous_stored Flag parameter, shows if there are previously indexed traces in this log database
  * @param filename The name of the last log file indexed in this log database
  * @param log_name The name of the log database
@@ -18,8 +16,7 @@ package auth.datalab.siesta.BusinessLogic.Metadata
  * @param compression The compression algorithm that will be used while storing the tables in the database.
  */
 case class MetaData(var traces: Long, var events: Long, var pairs: Long,
-                    lookback: Int, split_every_days: Int,
-                    var last_interval: String, var has_previous_stored: Boolean,
+                    lookback: Int, var has_previous_stored: Boolean,
                     filename: String, log_name: String, mode: String, compression: String,
-                   var last_checked_split:Int) extends Serializable {
+                   var last_declare_mined:String) extends Serializable {
 }

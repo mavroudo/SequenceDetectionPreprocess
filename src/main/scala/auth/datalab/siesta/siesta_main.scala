@@ -1,8 +1,9 @@
 package auth.datalab.siesta
 
 import auth.datalab.siesta.CommandLineParser.{Config, ParsingArguments}
-import auth.datalab.siesta.Pipeline.SiestaPipeline
+import auth.datalab.siesta.Pipeline.{SiestaPipeline}
 import org.apache.log4j.{Level, Logger}
+
 
 /**
  * This is the main class. It is responsible to read the command line arguments using the
@@ -12,11 +13,10 @@ import org.apache.log4j.{Level, Logger}
  * - "set-containment => [[SetContainment.SetContainment]]
  * - "siesta" -> [[Pipeline.SiestaPipeline]] (default)
  */
-object Main {
+object siesta_main {
 
 
   def main(args: Array[String]): Unit = {
-    Logger.getLogger("org").setLevel(Level.ERROR)
     val conf: Option[Config] = ParsingArguments.parseArguments(args)
 
     var config: Config = null
@@ -25,14 +25,9 @@ object Main {
     } else {
       config = conf.get
     }
-    if(config.system=="signatures"){
-      Singatures.Signatures.execute(config)
-    }else if(config.system=="set-containment"){
-      SetContainment.SetContainment.execute(config)
-    }else{
-      SiestaPipeline.execute(config)
-    }
-
+    //define batch vs stream
+//    SiestaPipeline.execute(config)
+    SiestaPipeline.execute(config)
   }
 
 }
