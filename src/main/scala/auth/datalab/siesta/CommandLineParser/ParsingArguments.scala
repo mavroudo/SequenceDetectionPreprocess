@@ -89,6 +89,9 @@ object ParsingArguments {
         .validate(x => {
           if (x > 0) success else failure("Value <lookback> has to be a positive number")
         }),
+      opt[Unit]("declare_incremental")
+      .action((_, c) => c.copy(declare_incremental = true))
+      .text("run a post processing job in order to create the required state for incremental mining declare constraints"),
       note(sys.props("line.separator") + "The parameters below are used if the file was not set and data will be randomly generated"),
       opt[Int]('t', "traces")
         .valueName("<#traces>")

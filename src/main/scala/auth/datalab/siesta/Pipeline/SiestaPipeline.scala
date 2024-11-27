@@ -131,6 +131,14 @@ object SiestaPipeline {
       dbConnector.write_metadata(metadata)
 
     })
+
+    // run the Declare Incremental as a post processing step
+    if(c.declare_incremental){
+      spark.time({
+
+      })
+    }
+
     dbConnector.closeSpark()
   }
 
