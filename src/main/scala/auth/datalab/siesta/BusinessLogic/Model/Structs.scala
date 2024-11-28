@@ -16,18 +16,6 @@ object Structs {
   case class IdTime(id:String, time: String)
   case class IdTimePositionList(id: String, times: List[String], positions:List[Int])
 
-//  case class Sequence(events: List[Event], sequence_id: Long) extends Serializable
-//  case class Event(timestamp: String, event: String) extends Serializable
-//
-//  class DetailedEvent(var event_type: String,
-//                      var start_timestamp: String = "undefined",
-//                      var end_timestamp: String,
-//                      var waiting_time: Long = 0,
-//                      var resource: String,
-//                      var trace_id: String) extends Serializable
-//  class DetailedSequence(var events: List[DetailedEvent],
-//                         var sequence_id: Long) extends Serializable
-
   //For the single inverted table
   case class InvertedSingle(event_name: String, times: List[IdTimePositionList])
   case class InvertedSingleFull(id: String, event_name: String, times:List[String], positions:List[Int])
@@ -41,5 +29,14 @@ object Structs {
   //Count
   case class CountList(eventA:String,counts:List[(String,Long,Int,Long,Long,Double)])
   case class Count(eventA:String, eventB:String, sum_duration:Long, count:Int, min_duration:Long, max_duration:Long, sum_squares:Double)
+
+  //Declare case classes
+  case class PositionConstraint(rule:String, event_type:String, occurrences:Double)
+  //each activity in how many traces it is contained exactly
+  case class ActivityExactly(event_type:String, occurrences: Int, contained:Long)
+  case class ExistenceConstraint(rule:String, event_type:String, n: Int, occurrences:Double)
+  case class PairConstraint(rule:String, eventA:String, eventB:String, occurrences:Double)
+
+  case class UnorderedHelper(eventA:String,eventB:String, ua:Long, ub:Long, pairs:Long,key:String)
 
 }

@@ -14,11 +14,13 @@ import org.apache.spark.storage.StorageLevel
 
 import java.sql.Timestamp
 import java.util.concurrent.TimeUnit
+import auth.datalab.siesta.DeclareIncrementa.DeclareIncrementalPipeline
 
 object SiestaPipeline {
 
   def execute(c: Config): Unit = {
 
+    //If new database is added the dbConnector can be set here.
     val dbConnector = new S3Connector()
 
 
@@ -26,9 +28,9 @@ object SiestaPipeline {
     dbConnector.initialize_db(config = c)
 
     val spark = SparkSession.builder().getOrCreate()
+    
     spark.time({
       val metadata = dbConnector.get_metadata(c)
-
       val sequenceRDD: RDD[EventTrait] = if (!c.duration_determination) {
         IngestingProcess.getData(c).flatMap(_.events)
       } else {
@@ -83,8 +85,6 @@ object SiestaPipeline {
 
       //extract new pairs
       val pairs = ExtractPairs.extract(inverted, lastChecked, metadata.lookback)
-//      pairs._1.persist(StorageLevel.MEMORY_AND_DISK)
-//      pairs._2.persist(StorageLevel.MEMORY_AND_DISK)
 
       //merging last checked records
       val diffInMills = TimeUnit.DAYS.toMillis(metadata.lookback)
@@ -132,10 +132,11 @@ object SiestaPipeline {
 
     })
 
-    // run the Declare Incremental as a post processing step
+    // execute the Declare Incremental as a post processing step
     if(c.declare_incremental){
       spark.time({
-
+        val metadata = dbConnector.get_metadata(c)
+        DeclareIncrementalPipeline.execute(dbConnector,metadata)
       })
     }
 

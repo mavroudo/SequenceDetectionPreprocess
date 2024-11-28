@@ -2,6 +2,8 @@ package auth.datalab.siesta.Utils
 
 
 import java.sql.Timestamp
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.rdd.RDD
 
 object Utilities {
 
