@@ -13,22 +13,21 @@ import org.apache.spark.rdd.RDD
 import java.sql.Timestamp
 
 object DeclareIncrementalPipeline {
+
+  case class EventDeclare(trace_id:String, timestamp: String, event_type: String, pos: Int)
  
 
     def execute(dbConnector:DBConnector, metaData:MetaData):Unit={
       val spark = SparkSession.builder.getOrCreate()
       import spark.implicits._
-      implicit val eventEncoder: Encoder[Event] = Encoders.kryo[Event]
 
 
       //extract all events
-      val all_events: Dataset[Event] = dbConnector.read_sequence_table(metaData)
-      .collect{
-        case e: Event => e
-      }
-      .toDS()
-
-      all_events.persist(StorageLevel.MEMORY_AND_DISK)
+      val all_events = dbConnector.read_sequence_table(metaData)
+        .map(x=>x.asInstanceOf[Event])
+        .map(x=>(x.trace_id,x.timestamp,x.event_type,x.position))
+        .toDF("trace_id","timestamp","event_type","pos")
+        .as[EventDeclare]
 
       //extract event_types -> #occurrences
       val event_types_occurrences: scala.collection.Map[String, Long] = all_events      

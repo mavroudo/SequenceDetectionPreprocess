@@ -6,6 +6,8 @@ import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
 import org.apache.spark.storage.StorageLevel
 import auth.datalab.siesta.BusinessLogic.Model.Structs._
 import auth.datalab.siesta.BusinessLogic.Model.Event
+import auth.datalab.siesta.DeclareIncrementa.DeclareIncrementalPipeline.EventDeclare
+
 import scala.collection.mutable.ListBuffer
 
 object DeclareMining {
@@ -21,7 +23,7 @@ object DeclareMining {
     * @param complete_traces_that_changed all events of traces that changed in the new batch
     * @param bChangedTraces broadcasted variable in the form (trace_id)->[start_position, end_position]
     */
-  def extract_positions(new_events: Dataset[Event], logname: String, complete_traces_that_changed: Dataset[Event],
+  def extract_positions(new_events: Dataset[EventDeclare], logname: String, complete_traces_that_changed: Dataset[EventDeclare],
                         bChangedTraces: Broadcast[scala.collection.Map[String, (Int, Int)]]): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._
@@ -35,10 +37,10 @@ object DeclareMining {
     }
 
     val plusConstraint: Dataset[PositionConstraint] = new_events.map(x => {
-        if (x.position == 0) {
+        if (x.pos == 0) {
           Some(PositionConstraint("first", x.event_type, 1L))
         }
-        else if (bChangedTraces.value.getOrElse(x.trace_id, (-1, -1))._2 == x.position) { //this is the last event
+        else if (bChangedTraces.value.getOrElse(x.trace_id, (-1, -1))._2 == x.pos) { //this is the last event
           Some(PositionConstraint("last", x.event_type, 1L))
         }
         else {
@@ -49,7 +51,7 @@ object DeclareMining {
 
     val endPosMinus = complete_traces_that_changed
       .filter(x => {
-        bChangedTraces.value(x.trace_id)._1 - 1 == x.position
+        bChangedTraces.value(x.trace_id)._1 - 1 == x.pos
       })
       .map(x => PositionConstraint("last", x.event_type, -1L))
 
@@ -80,7 +82,7 @@ object DeclareMining {
     * @param complete_traces_that_changed all events of traces that changed in the new batch
     * @param bChangedTraces broadcasted variable in the form (trace_id)->[start_position, end_position]
     */
-  def extract_existence(logname: String, complete_traces_that_changed: Dataset[Event],
+  def extract_existence(logname: String, complete_traces_that_changed: Dataset[EventDeclare],
                         bChangedTraces: Broadcast[scala.collection.Map[String, (Int, Int)]]): Unit = {
 
     val spark = SparkSession.builder().getOrCreate()
@@ -105,7 +107,7 @@ object DeclareMining {
         val all_trace: Map[String, Int] = t._2.map(e => (e.event_type, 1)).groupBy(_._1).mapValues(_.size)
 
         val previousValues: Map[String, Int] = if (added_events._1 != 0) { //there are previous events from this trace
-          t._2.filter(_.position < added_events._1).map(e => (e.event_type, 1)).groupBy(_._1).mapValues(_.size)
+          t._2.filter(_.pos < added_events._1).map(e => (e.event_type, 1)).groupBy(_._1).mapValues(_.size)
         } else {
           Map.empty[String, Int]
         }
@@ -142,7 +144,7 @@ object DeclareMining {
     * @param complete_traces_that_changed all events of traces that changed in the new batch
     * @param bChangedTraces broadcasted variable in the form (trace_id)->[start_position, end_position]
     */
-  def extract_unordered(logname: String, complete_traces_that_changed: Dataset[Event],
+  def extract_unordered(logname: String, complete_traces_that_changed: Dataset[EventDeclare],
                         bChangedTraces: Broadcast[scala.collection.Map[String, (Int, Int)]]): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._
@@ -260,7 +262,7 @@ object DeclareMining {
     * @param complete_traces_that_changed all events of traces that changed in the new batch
     * @param bChangedTraces broadcasted variable in the form (trace_id)->[start_position, end_position]
     */
-  def extract_ordered(logname: String, complete_traces_that_changed: Dataset[Event],
+  def extract_ordered(logname: String, complete_traces_that_changed: Dataset[EventDeclare],
                       bChangedTraces: Broadcast[scala.collection.Map[String, (Int, Int)]]): Unit = {
     val spark = SparkSession.builder().getOrCreate()
     import spark.implicits._
@@ -279,7 +281,7 @@ object DeclareMining {
       .flatMap(t => {
         val new_pos = bChangedTraces.value(t._1)
         //activities -> reverse sorted positions of the events that correspond to them
-        val events: Map[String, Seq[Int]] = t._2.map(e => (e.event_type, e.position))
+        val events: Map[String, Seq[Int]] = t._2.map(e => (e.event_type, e.pos))
           .groupBy(_._1)
           .mapValues(e => e.map(_._2).toSeq.sortWith((a, b) => a > b))
         val l = ListBuffer[PairConstraint]()
