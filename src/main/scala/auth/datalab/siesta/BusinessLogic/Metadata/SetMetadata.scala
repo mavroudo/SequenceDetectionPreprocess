@@ -19,7 +19,7 @@ object SetMetadata {
   def initialize_metadata(config: Config): MetaData = {
     MetaData(traces = 0, events = 0, pairs = 0L, lookback = config.lookback_days,has_previous_stored = false,
       filename = config.filename, log_name = config.log_name, mode = config.mode, compression = config.compression,
-      last_declare_mined = "")
+      start_ts = "", last_ts = "",  last_declare_mined = "")
   }
 
   /**
@@ -30,14 +30,20 @@ object SetMetadata {
   def load_metadata(metaDataObj:DataFrame):MetaData = {
     metaDataObj.collect().map(x => {
       val last_declare_mined = Try(x.getAs[String]("last_declare_mined")).getOrElse("")
-      MetaData(traces = x.getAs("traces"),
-        events = x.getAs("events"),
-        pairs = x.getAs("pairs"),
-        lookback = x.getAs("lookback"),
-        has_previous_stored = true,
-        filename = x.getAs("filename"), log_name = x.getAs("log_name"), mode = x.getAs("mode"),
-        compression = x.getAs("compression"),
-        last_declare_mined = last_declare_mined)}).head
+      MetaData(
+        traces = Option(x.getAs[Long]("traces")).getOrElse(0L),
+        events = Option(x.getAs[Long]("events")).getOrElse(0L),
+        pairs = Option(x.getAs[Long]("pairs")).getOrElse(0L),
+        lookback = Option(x.getAs[Int]("lookback")).getOrElse(0),
+        has_previous_stored = Option(x.getAs[Boolean]("has_previous_stored")).getOrElse(true),
+        filename = Option(x.getAs[String]("filename")).getOrElse(""),
+        log_name = Option(x.getAs[String]("log_name")).getOrElse(""),
+        mode = Option(x.getAs[String]("mode")).getOrElse(""),
+        compression = Option(x.getAs[String]("compression")).getOrElse(""),
+        start_ts = Option(x.getAs[String]("start_ts")).getOrElse(""),
+        last_ts = Option(x.getAs[String]("last_ts")).getOrElse(""),
+        last_declare_mined = last_declare_mined
+        )}).head
   }
 
 }
