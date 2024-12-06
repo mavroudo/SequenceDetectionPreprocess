@@ -44,7 +44,8 @@ the S3 database in the next section's notes.)
       s3secretKeyAws=minioadmin
    6. Save the configuration file.
 2. Open `Project Structure` settings, select `Scala 11` as SDK and language level `SDK default`. 
-3. Run the configuration file.
+3. Modify `S3Connector.scala`, setting spark's master node as `local[*]` (for running locally).
+4. Run the configuration file.
 
 
 ### Getting Started with Docker
