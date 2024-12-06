@@ -55,6 +55,7 @@ object DeclareIncrementalPipeline {
           }
         })
 
+      
       println(new_events.count())
       println(bPrevMining.value)
 
@@ -93,6 +94,13 @@ object DeclareIncrementalPipeline {
       //handle negative pairs = pairs that does not appear not even once in the data
       DeclareMining.handle_negatives(metaData.log_name, activity_matrix)
 
+
+      metaData.last_declare_mined = metaData.last_ts
+      dbConnector.write_metadata(metaData)
+
+      all_events.unpersist()
+      activity_matrix.unpersist()
+      complete_traces_that_changed.unpersist()
 
     }
 }
