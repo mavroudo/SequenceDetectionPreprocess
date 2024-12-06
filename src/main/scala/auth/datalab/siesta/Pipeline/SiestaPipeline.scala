@@ -5,6 +5,7 @@ import auth.datalab.siesta.BusinessLogic.ExtractPairs.ExtractPairs
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
 import auth.datalab.siesta.BusinessLogic.Model.Structs.{InvertedSingleFull, LastChecked}
 import auth.datalab.siesta.BusinessLogic.Model.{Event, EventTrait}
+import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.log4j.{Level, Logger}
@@ -14,11 +15,13 @@ import org.apache.spark.storage.StorageLevel
 
 import java.sql.Timestamp
 import java.util.concurrent.TimeUnit
+import auth.datalab.siesta.DeclareIncrementa.DeclareIncrementalPipeline
 
 object SiestaPipeline {
 
   def execute(c: Config): Unit = {
 
+    //If new database is added the dbConnector can be set here.
     val dbConnector = new S3Connector()
 
 
@@ -26,9 +29,9 @@ object SiestaPipeline {
     dbConnector.initialize_db(config = c)
 
     val spark = SparkSession.builder().getOrCreate()
+    
     spark.time({
-      val metadata = dbConnector.get_metadata(c)
-
+      val metadata:MetaData = dbConnector.get_metadata(c)
       val sequenceRDD: RDD[EventTrait] = if (!c.duration_determination) {
         IngestingProcess.getData(c).flatMap(_.events)
       } else {
@@ -44,6 +47,15 @@ object SiestaPipeline {
 
       val min_ts = sequenceRDD.map(x => Timestamp.valueOf(x.timestamp)).min()
       val max_ts = sequenceRDD.map(x => Timestamp.valueOf(x.timestamp)).max()
+      //set min max ts in the metadata
+      if (metadata.start_ts.equals("")){
+        metadata.start_ts=min_ts.toString()
+      }
+      if(metadata.last_ts.equals("") || Timestamp.valueOf(metadata.last_ts).before(max_ts)){
+        metadata.last_ts=max_ts.toString()
+      }
+        
+      
 
       val ids_changed = sequenceRDD.map(_.trace_id).distinct().collect().toSet
       val bIds_changed = spark.sparkContext.broadcast(ids_changed)
@@ -83,8 +95,6 @@ object SiestaPipeline {
 
       //extract new pairs
       val pairs = ExtractPairs.extract(inverted, lastChecked, metadata.lookback)
-//      pairs._1.persist(StorageLevel.MEMORY_AND_DISK)
-//      pairs._2.persist(StorageLevel.MEMORY_AND_DISK)
 
       //merging last checked records
       val diffInMills = TimeUnit.DAYS.toMillis(metadata.lookback)
@@ -131,6 +141,15 @@ object SiestaPipeline {
       dbConnector.write_metadata(metadata)
 
     })
+
+    // execute the Declare Incremental as a post processing step
+    if(c.declare_incremental){
+      spark.time({
+        val metadata = dbConnector.get_metadata(c)
+        DeclareIncrementalPipeline.execute(dbConnector,metadata)
+      })
+    }
+
     dbConnector.closeSpark()
   }
 
