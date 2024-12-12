@@ -32,7 +32,7 @@ the S3 database in the next section's notes.)
 - Scala 11 SDK (can be downloaded from IDEA)
 #### Steps
 1. After cloning this repo, inside IDEA, create a new configuration file.
-   1. Type `Application` 
+   1. Select `Application` 
    2. Select `Java 11` JRE and compilation component (`-cp sequencedetectionpreprocess`)
    3. Select `auth.datalab.siesta.siesta_main` as Main class
    4. Add as CLI arguments something like `--logname test --delete_prev`. Check [configuration options](https://github.com/siesta-tool/SequenceDetectionPreprocess/tree/master/src/main/scala/auth/datalab/siesta/CommandLineParser/Config.scala).
