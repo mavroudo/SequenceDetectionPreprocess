@@ -5,6 +5,8 @@ import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
 import org.apache.spark.sql.streaming.GroupState
 
 import java.sql.Timestamp
+import java.time.Duration
+import java.time.temporal.ChronoUnit
 import scala.collection.mutable
 
 object StreamingProcess {
@@ -49,6 +51,8 @@ object StreamingProcess {
     val newEventsWithIndex = values.zip(Iterator.range(alreadyStoredEvents, alreadyStoredEvents + values.size).toSeq)
     val generatedPairs = mutable.ArrayBuffer[Structs.StreamingPair]()
 
+    val lookbackMillis = Duration.ofDays(lookback).toMillis
+
     for (evb <- newEventsWithIndex) {
       //First handle the pair of the same event type - and define the previous event of the same type.
       //It is null if this is the first time we find this pair
@@ -57,6 +61,7 @@ object StreamingProcess {
       if (same_type_events.isEmpty) {
         oldState.events(evb._1.event_type) = Array((Timestamp.valueOf(evb._1.timestamp), evb._2))
       } else {
+        val ts_b: Timestamp = Timestamp.valueOf(evb._1.timestamp)
         if (same_type_events.length == 1) { //there is only one event -> append the new one
           //get the previous event
           prev_event = (evb._1.event_type, same_type_events.head._1, same_type_events.head._2)
@@ -66,8 +71,10 @@ object StreamingProcess {
           val ts_b: Timestamp = Timestamp.valueOf(evb._1.timestamp)
           oldState.events(evb._1.event_type)(1) = (ts_b, evb._2)
         }
-        val event = StreamingProcess.createPair(prev_event, evb)
-        generatedPairs.append(event)
+        if (ts_b.getTime - prev_event._2.getTime <= lookbackMillis) {
+          val event = StreamingProcess.createPair(prev_event, evb)
+          generatedPairs.append(event)
+        }
       }
 
       // Create the pairs (a,b) for different event types. For each event will go through each other type and starting
@@ -80,9 +87,20 @@ object StreamingProcess {
       if (prev_event == null) {
         for (key <- keys) {
           if (key != evb._1.event_type) { //for all the other keys
-            val eva = oldState.events(key)(0)
-            val eva_transformed = (key, eva._1, eva._2)
-            generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toString))
+            var i = 0
+            while (i < oldState.events(key).length){
+              val eva = oldState.events(key)(i)
+              val eva_transformed = (key, eva._1, eva._2)
+              val diff = evb_transformed._2.getTime - eva_transformed._2.getTime
+              if (diff >= 0 && diff < lookbackMillis){
+                generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toString))
+                i = oldState.events(key).length
+              }
+              else {
+                i += 1
+              }
+            }
+
           }
         }
       } else { //there is a previous event stored
@@ -94,8 +112,14 @@ object StreamingProcess {
               val eva = oldState.events(key)(i)
               if (eva._2 > prev_event._3 && eva._2 < evb._2) {
                 val eva_transformed = (key, eva._1, eva._2)
-                generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toString))
-                i = 3
+                val diff = evb_transformed._2.getTime - eva_transformed._2.getTime
+                if (diff >= 0 && diff < lookbackMillis){
+                  generatedPairs.append(createPair(eva_transformed, evb_transformed, traceId.toString))
+                  i = oldState.events(key).length
+                }
+                else {
+                  i += 1;
+                }
               } else {
                 i += 1;
               }

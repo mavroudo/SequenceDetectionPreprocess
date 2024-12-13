@@ -12,6 +12,7 @@ import org.apache.spark.sql.streaming.{GroupState, GroupStateTimeout, OutputMode
 import org.apache.spark.sql.types._
 
 import java.time.Duration
+import java.time.temporal.ChronoUnit
 import scala.reflect.ClassTag
 
 
@@ -63,17 +64,12 @@ object SiestaStreamingPipeline {
     val singleTableQuery = s3Connector.write_single_table(df_events)
 
     //Compute pairs using Stateful function
-    val duration = Duration.ofDays(c.lookback_days)
     val grouped: KeyValueGroupedDataset[String, EventStream] = df_events.groupBy("trace").as[String, EventStream]
 
     val pairs: Dataset[Structs.StreamingPair] = grouped
       .flatMapGroupsWithState(OutputMode.Append,
       timeoutConf = GroupStateTimeout.EventTimeTimeout)((traceId: String, eventStream: Iterator[EventStream], groupState: GroupState[CustomState])=>{
         StreamingProcess.calculatePairs(traceId, eventStream, groupState,c.lookback_days)
-      })
-      .filter(x => {
-        val diff = x.timeB.getTime - x.timeA.getTime
-        diff > 0 && diff < duration.toMillis
       })
     //writing in IndexTable
     val indexTableQueries = s3Connector.write_index_table(pairs)
@@ -88,7 +84,5 @@ object SiestaStreamingPipeline {
     indexTableQueries._2.awaitTermination()
     countTableQuery.awaitTermination()
 
-
   }
-
 }
