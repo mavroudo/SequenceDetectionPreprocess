@@ -219,16 +219,18 @@ object DeclareMining {
         val l = ListBuffer[(String, String, Long)]()
 
         // Iterate over new events and previous events
-        for (e1 <- new_events if !prevEvents.contains(e1)) {
-          for (e2 <- prevEvents) {
-            if (e1 < e2) {
-              l += ((e1, e2, 1L))
-            } // Add to the list if e1 < e2 and they're unique
-            else if (e2 > e1) {
-              l += ((e2, e1, 1L))
+        for (e1 <- new_events) {
+          if (!prevEvents.contains(e1)){
+            for (e2 <- prevEvents) {
+              if (e1 < e2) {
+                l += ((e1, e2, 1L))
+              } // Add to the list if e1 < e2 and they're unique
+              else if (e2 < e1) {
+                l += ((e2, e1, 1L))
+              }
             }
+            prevEvents = prevEvents + e1 // Return a new Set with e1 added
           }
-          prevEvents = prevEvents + e1 // Return a new Set with e1 added
         }
 
         l.toList
