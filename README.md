@@ -19,8 +19,33 @@ A comprehensive list of all tables and their structures can be found in our publ
 Recently, we added support for incremental mining of declarative constraints. These constraints describe the underlying structure of the process that generated the event log and can be used in applications like predicting the outcome of a process, detecting outlying executions of the process and more.
 
 Finally, it's important to note that although our case study uses log files from the Business Process Management field, 
-the solution is generic and can be applied to any log file (provided a parserr is implemented) 
+the solution is generic and can be applied to any log file (provided a parser is implemented) 
 as long as the events contain an event type, a timestamp, and correspond to a specific sequence or trace.
+
+### Build and run with Intellij IDEA
+Before configuring JetBrain's IDE to compile and run the component, ensure you're running an S3/minio instance 
+(probably in docker container). We suppose minio is running at http://localhost:9000 (See instructions on how to run 
+the S3 database in the next section's notes.)
+#### Requirements
+- Intellij IDEA
+- Java 11 JRE (can be downloaded from IDEA)
+- Scala 11 SDK (can be downloaded from IDEA)
+#### Steps
+1. After cloning this repo, inside IDEA, create a new configuration file.
+   1. Select `Application` 
+   2. Select `Java 11` JRE and compilation component (`-cp sequencedetectionpreprocess`)
+   3. Select `auth.datalab.siesta.siesta_main` as Main class
+   4. Add as CLI arguments something like `--logname test --delete_prev`. Check [configuration options](https://github.com/siesta-tool/SequenceDetectionPreprocess/tree/master/src/main/scala/auth/datalab/siesta/CommandLineParser/Config.scala).
+   5. Add as environmental variables the following (modify wherever necessary)
+      ````
+      s3accessKeyAws=minioadmin;
+      s3ConnectionTimeout=600000;
+      s3endPointLoc=http://localhost:9000;
+      s3secretKeyAws=minioadmin
+   6. Save the configuration file.
+2. Open `Project Structure` settings, select `Scala 11` as SDK and language level `SDK default`. 
+3. Modify `S3Connector.scala`, setting spark's master node as `local[*]` (for running locally).
+4. Run the configuration file.
 
 
 ### Getting Started with Docker
@@ -44,11 +69,17 @@ docker-compose up -d
 ```
 This will build and run the preprocessing component (along with the Rest API) and also deploy an open source version of the S3, i.e., Minio and will create the required backet.
 
-
-You can access the different services from the following endpoints:
-
-- FastAPI: http://localhost:8000/#docs
-- S3: http://localhost:9000 (default username/password: minionadmin/minioadmin)
+#### Notes
+1. In some cases the composing command runs with a similar form (if the above is not working): `docker compose up -d`
+2. You can access the different services from the following endpoints:
+   - FastAPI: http://localhost:8000/#docs
+   - S3: http://localhost:9000 (default username/password: minionadmin/minioadmin)
+3. In case you want to run only the minio/S3 component (e.g., when developing on this codebase), you may start only 
+   the corresponding service:
+   ```bash
+   docker-compose up -d minio
+   ```
+   You may also start the `createbuckets` service, if you're running it for the first time in your machine.
 
 
 ### Build the preprocess component without the Rest API 
