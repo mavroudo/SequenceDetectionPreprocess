@@ -7,6 +7,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
 import java.sql.Timestamp
+import java.time.Duration
 import java.time.temporal.ChronoUnit
 import scala.collection.mutable.ListBuffer
 
@@ -107,6 +108,7 @@ object ExtractPairs {
                    lookback: Int, last_checked: Structs.LastChecked,
                    trace_id: String): List[Structs.PairFull] = {
     val pairs = new ListBuffer[Structs.PairFull]
+    val lookbackMillis = Duration.ofDays(lookback).toMillis;
     var prev: Timestamp = null
     var i=0
     for (ea <- ts1) {
@@ -117,10 +119,10 @@ object ExtractPairs {
         while (i < ts2.size && !stop) { //iterate through what remained of the second list
           val eb = ts2(i)
           val eb_ts = Timestamp.valueOf(eb._1)
-          if (!ea_ts.before(eb_ts)) { // if the event a is not before the event b we remove it
+          if (ea._2 >= eb._2) { // if the event a is not before the event b we remove it
             i+=1
           } else { // if it is we create a new pair and remove it from consideration in the next iteration
-            if (ChronoUnit.DAYS.between(ea_ts.toInstant, eb_ts.toInstant) <= lookback) { //evaluate lookback
+            if (eb_ts.getTime - ea_ts.getTime <= lookbackMillis) { //evaluate lookback
               pairs.append(Structs.PairFull(key1, key2, trace_id, ea_ts, eb_ts, ea._2, eb._2))
               prev = eb_ts
               i+=1 //remove the event anyway and stop the process because the next events timestamps will be greater

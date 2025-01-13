@@ -19,7 +19,7 @@ object SetMetadata {
    */
   def initialize_metadata(config: Config): MetaData = {
     MetaData(traces = 0, events = 0, pairs = 0L, lookback = config.lookback_days,has_previous_stored = false,
-      filename = config.filename, log_name = config.log_name, mode = config.mode, compression = config.compression,
+      filename = config.filename, streaming = (config.system == "streaming"),log_name = config.log_name, mode = config.mode, compression = config.compression,
       last_declare_mined = "")
   }
 
@@ -36,7 +36,9 @@ object SetMetadata {
         pairs = x.getAs("pairs"),
         lookback = x.getAs("lookback"),
         has_previous_stored = true,
-        filename = x.getAs("filename"), log_name = x.getAs("log_name"), mode = x.getAs("mode"),
+        filename = x.getAs("filename"),
+        streaming = x.getAs("streaming"),
+        log_name = x.getAs("log_name"), mode = x.getAs("mode"),
         compression = x.getAs("compression"),
         last_declare_mined = last_declare_mined)}).head
   }
@@ -54,6 +56,7 @@ object SetMetadata {
       lookback = get_key(a,"lookback").toInt,
       has_previous_stored = get_key(a,"has_previous_stored").toBoolean,
       filename = get_key(a,"filename"),
+      streaming = get_key(a,"streaming").toBoolean,
       log_name = get_key(a,"log_name"),
       mode = get_key(a,"mode"),
       compression = get_key(a,"compression"),
@@ -75,6 +78,7 @@ object SetMetadata {
       Row("lookback", metaData.lookback.toString),
       Row("has_previous_stored", metaData.has_previous_stored.toString),
       Row("filename", metaData.filename),
+      Row("streaming", metaData.streaming.toString),
       Row("log_name", metaData.log_name),
       Row("mode", metaData.mode),
       Row("compression", metaData.compression)
