@@ -45,5 +45,6 @@ case class Config(
                    length_min: Int = 10,
                    length_max: Int = 90,
                    k: Int = -1,
-                   duration_determination: Boolean = false
+                   duration_determination: Boolean = false,
+                   declare_incremental: Boolean = false
                  )

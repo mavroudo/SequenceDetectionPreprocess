@@ -41,3 +41,8 @@ pythonAPI/venv
 *.db
 */env
 */__pycache__/*
+
+#vscode
+.bloop/
+.metals/
+.vscode/

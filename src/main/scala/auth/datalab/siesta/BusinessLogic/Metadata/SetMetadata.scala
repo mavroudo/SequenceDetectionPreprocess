@@ -6,6 +6,8 @@ import org.apache.spark.sql.types.{StringType, StructField, StructType}
 
 import scala.util.Try
 
+import scala.util.Try
+
 /**
  * This class facilitates the initialization and loading of the Metadata object
  */
@@ -19,8 +21,8 @@ object SetMetadata {
    */
   def initialize_metadata(config: Config): MetaData = {
     MetaData(traces = 0, events = 0, pairs = 0L, lookback = config.lookback_days,has_previous_stored = false,
-      filename = config.filename, streaming = (config.system == "streaming"),log_name = config.log_name, mode = config.mode, compression = config.compression,
-      last_declare_mined = "")
+      filename = config.filename, streaming = (config.system == "streaming"), log_name = config.log_name, mode = config.mode, compression = config.compression,
+      start_ts = "", last_ts = "",  last_declare_mined = "")
   }
 
   /**
@@ -31,16 +33,21 @@ object SetMetadata {
   def load_metadata(metaDataObj:DataFrame):MetaData = {
     metaDataObj.collect().map(x => {
       val last_declare_mined = Try(x.getAs[String]("last_declare_mined")).getOrElse("")
-      MetaData(traces = x.getAs("traces"),
-        events = x.getAs("events"),
-        pairs = x.getAs("pairs"),
-        lookback = x.getAs("lookback"),
-        has_previous_stored = true,
-        filename = x.getAs("filename"),
-        streaming = x.getAs("streaming"),
-        log_name = x.getAs("log_name"), mode = x.getAs("mode"),
-        compression = x.getAs("compression"),
-        last_declare_mined = last_declare_mined)}).head
+      MetaData(
+            traces = Option(x.getAs[Long]("traces")).getOrElse(0L),
+            events = Option(x.getAs[Long]("events")).getOrElse(0L),
+            pairs = Option(x.getAs[Long]("pairs")).getOrElse(0L),
+            lookback = Option(x.getAs[Int]("lookback")).getOrElse(0),
+            has_previous_stored = Option(x.getAs[Boolean]("has_previous_stored")).getOrElse(true),
+            filename = Option(x.getAs[String]("filename")).getOrElse(""),
+            streaming = get_key(x.getAs[Boolean]("streaming")).getOrElse(false),
+            log_name = Option(x.getAs[String]("log_name")).getOrElse(""),
+            mode = Option(x.getAs[String]("mode")).getOrElse(""),
+            compression = Option(x.getAs[String]("compression")).getOrElse(""),
+            start_ts = Option(x.getAs[String]("start_ts")).getOrElse(""),
+            last_ts = Option(x.getAs[String]("last_ts")).getOrElse(""),
+            last_declare_mined = last_declare_mined
+            )}).head
   }
 
   def load_metadata_delta(metaDataObj:DataFrame):MetaData ={
@@ -60,6 +67,8 @@ object SetMetadata {
       log_name = get_key(a,"log_name"),
       mode = get_key(a,"mode"),
       compression = get_key(a,"compression"),
+      start_ts = get_key(a, "start_ts"),
+      last_ts = get_key(a, "last_ts"),
       last_declare_mined = get_key(a,"last_declare_mined"))
   }
 

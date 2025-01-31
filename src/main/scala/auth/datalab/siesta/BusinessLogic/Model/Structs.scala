@@ -35,5 +35,12 @@ object Structs {
   //Count
   case class CountList(eventA:String,counts:List[(String,Long,Int,Long,Long,Double)])
   case class Count(eventA:String, eventB:String, sum_duration:Long, count:Int, min_duration:Long, max_duration:Long, sum_squares:Double)
+  //Declare case classes
+  case class PositionConstraint(rule:String, event_type:String, occurrences:Double)
+  //each activity in how many traces it is contained exactly
+  case class ActivityExactly(event_type:String, occurrences: Int, contained:Long)
+  case class ExistenceConstraint(rule:String, event_type:String, n: Int, occurrences:Double)
+  case class PairConstraint(rule:String, eventA:String, eventB:String, occurrences:Double)
 
+  case class UnorderedHelper(eventA:String,eventB:String, ua:Long, ub:Long, pairs:Long,key:String)
 }

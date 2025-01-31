@@ -13,10 +13,13 @@ package auth.datalab.siesta.BusinessLogic.Metadata
  * @param log_name The name of the log database
  * @param mode Set to timestamps/positions depending on if the timestamps are stored in the IndexTable or just the events
  *             positions
+ * @param start_ts The timestamp of the first event
+ * @param last_ts The timestamp of the last event
  * @param compression The compression algorithm that will be used while storing the tables in the database.
  */
 case class MetaData(var traces: Long, var events: Long, var pairs: Long,
                     lookback: Int, var has_previous_stored: Boolean,
                     filename: String, streaming: Boolean,log_name: String, mode: String, compression: String,
+                    var start_ts:String, var last_ts:String,
                    var last_declare_mined:String) extends Serializable {
 }

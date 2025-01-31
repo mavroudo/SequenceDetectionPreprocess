@@ -9,25 +9,43 @@
 The architecture of SIESTA consists of two main components: the preprocessing component and the query processor.
 The preprocessing component (implemented in this repo) is responsible for handling continuously arriving logs and 
 computing the appropriate indices, while the [query processor](https://github.com/mavroudo/SequenceDetectionQueryExecutor)
-utilizes the stored indices to perform efficient pattern analysis. Pattern analysis consists of both pattern 
-detection and pattern exploration. Our complete work can be found [here](https://ieeexplore.ieee.org/document/9984935).
+utilizes the stored indices to perform efficient pattern analysis. Pattern analysis consists corresponds to various tasks, including pattern detection, pattern mining and pattern exploration. You can find detailed instructions of how to deploy the complete infrastracture, along with complete list of all our publications in [this](https://github.com/siesta-tool/siesta-demo) repository
 
 ### Preprocess Component
 This module processes the provided logfile using Apache Spark, a framework specifically designed for big data projects, 
-and stores the indices into scalable databases such as Apache Cassandra and S3. The primary index, named IndexTable, 
-is an inverted index where the key represents an event pair, and the value is a list of all traces that contain this pair, 
-along with their corresponding timestamps. Additionally, there are other indices that contain useful information, 
-such as statistics for each pair and the timestamp of the last completed pair, enabling different processes. 
-A comprehensive list of all tables and their structures can be found in our published work.
+and stores the indices into scalable databases such S3. The primary index, named IndexTable, is an inverted index where the key represents an event pair, and the value is a list of all traces that contain this pair, along with their corresponding timestamps or positions within the original trace. Additionally, there are other indices that contain useful information, such as statistics for each pair and the timestamp of the last completed pair, enabling different processes. 
+A comprehensive list of all tables and their structures can be found in our published works.
 
-In addition to the preprocess component of SIESTA, we have implemented two additional indexing methods, 
-namely Signature and Set-Containment, which are supported by the underlying framework.
-This means that they utilize both Apache Spark and the scalable database to efficiently generate their indices.
-SIESTA's performance has been evaluated against these methods.
+Recently, we added support for incremental mining of declarative constraints. These constraints describe the underlying structure of the process that generated the event log and can be used in applications like predicting the outcome of a process, detecting outlying executions of the process and more.
 
 Finally, it's important to note that although our case study uses log files from the Business Process Management field, 
-the solution is generic and can be applied to any log file (provided a connector is implemented) 
+the solution is generic and can be applied to any log file (provided a parser is implemented) 
 as long as the events contain an event type, a timestamp, and correspond to a specific sequence or trace.
+
+### Build and run with Intellij IDEA
+Before configuring JetBrain's IDE to compile and run the component, ensure you're running an S3/minio instance 
+(probably in docker container). We suppose minio is running at http://localhost:9000 (See instructions on how to run 
+the S3 database in the next section's notes.)
+#### Requirements
+- Intellij IDEA
+- Java 11 JRE (can be downloaded from IDEA)
+- Scala 11 SDK (can be downloaded from IDEA)
+#### Steps
+1. After cloning this repo, inside IDEA, create a new configuration file.
+   1. Select `Application` 
+   2. Select `Java 11` JRE and compilation component (`-cp sequencedetectionpreprocess`)
+   3. Select `auth.datalab.siesta.siesta_main` as Main class
+   4. Add as CLI arguments something like `--logname test --delete_prev`. Check [configuration options](https://github.com/siesta-tool/SequenceDetectionPreprocess/tree/master/src/main/scala/auth/datalab/siesta/CommandLineParser/Config.scala).
+   5. Add as environmental variables the following (modify wherever necessary)
+      ````
+      s3accessKeyAws=minioadmin;
+      s3ConnectionTimeout=600000;
+      s3endPointLoc=http://localhost:9000;
+      s3secretKeyAws=minioadmin
+   6. Save the configuration file.
+2. Open `Project Structure` settings, select `Scala 11` as SDK and language level `SDK default`. 
+3. Modify `S3Connector.scala`, setting spark's master node as `local[*]` (for running locally).
+4. Run the configuration file.
 
 
 ### Getting Started with Docker
@@ -49,19 +67,22 @@ docker network create --driver=bridge  siesta-net
 ```bash
 docker-compose up -d 
 ```
-This will deploy the entire SIESTA infrastructure, which includes the Preprocessing Component
-(integrated with a Python REST API implemented in FastAPI), the Query Processor, and the User Interface. 
-Additionally, it deploys a database for index storage. Currently, MinIO (S3) is active, while Cassandra is commented out.
-You can choose to switch between these two, or use environmental variables to set up a connection with another database.
+This will build and run the preprocessing component (along with the Rest API) and also deploy an open source version of the S3, i.e., Minio and will create the required backet.
 
-Before executing the preprocessing with S3, note that you must create a new bucket named **siesta**.
-You can access the different services from the following endpoints:
+#### Notes
+1. In some cases the composing command runs with a similar form (if the above is not working): `docker compose up -d`
+2. You can access the different services from the following endpoints:
+   - FastAPI: http://localhost:8000/#docs
+   - S3: http://localhost:9000 (default username/password: minionadmin/minioadmin)
+3. In case you want to run only the minio/S3 component (e.g., when developing on this codebase), you may start only 
+   the corresponding service:
+   ```bash
+   docker-compose up -d minio
+   ```
+   You may also start the `createbuckets` service, if you're running it for the first time in your machine.
 
-- FastAPI: http://localhost:8000/#docs
-- S3: http://localhost:9000 (default username/password: minionadmin/minioadmin)
 
-
-### Build the preprocess component separately 
+### Build the preprocess component without the Rest API 
 1. **Build Docker image:** From the root directory run the following command:
 ```bash
 docker build -t preprocess -f dockerbase/Dockerfile .
@@ -69,17 +90,13 @@ docker build -t preprocess -f dockerbase/Dockerfile .
 This will download all the dependencies, build the jar file and finally download the spark component. The image is now
 ready to be executed.
 
-2. **Deploy a database:** You can run from the root directory ```docker-compose up -d minio``` to deploy S3,
- or ```docker-compose up -d cassandra``` to deploy Cassandra.
+2. **Deploy a database:** You can run from the root directory ```docker-compose up -d minio``` to deploy S3
 
-3. **Run image:** if S3 is utilized 
+3. **Run image:**
 ```bash
 docker run --network siesta-net preprocess
 ```
-if Cassandra is utilized
-```bash
-docker run --network siesta-net preprocess -d cassandra
-``` 
+
 The default execution will  generate 200 synthetic traces, 
 using 10 different event types, and lengths that vary from 10 to 90 events. The inverted indices will be stored
 using "test" as the logname.
@@ -93,8 +110,6 @@ docker container in the same network (as done above with the siesta-net).
 preprocess job from "**local[*]**" to the resource manager's url. 
 - **Connect with spark cluster (standalone):** Change the value of the "**--master**" parameter in the ENTRYPOINT of the 
 Dockerfile from "**local[*]**" to the resource manager's url. At the end build the image again before executing it.
-- **Connect with Cassandra:** Change the values environmental parameters that start with **cassandra\_**. 
-These parameters include the contact point and the credentials required to achieve connection.
 - **Connect with S3:** Change the values environmental parameters that start with **s3**.
    These parameters include the contact point and the credentials required to achieve connection.
 
@@ -113,13 +128,6 @@ parameters. Therefore, place the logfile you want to preprocess inside the _expe
 Assuming that the logfile is named "log.xes" and the indices should have the name "log" run the following
 command from the root directory:
 
-You can submit a file for preprocessing through the User Interface (under the Preprocessing tab), 
-via the FastAPI docs, or in standalone format. For the latter, two steps are required. 
-First, ensure that the logfile is visible inside the Docker container. 
-Second, execute the preprocessing with the appropriate parameters.
-To do this, place the logfile you wish to preprocess inside the _experiments/input_ directory. 
-Assuming that the logfile is named log.xes and the indices should be named log,
-run the following command from the root directory:
 
 ```bash
 docker run  --mount type=bind,source="$(pwd)"/experiments/input,target=/app/input \
@@ -141,14 +149,15 @@ Usage: preprocess.jar [options]
   --delete_all             cleans all tables in the keyspace
   --delete_prev            removes all the tables generated by a previous execution of this method
   --lookback <value>       How many days will look back for completions (default=30)
-  -s, --split_every_days s
-                           Split the inverted index every s days (default=30)
+  --declare_incremental    run a post processing job in order to create the required state for incremental mining declare constraints
 
 The parameters below are used if the file was not set and data will be randomly generated
   -t, --traces <#traces>
   -e, --event_types <#event_types>
   --lmin <min length>
   --lmax <max length>
+  --duration_determination
+                           Include activity duration calculation
   --help                   prints this usage text
 ```
 
@@ -159,6 +168,11 @@ Otherwise, they are located in the **docs/** folder and you can access it by ope
 in a browser.
 
 # Change Log
+### [3.0.0] - 2024-11-30
+ - Removed the support for Cassandra, since it required specific spark version which limited the functionalities we could provide.
+ - Optimized the preprocess pipeline and S3 structure, in order to provide efficient incremental indexing.
+ - Added optional support for incremental declare mining, which can be easily set using the command argument **incremental_declare**.
+
 ### [2.1.1] - 2023-07-29
 - Hotfix in indexing process for Cassandra and S3
 - Introduce partitions for LastChecked to handle incremental indexing

@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y gnupg2 curl procps python3 python3-pip
 # Set up Spark
 RUN mkdir /app
 WORKDIR /app
+
 # Install necessary Python packages (if required)
 COPY python_scripts/requirements.txt /app/requirements.txt
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
