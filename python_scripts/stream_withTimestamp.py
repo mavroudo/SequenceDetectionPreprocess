@@ -35,7 +35,7 @@ if __name__ == "__main__":
 #     Demo params for now
 # =============================================================================
 #     file="../experiments/input/helpdesk.withTimestamp"
-    eventsPerSecond=5000000000000000000000000000000000000000000000
+    eventsPerSecond=5000000000000000000000000
     #print("Streaming {} file, with {} events per second".format(file,eventsPerSecond))
     producer = KafkaProducer(bootstrap_servers='localhost:9092',
                             value_serializer=lambda v: json.dumps(v).encode('utf-8'),
