@@ -1,4 +1,4 @@
-val sparkVersion = "3.5.1"
+val sparkVersion = "3.5.4"
 val hadoopVersion= "3.3.4"
 
 ThisBuild / name := "Siesta"
