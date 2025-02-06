@@ -88,6 +88,14 @@ services:
     networks:
       - siesta-net
 
+x-disabled:
+  send_events: #send example events in form .withTimestamp
+    build:
+      context: .
+      dockerfile: send_events.Dockerfile
+    networks:
+      - siesta-net
+
 networks:
   siesta-net:
     name: siesta-net

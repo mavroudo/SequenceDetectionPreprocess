@@ -40,7 +40,7 @@ object SetMetadata {
             lookback = Option(x.getAs[Int]("lookback")).getOrElse(0),
             has_previous_stored = Option(x.getAs[Boolean]("has_previous_stored")).getOrElse(true),
             filename = Option(x.getAs[String]("filename")).getOrElse(""),
-            streaming = get_key(x.getAs[Boolean]("streaming")).getOrElse(false),
+            streaming = Option(x.getAs[Boolean]("streaming")).getOrElse(false),
             log_name = Option(x.getAs[String]("log_name")).getOrElse(""),
             mode = Option(x.getAs[String]("mode")).getOrElse(""),
             compression = Option(x.getAs[String]("compression")).getOrElse(""),
