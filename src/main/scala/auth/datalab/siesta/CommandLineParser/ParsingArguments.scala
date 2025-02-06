@@ -25,14 +25,14 @@ object ParsingArguments {
     OParser.sequence(
       programName("preprocess.jar"),
       head("SIESTA preprocess"),
-      opt[String]( "system")
+      opt[String]("system")
         .action((x, c) => c.copy(system = x))
         .valueName("<system>")
         .validate(x => {
-          if (x.equals("siesta")) { //can be used to add other systems or competitors
+          if (x.equals("siesta") || x.equals("streaming")) { //can be used to add other systems or competitors
             success
           } else {
-            failure("Supported values for <system> are siesta, signatures or set-containment")
+            failure("Supported values for <system> are siesta, signatures, set-containment or streaming")
           }
         })
         .text("System refers to the system that will be used for indexing"),
@@ -62,7 +62,7 @@ object ParsingArguments {
         .action((x, c) => c.copy(compression = x))
         .valueName("<compression>")
         .validate(x => {
-          if (x.equals("snappy") || x.equals("uncompressed")|| x.equals("lz4") || x.equals("zstd") || x.equals("gzip")) {
+          if (x.equals("snappy") || x.equals("uncompressed") || x.equals("lz4") || x.equals("zstd") || x.equals("gzip")) {
             success
           } else {
             failure("Value <compression> must be one of the [snappy, lz4, gzip, zstd, uncompressed]")
@@ -121,6 +121,7 @@ object ParsingArguments {
   /**
    * This method utilizes the above builder to parse the parameters and return the Configuration object back in the
    * [[auth.datalab.siesta.siesta_main]] before deciding the appropriate pipeline to be executed.
+   *
    * @param args The command line argumends
    * @return The Configuration object that contains all the parameters (after being evaluated)
    */

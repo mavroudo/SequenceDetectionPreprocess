@@ -1,7 +1,7 @@
 package auth.datalab.siesta
 
 import auth.datalab.siesta.CommandLineParser.{Config, ParsingArguments}
-import auth.datalab.siesta.Pipeline.{SiestaPipeline}
+import auth.datalab.siesta.Pipeline.{SiestaPipeline, SiestaStreamingPipeline}
 import org.apache.log4j.{Level, Logger}
 
 
@@ -25,9 +25,12 @@ object siesta_main {
     } else {
       config = conf.get
     }
-    //define batch vs stream
-//    SiestaPipeline.execute(config)
-    SiestaPipeline.execute(config)
+
+    if (config.system == "streaming") {
+      SiestaStreamingPipeline.execute(config)
+    } else {
+      SiestaPipeline.execute(config)
+    }
   }
 
 }

@@ -17,9 +17,11 @@ import java.sql.Timestamp
 import java.util.concurrent.TimeUnit
 import auth.datalab.siesta.DeclareIncrementa.DeclareIncrementalPipeline
 
+
 object SiestaPipeline {
 
   def execute(c: Config): Unit = {
+
 
     //If new database is added the dbConnector can be set here.
     val dbConnector = new S3Connector()
@@ -74,7 +76,6 @@ object SiestaPipeline {
       } else { //no need to fix
         sequenceRDD
       }
-
 
       //events with fixed positions are then stored to both sequence table and single table
       dbConnector.write_sequence_table(sequenceRDD = fixed_positions, metaData = metadata)
@@ -139,7 +140,6 @@ object SiestaPipeline {
       //Update metadata before exiting
       metadata.has_previous_stored = true
       dbConnector.write_metadata(metadata)
-
     })
 
     // execute the Declare Incremental as a post processing step

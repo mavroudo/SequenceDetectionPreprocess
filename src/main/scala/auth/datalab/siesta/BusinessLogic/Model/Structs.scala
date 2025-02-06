@@ -2,6 +2,8 @@ package auth.datalab.siesta.BusinessLogic.Model
 
 
 
+import org.apache.spark.streaming.StreamingContext
+
 import java.sql.Timestamp
 
 /**
@@ -10,6 +12,10 @@ import java.sql.Timestamp
  * comply with them, by implementing the corresponding methods.
  */
 object Structs {
+
+  //For streaming
+
+  case class StreamingPair(eventA: String, eventB: String, id: String, timeA: Timestamp, timeB: Timestamp, positionA: Int, positionB: Int)
 
   //General Model
   case class EventWithPosition(event_name:String,timestamp:Timestamp,position:Int)
@@ -29,7 +35,6 @@ object Structs {
   //Count
   case class CountList(eventA:String,counts:List[(String,Long,Int,Long,Long,Double)])
   case class Count(eventA:String, eventB:String, sum_duration:Long, count:Int, min_duration:Long, max_duration:Long, sum_squares:Double)
-
   //Declare case classes
   case class PositionConstraint(rule:String, event_type:String, occurrences:Double)
   //each activity in how many traces it is contained exactly
@@ -38,5 +43,4 @@ object Structs {
   case class PairConstraint(rule:String, eventA:String, eventB:String, occurrences:Double)
 
   case class UnorderedHelper(eventA:String,eventB:String, ua:Long, ub:Long, pairs:Long,key:String)
-
 }
