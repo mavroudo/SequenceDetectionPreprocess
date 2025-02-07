@@ -90,7 +90,10 @@ object SetMetadata {
       Row("streaming", metaData.streaming.toString),
       Row("log_name", metaData.log_name),
       Row("mode", metaData.mode),
-      Row("compression", metaData.compression)
+      Row("compression", metaData.compression),
+      Row("last_declare_mined", metaData.last_declare_mined),
+      Row("start_ts", metaData.start_ts),
+      Row("last_ts", metaData.last_ts)
     )
 
     // Create a DataFrame from the list of rows and the schema
