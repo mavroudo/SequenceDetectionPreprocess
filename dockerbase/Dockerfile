@@ -63,6 +63,6 @@ ENV s3endPointLoc=minio:9000
 ENV s3secretKeyAws=minioadmin
 
 # Spark-submit entrypoint
-ENTRYPOINT ["/opt/spark/bin/spark-submit", "--master", "local[*]", "--jars", "/jars/*", "--class", "auth.datalab.siesta.siesta_main",  "preprocess.jar"]
-CMD ["--driver-memory", "10g"]
-#CMD ["--logname", "test", "--delete_prev", "--system", "streaming"]
+ENTRYPOINT ["/opt/spark/bin/spark-submit", "--driver-memory", "10g", "--master", "local[*]", "--jars", "/jars/*", "--class", "auth.datalab.siesta.siesta_main",  "preprocess.jar"]
+#CMD ["--driver-memory", "10g"]
+CMD ["--logname", "test", "--delete_prev", "--system", "streaming"]

@@ -101,7 +101,6 @@ x-disabled:
 networks:
   siesta-net:
     name: siesta-net
-    external: true
 
 volumes:
   postgres-data: { }

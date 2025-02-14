@@ -30,7 +30,7 @@ the S3 database in the next section's notes.)
 - Intellij IDEA
 - Java 11 JRE (can be downloaded from IDEA)
 - Scala 11 SDK (can be downloaded from IDEA)
-#### Steps
+#### Steps for Batching
 1. After cloning this repo, inside IDEA, create a new configuration file.
    1. Select `Application` 
    2. Select `Java 11` JRE and compilation component (`-cp sequencedetectionpreprocess`)
@@ -47,6 +47,27 @@ the S3 database in the next section's notes.)
 3. Modify `S3Connector.scala`, setting spark's master node as `local[*]` (for running locally).
 4. Run the configuration file.
 
+#### Steps for Streaming
+1. After cloning this repo, inside IDEA, create a new configuration file.
+   1. Select `Application`
+   2. Select `Java 11` JRE and compilation component (`-cp sequencedetectionpreprocess`)
+   3. Select `auth.datalab.siesta.siesta_main` as Main class
+   4. Add the CLI argument `--system streaming` 
+   5. Add as CLI arguments something like `--logname test --delete_prev`. Check [configuration options](https://github.com/siesta-tool/SequenceDetectionPreprocess/tree/master/src/main/scala/auth/datalab/siesta/CommandLineParser/Config.scala).
+   6. Add as environmental variables the following (modify wherever necessary)
+      ````
+      s3accessKeyAws=minioadmin;
+      s3ConnectionTimeout=600000;
+      s3endPointLoc=http://localhost:9000;
+      s3secretKeyAws=minioadmin
+      kafkaBroker=http://localhost:9092;
+      kafkaTopic=test;
+      POSTGRES_ENDPOINT=localhost:5432/metrics;
+      POSTGRES_PASSWORD=admin;
+      POSTGRES_USERNAME=admin;
+   7. Change the ``OUTSIDE`` value of ``KAFKA_ADVERTISED_LISTENERS`` to the name of the address you wish to receive the messages (it should match the kafkaBroker environment variable).
+      - Local mode: Use //localhost:your-port (e.g. 9092)
+   8. Save the configuration file.
 
 ### Getting Started with Docker
 Using Docker makes it easy to deploy the preprocess component. The following steps will guide you on how to run the component 
@@ -90,9 +111,14 @@ docker build -t preprocess -f dockerbase/Dockerfile .
 This will download all the dependencies, build the jar file and finally download the spark component. The image is now
 ready to be executed.
 
-2. **Deploy a database:** You can run from the root directory ```docker-compose up -d minio``` to deploy S3
-
-3. **Run image:**
+2. **Deploy the infrastructure**
+   1. **Batching**
+      1.  Deploy a database: You can run from the root directory ```docker-compose up -d minio``` to deploy S3
+   2. **Streaming** 
+      1. Set up the Kafka listener: Change the ``OUTSIDE`` value of ``KAFKA_ADVERTISED_LISTENERS`` to ``//siesta-kafka:your-port (e.g. 9092)``
+      2. Deploy the streaming infrastructure: You can run from the root directory ```docker compose up -f dockerbase/docker-compose-infrastructure.yml up -d``` 
+      
+4. **Run image:**
 ```bash
 docker run --network siesta-net preprocess
 ```
