@@ -24,6 +24,7 @@ services:
       - siesta-net
 
   kafka:
+    container_name: siesta-kafka
     image: wurstmeister/kafka:latest
     ports:
       - "9092:9092"
@@ -62,6 +63,7 @@ services:
     networks:
       - siesta-net
   postgres:
+    container_name: siesta-postgres
     image: postgres:latest
     environment:
       POSTGRES_DB: metrics
