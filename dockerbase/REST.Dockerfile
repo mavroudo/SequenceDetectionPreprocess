@@ -9,7 +9,7 @@ apt-get update && apt-get install -y sbt=1.10.0
 
 
 RUN mkdir /app
-COPY dockerbase/build.sbt /app/build.sbt
+COPY dockerbase/build2.sbt /app/build2.sbt
 COPY src /app/src
 COPY project /app/project
 

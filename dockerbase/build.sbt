@@ -1,18 +1,17 @@
-val sparkVersion = "3.5.1"
+val sparkVersion = "3.5.4"
 val hadoopVersion= "3.3.4"
+
 ThisBuild / name := "Siesta"
 ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.12.17"
 ThisBuild / organization := "auth.datalab"
+
 ThisBuild / Test / parallelExecution := false
 
 assembly / test := {}
-<<<<<<< HEAD
-assembly / mainClass := Some("auth.datalab.siesta.siesta_main")
-=======
-assembly / mainClass := Some("auth.datalab.siesta.Main")
 
->>>>>>> v3.incremental
+assembly / mainClass := Some("auth.datalab.siesta.siesta_main")
+
 scalacOptions += "-deprecation"
 javacOptions ++= Seq("-source", "11", "-target", "11")
 
@@ -21,40 +20,23 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % "test"
 libraryDependencies += "de.uni.freiburg.iig.telematik" % "SEWOL" % "1.0.2" //read data
 libraryDependencies += "com.github.scopt" %% "scopt" % "4.1.0" //parser for the commandlines
 
+//to run the sbt assembly the '% "provided",' section must not be in comments
+//to debug in IDE the '  "org.apache.spark" % "spark-catalyst_2.11" % sparkVersion , //"2.0.0",' section must be in comments
 libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
-  "org.apache.spark" %% "spark-sql" % sparkVersion  % "provided") //% "provided"
+
+  "org.apache.spark" %% "spark-core" % sparkVersion, //% "provided"
+  "org.apache.spark" %% "spark-sql" % sparkVersion )
 libraryDependencies += "org.apache.hadoop" % "hadoop-common" % hadoopVersion
 libraryDependencies += "org.apache.hadoop" % "hadoop-client" % hadoopVersion
 libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % hadoopVersion //3.0.3
+libraryDependencies += "com.amazonaws" % "aws-java-sdk-bundle" % "1.12.262"
 
-
-<<<<<<< HEAD
-
-=======
-//
-dependencyOverrides ++= {
-  Seq(
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.1",
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.0",
-    "com.fasterxml.jackson.core" % "jackson-core" % "2.14.0"
-  )
-}
 
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion
-libraryDependencies += "org.apache.spark" %% "spark-sql-kafka-0-10" % "3.0.0"
-
-
-libraryDependencies += "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.2.0"
-libraryDependencies += "org.apache.hadoop" % "hadoop-common" % "3.2.0"
-libraryDependencies += "org.apache.hadoop" % "hadoop-client" % "3.2.0"
-libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "3.2.0" //3.0.3
-
-libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector-assembly" % "3.2.0"
-//delta library
-libraryDependencies += "io.delta" %% "delta-core" % "0.8.0"
-
->>>>>>> v3.incremental
+libraryDependencies += "org.apache.spark" %% "spark-sql-kafka-0-10" % sparkVersion
+//libraryDependencies += "io.delta" %% "delta-core" % "2.4.0"
+libraryDependencies += "io.delta" %% "delta-spark" % "3.2.0"
+libraryDependencies += "org.postgresql" % "postgresql" % "42.7.3"
 
 assembly / assemblyMergeStrategy:= {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
