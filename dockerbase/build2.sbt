@@ -7,12 +7,9 @@ ThisBuild / organization := "auth.datalab"
 ThisBuild / Test / parallelExecution := false
 
 assembly / test := {}
-<<<<<<< HEAD
-assembly / mainClass := Some("auth.datalab.siesta.siesta_main")
-=======
-assembly / mainClass := Some("auth.datalab.siesta.Main")
 
->>>>>>> v3.incremental
+assembly / mainClass := Some("auth.datalab.siesta.siesta_main")
+
 scalacOptions += "-deprecation"
 javacOptions ++= Seq("-source", "11", "-target", "11")
 
@@ -29,9 +26,6 @@ libraryDependencies += "org.apache.hadoop" % "hadoop-client" % hadoopVersion
 libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % hadoopVersion //3.0.3
 
 
-<<<<<<< HEAD
-
-=======
 //
 dependencyOverrides ++= {
   Seq(
@@ -54,7 +48,6 @@ libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector-assemb
 //delta library
 libraryDependencies += "io.delta" %% "delta-core" % "0.8.0"
 
->>>>>>> v3.incremental
 
 assembly / assemblyMergeStrategy:= {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
