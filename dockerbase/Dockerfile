@@ -33,7 +33,6 @@ RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
 COPY python_scripts/stream_withTimestamp.py /app/scripts/stream_withTimestamp.py
 COPY experiments/input/helpdesk.withTimestamp /app/experiments/helpdesk.withTimestamp
-COPY experiments/input/bpi2018.withTimestamp /app/experiments/bpi2018.withTimestamp
 
 RUN curl -O https://archive.apache.org/dist/spark/spark-3.5.4/spark-3.5.4-bin-hadoop3.tgz && \
     tar xvf spark-3.5.4-bin-hadoop3.tgz && mv spark-3.5.4-bin-hadoop3/ /opt/spark && rm spark-3.5.4-bin-hadoop3.tgz

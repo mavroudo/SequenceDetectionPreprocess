@@ -106,7 +106,7 @@ This will build and run the preprocessing component (along with the Rest API) an
 ### Build the preprocess component without the Rest API 
 1. **Build Docker image:** From the root directory run the following command:
 ```bash
-docker build -t preprocess -f dockerbase/Dockerfile .
+docker compose build preprocess 
 ```
 This will download all the dependencies, build the jar file and finally download the spark component. The image is now
 ready to be executed.
@@ -115,13 +115,27 @@ ready to be executed.
    1. **Batching**
       1.  Deploy a database: You can run from the root directory ```docker-compose up -d minio``` to deploy S3
    2. **Streaming** 
-      1. Set up the Kafka listener: Change the ``OUTSIDE`` value of ``KAFKA_ADVERTISED_LISTENERS`` to ``//siesta-kafka:your-port (e.g. 9092)``
-      2. Deploy the streaming infrastructure: You can run from the root directory ```docker compose up -f dockerbase/docker-compose-infrastructure.yml up -d``` 
+      1. Set up the Kafka listener: Change the ``OUTSIDE`` value of ``KAFKA_ADVERTISED_LISTENERS`` to ``//siesta-kafka:your-port (e.g. 9092)`` 
+      if you wish to send events through Docker or to ``//your-host-IP:your-port`` if you wish to send events locally
+      2. Deploy the streaming infrastructure: You can run from the root directory 
+      ```bash
+      docker compose -f dockerbase/docker-compose-infrastructure.yml up -d
+      ``` 
       
-4. **Run image:**
+3. **Run image:**
+   - Add the necessary arguments before running the script otherwise the default \
+   ``--logname test --delete_prev --system streaming``
+   arguments will be added.
 ```bash
-docker run --network siesta-net preprocess
+docker compose run preprocess
 ```
+
+4. **Send events:**
+   - You can send events with a Kafka Producer assigned to send events to your host IP by having \
+   ``boostrap_servers='your-host-IP:your-port'`` in your Kafka Producer, just like the one in ``stream_withTimestamp.py``
+   that can be found in the directory ``python_scripts``.
+
+
 
 The default execution will  generate 200 synthetic traces, 
 using 10 different event types, and lengths that vary from 10 to 90 events. The inverted indices will be stored
