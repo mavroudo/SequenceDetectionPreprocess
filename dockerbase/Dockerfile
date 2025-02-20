@@ -37,7 +37,7 @@ COPY experiments/input/helpdesk.withTimestamp /app/experiments/helpdesk.withTime
 RUN curl -O https://archive.apache.org/dist/spark/spark-3.5.4/spark-3.5.4-bin-hadoop3.tgz && \
     tar xvf spark-3.5.4-bin-hadoop3.tgz && mv spark-3.5.4-bin-hadoop3/ /opt/spark && rm spark-3.5.4-bin-hadoop3.tgz
 
-# Download Delta Lake JARs
+# Download Delta Lake and Kafka JARs
 RUN mkdir /jars
 RUN curl -O https://repo.maven.apache.org/maven2/io/delta/delta-spark_2.12/3.2.0/delta-spark_2.12-3.2.0.jar && \
     curl -O https://repo.maven.apache.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/3.5.4/spark-sql-kafka-0-10_2.12-3.5.4.jar && \

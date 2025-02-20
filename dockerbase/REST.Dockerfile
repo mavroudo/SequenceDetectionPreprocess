@@ -9,7 +9,7 @@ apt-get update && apt-get install -y sbt=1.10.0
 
 
 RUN mkdir /app
-COPY dockerbase/build2.sbt /app/build2.sbt
+COPY dockerbase/build.sbt /app/build.sbt
 COPY src /app/src
 COPY project /app/project
 
@@ -25,8 +25,16 @@ RUN apt-get update && apt-get install -y gnupg2 curl software-properties-common
 RUN apt-get install -y python3.8 python3-pip openjdk-11-jdk
 # Install python dependencies
 
-RUN curl -O https://archive.apache.org/dist/spark/spark-3.5.1/spark-3.5.1-bin-hadoop3.tgz &&\
-tar xvf spark-3.5.1-bin-hadoop3.tgz && mv spark-3.5.1-bin-hadoop3/ /opt/spark && rm spark-3.5.1-bin-hadoop3.tgz
+RUN curl -O https://archive.apache.org/dist/spark/spark-3.5.4/spark-3.5.4-bin-hadoop3.tgz && \
+    tar xvf spark-3.5.4-bin-hadoop3.tgz && mv spark-3.5.4-bin-hadoop3/ /opt/spark && rm spark-3.5.4-bin-hadoop3.tgz
+
+# Download Delta Lake and Kafka JARs
+RUN mkdir /jars
+RUN curl -O https://repo.maven.apache.org/maven2/io/delta/delta-spark_2.12/3.2.0/delta-spark_2.12-3.2.0.jar && \
+    curl -O https://repo.maven.apache.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/3.5.4/spark-sql-kafka-0-10_2.12-3.5.4.jar && \
+    mv delta-spark_2.12-3.2.0.jar /jars/ && \
+    mv spark-sql-kafka-0-10_2.12-3.5.4.jar /jars/
+
 
 #RUN apt-get install -y python3-pip python
 COPY pythonAPI/requirements.txt /app/pythonAPI/
@@ -45,10 +53,14 @@ RUN mkdir uploadedfiles
 COPY --from=builder /app/preprocess.jar /app/preprocess.jar
 
 # import default variables or can be changed here
+ENV kafkaBroker=siesta-kafka:9092
+ENV kafkaTopic=test
+ENV POSTGRES_ENDPOINT=siesta-postgres:5432/metrics
+ENV POSTGRES_PASSWORD=admin
+ENV POSTGRES_USERNAME=admin
 ENV s3accessKeyAws=minioadmin
 ENV s3ConnectionTimeout=600000
-ENV s3endPointLoc=http://minio:9000
+ENV s3endPointLoc=minio:9000
 ENV s3secretKeyAws=minioadmin
-
 #start the api
 CMD ["python3","-m","uvicorn","main:app","--host", "0.0.0.0","--port","8000"]

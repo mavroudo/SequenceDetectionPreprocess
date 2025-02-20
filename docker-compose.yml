@@ -11,7 +11,7 @@ services:
   preprocess:
     build:
       context: .
-      dockerfile: dockerbase/Dockerfile
+      dockerfile: dockerbase/REST.Dockerfile
     ports:
       - "8000:8000"
       - "4040:4040"

@@ -123,7 +123,7 @@ ready to be executed.
       ``` 
       
 3. **Run image:**
-   - Add the necessary arguments before running the script otherwise the default \
+   - Add the necessary arguments before running the bash command otherwise the default \
    ``--logname test --delete_prev --system streaming``
    arguments will be added.
 ```bash
