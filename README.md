@@ -116,7 +116,8 @@ ready to be executed.
       1.  Deploy a database: You can run from the root directory ```docker-compose up -d minio``` to deploy S3
    2. **Streaming** 
       1. Set up the Kafka listener: Change the ``OUTSIDE`` value of ``KAFKA_ADVERTISED_LISTENERS`` to ``//siesta-kafka:your-port (e.g. 9092)`` 
-      if you wish to send events through Docker or to ``//your-host-IP:your-port`` if you wish to send events locally
+      if you wish to send events through Docker (using the ``send_events`` service of the ``docker_compose``) 
+      or to ``//your-host-IP:your-port`` if you wish to send events locally
       2. Deploy the streaming infrastructure: You can run from the root directory 
       ```bash
       docker compose -f dockerbase/docker-compose-infrastructure.yml up -d

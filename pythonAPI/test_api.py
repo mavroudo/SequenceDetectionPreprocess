@@ -1,6 +1,6 @@
 import requests
 
-url = 'http://127.0.0.1:8000/upload'
-file = {'file': open('files/image.jpg', 'rb')}
+url = 'http://172.18.0.2:8000/upload'
+file = {'file': open('uploadedfiles/helpdesk.xes', 'rb')}
 resp = requests.post(url=url, files=file)
 print(resp.json())
