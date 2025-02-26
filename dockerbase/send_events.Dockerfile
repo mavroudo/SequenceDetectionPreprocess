@@ -10,11 +10,11 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Copy the Python script and input files
 COPY python_scripts/stream_withTimestamp.py /app/stream_withTimestamp.py
-#COPY experiments/input/helpdesk.withTimestamp /app/experiments/helpdesk.withTimestamp
-COPY experiments/input/test1.withTimestamp /app/experiments/bpi2018.withTimestamp
+
+COPY experiments/input/test1.withTimestamp /app/experiments/test1.withTimestamp
 
 # Specify the entry point and pass script arguments
 ENTRYPOINT ["python", "/app/stream_withTimestamp.py"]
 
-## Default arguments to the script (can be overridden)
-#CMD ["/app/experiments/helpdesk.withTimestamp", "/app/experiments/bpi2018.withTimestamp"]
+# Default arguments to the script (can be overridden)
+CMD ["/app/experiments/test1.withTimestamp"]

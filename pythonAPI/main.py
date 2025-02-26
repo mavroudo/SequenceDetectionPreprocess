@@ -1,4 +1,5 @@
 import os
+import asyncio
 import uuid
 from threading import Lock, Thread
 
@@ -201,18 +202,46 @@ async def get_information_for_all(db: Session = Depends(get_db)):
     return JSONResponse(content=json, status_code=200)
 
 
-# if not lock.locked():
-#     with lock:
-#         try:
-#             process = os.popen(spark_command)
-#             # TODO: redirect standar output and error to capture them and send them to the use
-#             output = process.read()
-#             return JSONResponse(content={"output": output}, status_code=200)
-#         except Exception as e:
-#             return JSONResponse(content={"error": str(e)}, status_code=500)
-# else:
-#     return JSONResponse(content={"message": "Already running a preprocessing job"}, status_code=520)
+@app.post("/stop_streaming/",
+          responses={
+              200:{
+                  "content":{"message":"Streaming stopped successfully"}},
+              400:{
+                  "content": {"error": {}},
+                  "description": "There was no streaming process running"}
+          }
+          )
+async def stop_streaming():
+    '''
+    Finds if there is a running streaming process and terminates it.
+    '''
+    if not lock.locked():
+        return JSONResponse(content={"message": "There is no running preprocess task"}, status_code=400)
 
+    process = await asyncio.create_subprocess_shell(
+        "ps aux | grep streaming | grep -v grep",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+
+    stdout, _ = await process.communicate()
+    output = stdout.decode().strip()
+
+    if not output:
+        return JSONResponse(content={"message": "There is no running streaming preprocess task"}, status_code=400)
+
+    print("Running Process Details:")
+    print(output)
+
+    processes = output.split("\n")
+    for row in processes:
+        columns = row.split()
+        if len(columns) > 1:
+            pid = columns[1]  # PID is in the second column
+            print(f"Terminating process with PID: {pid}")
+            await asyncio.create_subprocess_shell(f"kill -9 {pid}")
+    lock.release()
+    return JSONResponse(content={"message": "Streaming process has been terminated"}, status_code=200)
 
 @app.post("/upload/",
           responses={
