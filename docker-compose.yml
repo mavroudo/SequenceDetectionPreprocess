@@ -1,4 +1,3 @@
-version: '3.7'
 services:
   event_sender:
     build:
@@ -19,16 +18,17 @@ services:
       - siesta-net
     volumes:
       - preprocesses:/app/pythonAPI/dbSQL
+      - ./experiments/input:/app/pythonAPI/uploadedfiles
     environment:
-      ENV kafkaBroker: "siesta-kafka:9092"
-      ENV kafkaTopic: test
-      ENV POSTGRES_ENDPOINT: "siesta-postgres:5432/metrics"
-      ENV POSTGRES_PASSWORD: admin
-      ENV POSTGRES_USERNAME: admin      
-      ENV s3accessKeyAws: minioadmin
-      ENV s3ConnectionTimeout: 600000
-      ENV s3endPointLoc: "minio:9000"
-      ENV s3secretKeyAws: minioadmin
+      kafkaBroker: "siesta-kafka:9092"
+      kafkaTopic: test
+      POSTGRES_ENDPOINT: "siesta-postgres:5432/metrics"
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USERNAME: admin
+      s3accessKeyAws: minioadmin
+      s3ConnectionTimeout: 600000
+      s3endPointLoc: "minio:9000"
+      s3secretKeyAws: minioadmin
 
   zookeeper:
     image: wurstmeister/zookeeper:latest
@@ -78,7 +78,8 @@ services:
       "
     networks:
       - siesta-net
-      -
+
+
   siesta-postgres:
     container_name: siesta-postgres
     image: postgres:latest
