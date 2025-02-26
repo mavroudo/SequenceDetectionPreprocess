@@ -103,55 +103,56 @@ This will build and run the preprocessing component (along with the Rest API, wh
 ### Test the execution of the preprocess component
 After the deployment of the entire infrastructure (and assuming that everything run correctly) lets test the execution of the preprocess mode. We will evaluate both batch and streaming mode using testing data. All commands will be submitting using the REST API.
 1. **Batching**
-
-
-<!-- ### Build and run the preprocess component without the Infrastructure 
-1. **Build Docker image:** From the root directory run the following command:
 ```bash
-docker compose build preprocess 
+curl -X 'POST' 'http://localhost:8000/preprocess' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "spark_master": "local[*]",
+    "file": "synthetic",
+    "logname": "synthetic"
+  }'
 ```
-This will download all the dependencies, build the jar file and finally download the spark component. The image is now
-ready to be executed.
+This curl command will start a preprocess task with artificial generated traces. By default, it will index 100 traces 
+using 10 different event types, and lengths that vary from 10 to 90 events. These parameters can be modified by using
+the CLI [parameters](#complete-list-of-parameters). The request will immediately return a unique id of this process, 
+which can be used to monitor its process through http://localhost:8000/process/{process_id} request.
 
-2. **Deploy the infrastructure**
-   1. **Batching**
-      1.  Deploy a database: You can run from the root directory ```docker-compose up -d minio``` to deploy S3
-   2. **Streaming** 
-      1. Set up the Kafka listener: Change the ``OUTSIDE`` value of ``KAFKA_ADVERTISED_LISTENERS`` to ``//siesta-kafka:your-port (e.g. 9092)`` 
-      if you wish to send events through Docker (using the ``send_events`` service of the ``docker_compose``) 
-      or to ``//your-host-IP:your-port`` if you wish to send events locally
-      2. Deploy the streaming infrastructure: You can run from the root directory 
-      ```bash
-      docker compose -f dockerbase/docker-compose-infrastructure.yml up -d
-      ``` 
-      
-3. **Run image:**
-   - Add the necessary arguments before running the bash command otherwise the default \
-   ``--logname test --delete_prev --system streaming``
-   arguments will be added.
+2. **Streaming**
+
+Next lets test a streaming process. The curl request below will start a preprocess job that will monitor the events that 
+comes to a specific topic in kafka. Once new events appear in the topic, it will process them and store them in minio.
+The name of the log database will be equal to the logname that we provide in the curl request.
 ```bash
-docker compose run preprocess
+curl -X 'POST' 'http://localhost:8000/preprocess' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "spark_master": "local[*]",
+    "logname": "test_stream",
+    "system": "streaming"
+  }'
 ```
-
-4. **Send events:**
-   - You can send events with a Kafka Producer assigned to send events to your host IP by having \
-   ``boostrap_servers='your-host-IP:your-port'`` in your Kafka Producer, just like the one in ``stream_withTimestamp.py``
-   that can be found in the directory ``python_scripts``.
-
-
-
-The default execution will  generate 200 synthetic traces, 
-using 10 different event types, and lengths that vary from 10 to 90 events. The inverted indices will be stored
-using "test" as the logname. -->
+Once this is executed, we will see in the spark monitoring (http://localhost:4040/StreamingQuery/) that the queries are
+running. Next we can try and send some demo data using the send_events docker file.
+```bash
+docker build -t send_events -f dockerbase/send_events.Dockerfile .
+docker run --network siesta-net send_events
+```
+After that we will notice that the queries in the spark UI has kicked in and the events are processed and stored in the
+corresponding indices.
 
 ### Connection preprocess component with preexisting resources
 Connecting to already deployed databases or utilizing a spark cluster can be easily achieved with the use 
 of parameters. The only thing that you should make sure is that their urls are accessible
 by the docker container. this can be done by either making the url publicly available or by connecting the
 docker container in the same network (as done above with the siesta-net).
-- **Connect with spark cluster (with the api):** Change the value of the Spark master parameter before submitting the
+- **Connect with spark cluster:** Change the value of the Spark master parameter before submitting the
 preprocess job from "**local[*]**" to the resource manager's url. 
-- **Connect with S3:** Change the environmental values  that start with **s3**. These parameters include the contact point and the credentials required to achieve connection. If you have an S3 database deployed in AWS, you can change these parameters to store the build indices there. 
+- **Connect with S3:** Change the environmental values  that start with **s3**. 
+These parameters include the contact point and the credentials required to achieve connection.
+If you have an S3 database deployed in AWS, you can change these parameters to store the build indices there. Note that
+environmental parameters can be easily set with the use of the http://localhost:8000/setting_vars request,
+that can both read and override the parameters inside the preprocess container. Complete list of all the supported
+requests, the required formats and their descriptions can be found in the [docs](http://localhost:8000/docs/).
 
 
 
@@ -161,18 +162,22 @@ Management logfiles and "**.withTimestamp**", which is a generic file format gen
 connector can be easily implemented in the _auth.datalab.siesta.BusinessLogic.IngestData.ReadLogFile_. 
 
 You can either submit a file to be preprocessed through the User Interface (Preprocessing tab), through the FastAPI docs
-or in the standalone format. For the last one you need to take 2 steps.
-First ensure that the
-logfile is visible inside the docker container and second execute the preprocessing with the appropriate
-parameters. Therefore, place the logfile you want to preprocess inside the _experiments/input_ file. 
-Assuming that the logfile is named "log.xes" and the indices should have the name "log" run the following
-command from the root directory:
-
-
+or simply place it inside the _experiments/input_ folder. Since there is already a volume set between this folder and
+the folder where preprocess stores the uploaded files. Assuming that the logfile is correctly placed, and it is
+named "log.xes", and the indices should have the name "log" run the following curl command:
 ```bash
-docker run  --mount type=bind,source="$(pwd)"/experiments/input,target=/app/input \
-  preprocess -f /app/input/log.xes --logname log
+curl -X 'POST' 'http://localhost:8000/preprocess' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "spark_master": "local[*]",
+    "logname": "log",
+    "file": "uploadedfiles/log.xes"
+  }'
 ```
+Since we currently only allow one execution of the preprocess per docker container, you can stop a streaming process by
+sending a post request to the http://localhost:8000/stop_streaming/ endpoint. You can choose however, to run
+multiple containers of the preprocess image as long as you choose different ports for the APIs (and also make 
+sure that you have enough resources for spark).
 
 ### Complete list of parameters:
 ```
