@@ -8,8 +8,8 @@
 
 The architecture of SIESTA consists of two main components: the preprocessing component and the query processor.
 The preprocessing component (implemented in this repo) is responsible for handling continuously arriving logs and 
-computing the appropriate indices, while the [query processor](https://github.com/mavroudo/SequenceDetectionQueryExecutor)
-utilizes the stored indices to perform efficient pattern analysis. Pattern analysis consists corresponds to various tasks, including pattern detection, pattern mining and pattern exploration. You can find detailed instructions of how to deploy the complete infrastracture, along with complete list of all our publications in [this](https://github.com/siesta-tool/siesta-demo) repository
+computing the appropriate indices, while the [Query Processor](https://github.com/mavroudo/SequenceDetectionQueryExecutor)
+utilizes the stored indices to perform efficient pattern analysis. Pattern analysis corresponds to various tasks, including pattern detection, pattern mining and pattern exploration. You can find detailed instructions of how to deploy the complete infrastracture, along with complete list of all our publications in [this](https://github.com/siesta-tool/siesta-demo) repository.
 
 ### Preprocess Component
 This module processes the provided logfile using Apache Spark, a framework specifically designed for big data projects, 
@@ -24,8 +24,8 @@ as long as the events contain an event type, a timestamp, and correspond to a sp
 
 ### Build and run with Intellij IDEA
 Before configuring JetBrain's IDE to compile and run the component, ensure you're running an S3/minio instance 
-(probably in docker container). We suppose minio is running at http://localhost:9000 (See instructions on how to run 
-the S3 database in the next section's notes.)
+(probably through a docker container). Assuming that an instance of minio is running at http://localhost:9000 (See instructions on how to run 
+the S3 database in the next section's notes) we move to the next steps.
 #### Requirements
 - Intellij IDEA
 - Java 11 JRE (can be downloaded from IDEA)
@@ -35,7 +35,7 @@ the S3 database in the next section's notes.)
    1. Select `Application` 
    2. Select `Java 11` JRE and compilation component (`-cp sequencedetectionpreprocess`)
    3. Select `auth.datalab.siesta.siesta_main` as Main class
-   4. Add as CLI arguments something like `--logname test --delete_prev`. Check [configuration options](https://github.com/siesta-tool/SequenceDetectionPreprocess/tree/master/src/main/scala/auth/datalab/siesta/CommandLineParser/Config.scala).
+   4. Add as CLI arguments something like `--logname test --delete_prev`. Check [configuration options](#complete-list-of-parameters).
    5. Add as environmental variables the following (modify wherever necessary)
       ````
       s3accessKeyAws=minioadmin;
@@ -52,9 +52,8 @@ the S3 database in the next section's notes.)
    1. Select `Application`
    2. Select `Java 11` JRE and compilation component (`-cp sequencedetectionpreprocess`)
    3. Select `auth.datalab.siesta.siesta_main` as Main class
-   4. Add the CLI argument `--system streaming` 
-   5. Add as CLI arguments something like `--logname test --delete_prev`. Check [configuration options](https://github.com/siesta-tool/SequenceDetectionPreprocess/tree/master/src/main/scala/auth/datalab/siesta/CommandLineParser/Config.scala).
-   6. Add as environmental variables the following (modify wherever necessary)
+   4. Add as CLI arguments something like `--logname test --delete_prev --system streaming`. Check [configuration options](#complete-list-of-parameters).
+   5. Add as environmental variables the following (modify wherever necessary)
       ````
       s3accessKeyAws=minioadmin;
       s3ConnectionTimeout=600000;
@@ -65,9 +64,7 @@ the S3 database in the next section's notes.)
       POSTGRES_ENDPOINT=localhost:5432/metrics;
       POSTGRES_PASSWORD=admin;
       POSTGRES_USERNAME=admin;
-   7. Change the ``OUTSIDE`` value of ``KAFKA_ADVERTISED_LISTENERS`` to the name of the address you wish to receive the messages (it should match the kafkaBroker environment variable).
-      - Local mode: Use //localhost:your-port (e.g. 9092)
-   8. Save the configuration file.
+   6. Save the configuration file.
 
 ### Getting Started with Docker
 Using Docker makes it easy to deploy the preprocess component. The following steps will guide you on how to run the component 
@@ -79,7 +76,7 @@ the preprocess component for a provided logfile using an already running Spark c
 - docker-compose
 
 1. **Create network:** In order for all the components to communicate they have to belong to the same network. Create
-a new network using the following command:
+a new docker network using the following command:
 ```bash
 docker network create --driver=bridge  siesta-net
 ```
@@ -88,22 +85,27 @@ docker network create --driver=bridge  siesta-net
 ```bash
 docker-compose up -d 
 ```
-This will build and run the preprocessing component (along with the Rest API) and also deploy an open source version of the S3, i.e., Minio and will create the required backet.
+This will build and run the preprocessing component (along with the Rest API, which is used to access preprocesses capabilities through API requests) and deploy the required infrastructure. This includes an open source version of the S3, i.e., Minio, a Postgre database and Apache Kafka. Finally, docker compose will execute scripts that create the required backet for the data to be stored and create a topic in kafka.
 
 #### Notes
 1. In some cases the composing command runs with a similar form (if the above is not working): `docker compose up -d`
-2. You can access the different services from the following endpoints:
-   - FastAPI: http://localhost:8000/#docs
+2. Apache Kafka and Postgres are used for when the data are read as event stream. Ensure that the the ``OUTSIDE`` value of ``KAFKA_ADVERTISED_LISTENERS`` in docker-compose is set to the name of the address you wish to receive the messages (it should match the kafkaBroker environment variable in InteliJ). _Local mode:_ //localhost:your-port (e.g. 9092)
+3. You can access the different services from the following endpoints:
+   - FastAPI: http://localhost:8000/docs
    - S3: http://localhost:9000 (default username/password: minionadmin/minioadmin)
-3. In case you want to run only the minio/S3 component (e.g., when developing on this codebase), you may start only 
+4. In case you want to run only the minio/S3 component (e.g., when developing on this codebase), you may start only 
    the corresponding service:
    ```bash
    docker-compose up -d minio
    ```
    You may also start the `createbuckets` service, if you're running it for the first time in your machine.
 
+### Test the execution of the preprocess component
+After the deployment of the entire infrastructure (and assuming that everything run correctly) lets test the execution of the preprocess mode. We will evaluate both batch and streaming mode using testing data. All commands will be submitting using the REST API.
+1. **Batching**
 
-### Build the preprocess component without the Rest API 
+
+<!-- ### Build and run the preprocess component without the Infrastructure 
 1. **Build Docker image:** From the root directory run the following command:
 ```bash
 docker compose build preprocess 
@@ -140,7 +142,7 @@ docker compose run preprocess
 
 The default execution will  generate 200 synthetic traces, 
 using 10 different event types, and lengths that vary from 10 to 90 events. The inverted indices will be stored
-using "test" as the logname.
+using "test" as the logname. -->
 
 ### Connection preprocess component with preexisting resources
 Connecting to already deployed databases or utilizing a spark cluster can be easily achieved with the use 
@@ -149,10 +151,7 @@ by the docker container. this can be done by either making the url publicly avai
 docker container in the same network (as done above with the siesta-net).
 - **Connect with spark cluster (with the api):** Change the value of the Spark master parameter before submitting the
 preprocess job from "**local[*]**" to the resource manager's url. 
-- **Connect with spark cluster (standalone):** Change the value of the "**--master**" parameter in the ENTRYPOINT of the 
-Dockerfile from "**local[*]**" to the resource manager's url. At the end build the image again before executing it.
-- **Connect with S3:** Change the values environmental parameters that start with **s3**.
-   These parameters include the contact point and the credentials required to achieve connection.
+- **Connect with S3:** Change the environmental values  that start with **s3**. These parameters include the contact point and the credentials required to achieve connection. If you have an S3 database deployed in AWS, you can change these parameters to store the build indices there. 
 
 
 
