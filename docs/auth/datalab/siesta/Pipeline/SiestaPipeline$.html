@@ -3,9 +3,9 @@
         <head>
           <meta http-equiv="X-UA-Compatible" content="IE=edge" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-          <title>SIESTA preprocess documentation  - auth.datalab.siesta.Pipeline.SiestaPipeline</title>
-          <meta name="description" content="SIESTA preprocess documentation - auth.datalab.siesta.Pipeline.SiestaPipeline" />
-          <meta name="keywords" content="SIESTA preprocess documentation auth.datalab.siesta.Pipeline.SiestaPipeline" />
+          <title>sequencedetectionpreprocess documentation  - auth.datalab.siesta.Pipeline.SiestaPipeline</title>
+          <meta name="description" content="sequencedetectionpreprocess documentation - auth.datalab.siesta.Pipeline.SiestaPipeline" />
+          <meta name="keywords" content="sequencedetectionpreprocess documentation auth.datalab.siesta.Pipeline.SiestaPipeline" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       
@@ -28,7 +28,7 @@
         </head>
         <body>
       <div id="search">
-        <span id="doc-title">SIESTA preprocess documentation<span id="doc-version"></span></span>
+        <span id="doc-title">sequencedetectionpreprocess documentation<span id="doc-version"></span></span>
         <span class="close-results"><span class="left">&lt;</span> Back</span>
         <div id="textfilter">
           <span class="input">
@@ -135,8 +135,12 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="auth.datalab.siesta">siesta</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title="This class describes the main pipeline of the index building."></a>
-                        <a href="" title="This class describes the main pipeline of the index building.">SiestaPipeline</a>
+                        <a class="object" href="" title=""></a>
+                        <a href="" title="">SiestaPipeline</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="SiestaStreamingPipeline$.html" title=""></a>
+                        <a href="SiestaStreamingPipeline$.html" title="">SiestaStreamingPipeline</a>
                       </li>
               </ul>
             </div>
@@ -165,11 +169,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class describes the main pipeline of the index building. The procedure includes the following steps:</p><ul><li>Initialize connection with db (configure spark, drop tables if needed, create the new ones)</li><li>Create/Load Metadata object from the configuration object</li><li>Load/Generate traces to be indexed (based on configuration passed)</li><li>Store traces to the SequenceTable</li><li>Extract single index and store it to SingleTable</li><li>Calculate event type pairs and the last timestamp that they occurred per trace (based on the SingleTable data)</li><li>Store inverted index using event type pairs in IndexTable</li><li>Store the last timestamp for each event type per trace in LastChecked table</li><li>Create/Load-merge statistics for each event type pair and store them in CountTable</li><li>Store the updated Metadata object
-   The methods that are used to perform the following procedures are described in
-   <a href="../BusinessLogic/DBConnector/index.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector">auth.datalab.siesta.BusinessLogic.DBConnector</a> so that SIESTA can be connected with a new database by simply
-   extend this class and implement the corresponding methods.
-</li></ul></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -313,7 +313,7 @@
               
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -382,7 +382,7 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -403,7 +403,7 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -456,7 +456,7 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -477,7 +477,7 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">

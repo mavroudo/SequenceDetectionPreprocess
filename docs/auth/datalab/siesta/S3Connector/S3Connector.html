@@ -3,9 +3,9 @@
         <head>
           <meta http-equiv="X-UA-Compatible" content="IE=edge" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-          <title>SIESTA preprocess documentation  - auth.datalab.siesta.S3Connector.S3Connector</title>
-          <meta name="description" content="SIESTA preprocess documentation - auth.datalab.siesta.S3Connector.S3Connector" />
-          <meta name="keywords" content="SIESTA preprocess documentation auth.datalab.siesta.S3Connector.S3Connector" />
+          <title>sequencedetectionpreprocess documentation  - auth.datalab.siesta.S3Connector.S3Connector</title>
+          <meta name="description" content="sequencedetectionpreprocess documentation - auth.datalab.siesta.S3Connector.S3Connector" />
+          <meta name="keywords" content="sequencedetectionpreprocess documentation auth.datalab.siesta.S3Connector.S3Connector" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       
@@ -28,7 +28,7 @@
         </head>
         <body>
       <div id="search">
-        <span id="doc-title">SIESTA preprocess documentation<span id="doc-version"></span></span>
+        <span id="doc-title">sequencedetectionpreprocess documentation<span id="doc-version"></span></span>
         <span class="close-results"><span class="left">&lt;</span> Back</span>
         <div id="textfilter">
           <span class="input">
@@ -135,12 +135,8 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="auth.datalab.siesta">siesta</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="" title="This class handles the communication between SIESTA and S3."></a>
-                        <a href="" title="This class handles the communication between SIESTA and S3.">S3Connector</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="S3Transformations$.html" title="This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline."></a>
-                        <a href="S3Transformations$.html" title="This class is responsible to transform the loaded data from S3 into RDDs to processed by the main pipeline.">S3Transformations</a>
+                        <a class="class" href="" title=""></a>
+                        <a href="" title="">S3Connector</a>
                       </li>
               </ul>
             </div>
@@ -169,11 +165,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class handles the communication between SIESTA and S3. It inherits all the signatures of the methods from
-<a href="../BusinessLogic/DBConnector/index.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector">auth.datalab.siesta.BusinessLogic.DBConnector</a> and overrides the reads and writes to match S3 properties.
-S3 stores data in parquet files. These files allow for objects to be stored and some indexing that enables efficient query.
-The drawback is that parquet files are immutable and thus in order to append new records to a preexisting parquet
-file we have to rewrite the whole file.</p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -336,7 +328,7 @@ file we have to rewrite the whole file.</p></div><div class="toggleContainer blo
               
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector#closeSpark" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -357,90 +349,6 @@ file we have to rewrite the whole file.</p></div><div class="toggleContainer blo
       <p class="shortcomment cmt">Closes spark connection
 </p><div class="fullcomment"><div class="comment cmt"><p>Closes spark connection
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector#combine_count_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="combine_count_table(newCounts:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count],prevCounts:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count]"></a><a id="combine_count_table(RDD[Count],RDD[Count],MetaData):RDD[Count]"></a>
-      <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#combine_count_table(newCounts:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count],prevCounts:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">combine_count_table</span><span class="params">(<span name="newCounts">newCounts: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Count.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Count">Count</a>]</span>, <span name="prevCounts">prevCounts: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Count.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Count">Count</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Count.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Count">Count</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Combine the newly generated count records with the ones previously stored in the database</p><div class="fullcomment"><div class="comment cmt"><p>Combine the newly generated count records with the ones previously stored in the database</p></div><dl class="paramcmts block"><dt class="param">newCounts</dt><dd class="cmt"><p>Newly generated count records</p></dd><dt class="param">prevCounts</dt><dd class="cmt"><p>Count records stored in the database</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>The combined count records</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector#combine_index_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="combine_index_table(newPairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],prevPairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,intervals:List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]"></a><a id="combine_index_table(RDD[PairFull],RDD[PairFull],MetaData,List[Interval]):RDD[PairFull]"></a>
-      <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#combine_index_table(newPairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],prevPairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,intervals:List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">combine_index_table</span><span class="params">(<span name="newPairs">newPairs: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>, <span name="prevPairs">prevPairs: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>, <span name="intervals">intervals: <span class="extype" name="scala.List">List</span>[<a href="../BusinessLogic/Model/Structs$$Interval.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Interval">Interval</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Combine the two RDDs with the event type pairs
-</p><div class="fullcomment"><div class="comment cmt"><p>Combine the two RDDs with the event type pairs
-</p></div><dl class="paramcmts block"><dt class="param">newPairs</dt><dd class="cmt"><p>The newly generated event type pairs</p></dd><dt class="param">prevPairs</dt><dd class="cmt"><p>The previously stored event type pairs, during the corresponding intervals</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt class="param">intervals</dt><dd class="cmt"><p>The period of times that the pairs will be splitted</p></dd><dt>returns</dt><dd class="cmt"><p>The combined event type pairs</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector#combine_last_checked_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="combine_last_checked_table(newLastChecked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked],previousLastChecked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]"></a><a id="combine_last_checked_table(RDD[LastChecked],RDD[LastChecked]):RDD[LastChecked]"></a>
-      <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#combine_last_checked_table(newLastChecked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked],previousLastChecked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">combine_last_checked_table</span><span class="params">(<span name="newLastChecked">newLastChecked: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>, <span name="previousLastChecked">previousLastChecked: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Combines the newly calculated with the previous stored records of last checked</p><div class="fullcomment"><div class="comment cmt"><p>Combines the newly calculated with the previous stored records of last checked</p></div><dl class="paramcmts block"><dt class="param">newLastChecked</dt><dd class="cmt"><p>new records for the last checked</p></dd><dt class="param">previousLastChecked</dt><dd class="cmt"><p>already stored records for the last checked values</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector#combine_sequence_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="combine_sequence_table(newSequences:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence],previousSequences:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]"></a><a id="combine_sequence_table(RDD[Sequence],RDD[Sequence]):RDD[Sequence]"></a>
-      <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#combine_sequence_table(newSequences:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence],previousSequences:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">combine_sequence_table</span><span class="params">(<span name="newSequences">newSequences: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>, <span name="previousSequences">previousSequences: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">This method is responsible to combine the newly arrived events with the ones previously stored,
-in order to support incremental indexing.</p><div class="fullcomment"><div class="comment cmt"><p>This method is responsible to combine the newly arrived events with the ones previously stored,
-in order to support incremental indexing.</p></div><dl class="paramcmts block"><dt class="param">newSequences</dt><dd class="cmt"><p>The new sequences to be indexed</p></dd><dt class="param">previousSequences</dt><dd class="cmt"><p>The previous sequences that are already indexed</p></dd><dt>returns</dt><dd class="cmt"><p>A combined rdd with all the traces combined</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector#combine_single_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="combine_single_table(newSingle:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull],previousSingle:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]"></a><a id="combine_single_table(RDD[InvertedSingleFull],RDD[InvertedSingleFull]):RDD[InvertedSingleFull]"></a>
-      <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#combine_single_table(newSingle:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull],previousSingle:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">combine_single_table</span><span class="params">(<span name="newSingle">newSingle: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>, <span name="previousSingle">previousSingle: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Combine new and previous entries in the Single table</p><div class="fullcomment"><div class="comment cmt"><p>Combine new and previous entries in the Single table</p></div><dl class="paramcmts block"><dt class="param">newSingle</dt><dd class="cmt"><p>New events in single table</p></dd><dt class="param">previousSingle</dt><dd class="cmt"><p>Previous events stored in single table</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the combined entries</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -491,7 +399,7 @@ in order to support incremental indexing.</p></div><dl class="paramcmts block"><
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#get_metadata" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -532,7 +440,7 @@ new presented in the config object
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#initialize_db" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -621,7 +529,7 @@ new presented in the config object
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -642,81 +550,9 @@ new presented in the config object
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="auth.datalab.siesta.S3Connector.S3Connector#read_count_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="read_count_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count]"></a><a id="read_count_table(MetaData):RDD[Count]"></a>
-      <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#read_count_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Count]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">read_count_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Count.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Count">Count</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Loads previously stored data in the CountTable
-</p><div class="fullcomment"><div class="comment cmt"><p>Loads previously stored data in the CountTable
-</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>The data stored in the count table</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
-    </li><li name="auth.datalab.siesta.S3Connector.S3Connector#read_index_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="read_index_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]"></a><a id="read_index_table(MetaData):RDD[PairFull]"></a>
-      <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#read_index_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">read_index_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Loads all the indexed pairs from the IndexTable.</p><div class="fullcomment"><div class="comment cmt"><p>Loads all the indexed pairs from the IndexTable. Mainly used for testing reasons.
-Advice: use the above method.
-</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>Loaded indexed pairs from IndexTable</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
-    </li><li name="auth.datalab.siesta.S3Connector.S3Connector#read_index_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="read_index_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,intervals:List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]"></a><a id="read_index_table(MetaData,List[Interval]):RDD[PairFull]"></a>
-      <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#read_index_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,intervals:List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">read_index_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>, <span name="intervals">intervals: <span class="extype" name="scala.List">List</span>[<a href="../BusinessLogic/Model/Structs$$Interval.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Interval">Interval</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Loads data from the IndexTable that correspond to the given intervals.</p><div class="fullcomment"><div class="comment cmt"><p>Loads data from the IndexTable that correspond to the given intervals. These data will be merged with
-the newly calculated pairs, before written back to the database.
-</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt class="param">intervals</dt><dd class="cmt"><p>The period of times that the pairs will be splitted (thus require to combine with previous pairs,
-                 if there are any in these periods)</p></dd><dt>returns</dt><dd class="cmt"><p>Loaded records from IndexTable for the given intervals</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
-    </li><li name="auth.datalab.siesta.S3Connector.S3Connector#read_last_checked_partitioned_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="read_last_checked_partitioned_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,partitions:List[Long]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]"></a><a id="read_last_checked_partitioned_table(MetaData,List[Long]):RDD[LastChecked]"></a>
-      <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#read_last_checked_partitioned_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,partitions:List[Long]):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">read_last_checked_partitioned_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>, <span name="partitions">partitions: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Long">Long</span>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$LastChecked.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked">LastChecked</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Returns records from LastChecked Table that corresponds to the given partitions</p><div class="fullcomment"><div class="comment cmt"><p>Returns records from LastChecked Table that corresponds to the given partitions</p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt class="param">partitions</dt><dd class="cmt"><p>Contains the partitions of the required records from LastChecked. If the list is empty all
-                  the records from LastChecked will be read.</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the last timestamps per event type pair per trace</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#read_last_checked_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="read_last_checked_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked]"></a><a id="read_last_checked_table(MetaData):RDD[LastChecked]"></a>
       <span class="permalink">
@@ -739,9 +575,9 @@ Loads data from the LastChecked Table, which contains the  information of the la
 per trace.
 </p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the last timestamps per event type pair per trace</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#read_sequence_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="read_sequence_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]"></a><a id="read_sequence_table(MetaData):RDD[Sequence]"></a>
+      <a id="read_sequence_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,detailed:Boolean):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.EventTrait]"></a><a id="read_sequence_table(MetaData,Boolean):RDD[EventTrait]"></a>
       <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#read_sequence_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]" title="Permalink">
+      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#read_sequence_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,detailed:Boolean):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.EventTrait]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -750,16 +586,16 @@ per trace.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">read_sequence_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>
+        <span class="name">read_sequence_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>, <span name="detailed">detailed: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/EventTrait.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.EventTrait">EventTrait</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Read data as an rdd from the SeqTable
 </p><div class="fullcomment"><div class="comment cmt"><p>Read data as an rdd from the SeqTable
 </p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#read_single_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="read_single_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]"></a><a id="read_single_table(MetaData):RDD[InvertedSingleFull]"></a>
+      <a id="read_single_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Event]"></a><a id="read_single_table(MetaData):RDD[Event]"></a>
       <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#read_single_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]" title="Permalink">
+      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#read_single_table(metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Event]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -768,7 +604,7 @@ per trace.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">read_single_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>
+        <span class="name">read_single_table</span><span class="params">(<span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Event.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Event">Event</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Loads the single inverted index from S3, stored in the SingleTable
@@ -893,9 +729,9 @@ per trace.
 </p><div class="fullcomment"><div class="comment cmt"><p>Writes count to countTable
 </p></div><dl class="paramcmts block"><dt class="param">counts</dt><dd class="cmt"><p>Calculated basic statistics per event type pair in order to be stored in the count table</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#write_index_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="write_index_table(newPairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,intervals:List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval]):Unit"></a><a id="write_index_table(RDD[PairFull],MetaData,List[Interval]):Unit"></a>
+      <a id="write_index_table(newPairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):Unit"></a><a id="write_index_table(RDD[PairFull],MetaData):Unit"></a>
       <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#write_index_table(newPairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,intervals:List[auth.datalab.siesta.BusinessLogic.Model.Structs.Interval]):Unit" title="Permalink">
+      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#write_index_table(newPairs:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -904,12 +740,12 @@ per trace.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">write_index_table</span><span class="params">(<span name="newPairs">newPairs: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>, <span name="intervals">intervals: <span class="extype" name="scala.List">List</span>[<a href="../BusinessLogic/Model/Structs$$Interval.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Interval">Interval</a>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">write_index_table</span><span class="params">(<span name="newPairs">newPairs: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$PairFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.PairFull">PairFull</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
       <p class="shortcomment cmt">Write the combined pairs back to the S3, grouped by the interval and the first event
 </p><div class="fullcomment"><div class="comment cmt"><p>Write the combined pairs back to the S3, grouped by the interval and the first event
-</p></div><dl class="paramcmts block"><dt class="param">newPairs</dt><dd class="cmt"><p>The newly generated pairs</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt class="param">intervals</dt><dd class="cmt"><p>The period of times that the pairs will be splitted</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">newPairs</dt><dd class="cmt"><p>The newly generated pairs</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#write_last_checked_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="write_last_checked_table(lastChecked:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastChecked],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):Unit"></a><a id="write_last_checked_table(RDD[LastChecked],MetaData):Unit"></a>
       <span class="permalink">
@@ -949,9 +785,9 @@ per trace.
 </p><div class="fullcomment"><div class="comment cmt"><p>Persists metadata
 </p></div><dl class="paramcmts block"><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#write_sequence_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="write_sequence_table(sequenceRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastPosition]"></a><a id="write_sequence_table(RDD[Sequence],MetaData):RDD[LastPosition]"></a>
+      <a id="write_sequence_table(sequenceRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.EventTrait],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,detailed:Boolean):Unit"></a><a id="write_sequence_table(RDD[EventTrait],MetaData,Boolean):Unit"></a>
       <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#write_sequence_table(sequenceRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.LastPosition]" title="Permalink">
+      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#write_sequence_table(sequenceRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.EventTrait],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData,detailed:Boolean):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -960,18 +796,16 @@ per trace.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">write_sequence_table</span><span class="params">(<span name="sequenceRDD">sequenceRDD: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$LastPosition.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.LastPosition">LastPosition</a>]</span>
+        <span class="name">write_sequence_table</span><span class="params">(<span name="sequenceRDD">sequenceRDD: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/EventTrait.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.EventTrait">EventTrait</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>, <span name="detailed">detailed: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
       <p class="shortcomment cmt">This method writes traces to the auxiliary SeqTable.</p><div class="fullcomment"><div class="comment cmt"><p>This method writes traces to the auxiliary SeqTable. Since RDD will be used as intermediate results it is already persisted
-and should not be modified.
-This method should combine the results with previous ones and return them to the main pipeline.
-Additionally updates metaData object
-</p></div><dl class="paramcmts block"><dt class="param">sequenceRDD</dt><dd class="cmt"><p>The RDD containing the traces</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd><dt>returns</dt><dd class="cmt"><p>An RDD with the last position of the event stored per trace</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+and should not be modified. Additionally, updates metaData object
+</p></div><dl class="paramcmts block"><dt class="param">sequenceRDD</dt><dd class="cmt"><p>The RDD containing the traces with the new events</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li><li name="auth.datalab.siesta.S3Connector.S3Connector#write_single_table" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="write_single_table(singleRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]"></a><a id="write_single_table(RDD[InvertedSingleFull],MetaData):RDD[InvertedSingleFull]"></a>
+      <a id="write_single_table(sequenceRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.EventTrait],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):Unit"></a><a id="write_single_table(RDD[EventTrait],MetaData):Unit"></a>
       <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#write_single_table(singleRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull]" title="Permalink">
+      <a href="../../../../auth/datalab/siesta/S3Connector/S3Connector.html#write_single_table(sequenceRDD:org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.EventTrait],metaData:auth.datalab.siesta.BusinessLogic.Metadata.MetaData):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -980,14 +814,12 @@ Additionally updates metaData object
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">write_single_table</span><span class="params">(<span name="singleRDD">singleRDD: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/Structs$$InvertedSingleFull.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.InvertedSingleFull">InvertedSingleFull</a>]</span>
+        <span class="name">write_single_table</span><span class="params">(<span name="sequenceRDD">sequenceRDD: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../BusinessLogic/Model/EventTrait.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.EventTrait">EventTrait</a>]</span>, <span name="metaData">metaData: <a href="../BusinessLogic/Metadata/MetaData.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData">MetaData</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
       <p class="shortcomment cmt">This method writes traces to the auxiliary SingleTable.</p><div class="fullcomment"><div class="comment cmt"><p>This method writes traces to the auxiliary SingleTable. The rdd that comes to this method is not persisted.
-Database should persist it before store it and unpersist it at the end.
-This method should combine the results with the ones previously stored and return them to the main pipeline.
-Additionally updates metaData object.
-</p></div><dl class="paramcmts block"><dt class="param">singleRDD</dt><dd class="cmt"><p>Contains the newly indexed events in a form of single inverted index</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
+Database should persist it before store it and unpersist it at the end. Additionally, updates metaData object.
+</p></div><dl class="paramcmts block"><dt class="param">sequenceRDD</dt><dd class="cmt"><p>Contains the newly indexed events in a form of single inverted index</p></dd><dt class="param">metaData</dt><dd class="cmt"><p>Object containing the metadata</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="auth.datalab.siesta.S3Connector.S3Connector">S3Connector</a> → <a href="../BusinessLogic/DBConnector/DBConnector.html" class="extype" name="auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector">DBConnector</a></dd></dl></div>
     </li>
               </ol>
             </div>
