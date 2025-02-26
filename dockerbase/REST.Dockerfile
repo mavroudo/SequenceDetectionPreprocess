@@ -9,13 +9,13 @@ apt-get update && apt-get install -y sbt=1.10.0
 
 
 RUN mkdir /app
-COPY build.sbt /app/build.sbt
+COPY dockerbase/build.sbt /app/build.sbt
 COPY src /app/src
 COPY project /app/project
 
 WORKDIR /app
 RUN sbt clean assembly
-RUN mv target/scala-2.12/app-assembly-3.0.0.jar preprocess.jar
+RUN mv target/scala-2.12/app-assembly-0.1.jar preprocess.jar
 
 
 FROM ubuntu:20.04 AS execution

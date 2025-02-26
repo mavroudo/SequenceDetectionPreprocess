@@ -1,39 +1,22 @@
 services:
-  event_sender:
-    build:
-      context: .
-      dockerfile: dockerbase/send_events.Dockerfile
-
-    networks:
-    - siesta-net
-
-  preprocess:
-    build:
-      context: .
-      dockerfile: dockerbase/REST.Dockerfile
+  minio:
+    container_name: minio
+    image: minio/minio:RELEASE.2023-11-01T01-57-10Z
     ports:
-      - "8000:8000"
-      - "4040:4040"
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_storage:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server --console-address ":9001" /data
     networks:
       - siesta-net
-    volumes:
-      - preprocesses:/app/pythonAPI/dbSQL
-      - ./experiments/input:/app/pythonAPI/uploadedfiles
-    environment:
-      kafkaBroker: "siesta-kafka:9092"
-      kafkaTopic: test
-      POSTGRES_ENDPOINT: "siesta-postgres:5432/metrics"
-      POSTGRES_PASSWORD: admin
-      POSTGRES_USERNAME: admin
-      s3accessKeyAws: minioadmin
-      s3ConnectionTimeout: 600000
-      s3endPointLoc: "minio:9000"
-      s3secretKeyAws: minioadmin
-
   zookeeper:
     image: wurstmeister/zookeeper:latest
     ports:
-    - "2181:2181"
+      - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     networks:
@@ -53,8 +36,8 @@ services:
       KAFKA_LISTENERS: INSIDE://:9093,OUTSIDE://:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock
+    #    volumes:
+    #      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - zookeeper
     networks:
@@ -78,9 +61,7 @@ services:
       "
     networks:
       - siesta-net
-
-
-  siesta-postgres:
+  postgres:
     container_name: siesta-postgres
     image: postgres:latest
     environment:
@@ -91,23 +72,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    networks:
-      - siesta-net
-
-
-
-  minio:
-    container_name: minio
-    image: minio/minio:RELEASE.2023-11-01T01-57-10Z
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_storage:/data
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server --console-address ":9001" /data
     networks:
       - siesta-net
 
@@ -125,6 +89,32 @@ services:
     networks:
       - siesta-net
 
+  preprocess:
+    build:
+      context: .
+      dockerfile: dockerbase/REST.Dockerfile
+    ports:
+      - "8000:8000"
+      - "4040:4040"
+    networks:
+      - siesta-net
+    volumes:
+      - preprocesses:/app/pythonAPI/dbSQL
+      - ./experiments/input:/app/pythonAPI/uploadedfiles
+    environment:
+      s3accessKeyAws: minioadmin
+      s3ConnectionTimeout: 600000
+      s3endPointLoc: http://minio:9000
+      s3secretKeyAws: minioadmin
+
+x-disabled:
+  send_events: #send example events in form .withTimestamp
+    build:
+      context: .
+      dockerfile: send_events.Dockerfile
+    networks:
+      - siesta-net
+
 
 networks:
   siesta-net:
@@ -134,4 +124,4 @@ networks:
 volumes:
   minio_storage: {}
   preprocesses: {}
-  postgres-data: { }
+  postgres-data: {}

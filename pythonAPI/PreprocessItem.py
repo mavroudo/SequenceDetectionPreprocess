@@ -28,12 +28,14 @@ class PreprocessItem(BaseModel):
         s += f" --system {self.system}"
         s += f" -c {self.compression}"
         if self.system != "streaming":
-            s += f" -f uploadedfiles/{self.file}"
+            if self.file != "synthetic":
+                s += f" -f uploadedfiles/{self.file}"
+            else:
+                s += f" -f {self.file}"
         s += f" --logname {self.logname}"
         if self.delete_all:
             s += f" --delete_all"
         if self.delete_prev:
             s += f" --delete_prev"
-#         s += f" -s {self.split_every_days}"
         s += f" --lookback {self.lookback}"
         return s

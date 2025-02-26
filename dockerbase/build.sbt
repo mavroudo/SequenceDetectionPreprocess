@@ -2,13 +2,13 @@ val sparkVersion = "3.5.4"
 val hadoopVersion= "3.3.4"
 
 ThisBuild / name := "Siesta"
-ThisBuild / version := "3.0.0"
+ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.12.17"
 ThisBuild / organization := "auth.datalab"
 
 ThisBuild / Test / parallelExecution := false
 
-test in assembly := {}
+assembly / test := {}
 
 assembly / mainClass := Some("auth.datalab.siesta.siesta_main")
 
