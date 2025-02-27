@@ -42,6 +42,7 @@ object SiestaPipeline {
         dbConnector.write_sequence_table(detailedSequenceRDD, metadata, detailed = true)
         detailedSequenceRDD
       }
+      println("Number of events: " + sequenceRDD.count())
 
       implicit def ordered: Ordering[Timestamp] = (x: Timestamp, y: Timestamp) => {
         x compareTo y

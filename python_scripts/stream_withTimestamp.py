@@ -37,7 +37,7 @@ if __name__ == "__main__":
 #     file="../experiments/input/helpdesk.withTimestamp"
     eventsPerSecond=5000000000000000000000000
     #print("Streaming {} file, with {} events per second".format(file,eventsPerSecond))
-    producer = KafkaProducer(bootstrap_servers='localhost:9092',
+    producer = KafkaProducer(bootstrap_servers='siesta-kafka:9092',
                             value_serializer=lambda v: json.dumps(v).encode('utf-8'),
                             key_serializer=lambda k: str(k).encode('utf-8'))
     data= read_file(file)

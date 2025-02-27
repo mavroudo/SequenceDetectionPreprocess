@@ -1,80 +1,4 @@
-version: '3.7'
 services:
-  event_sender:
-    build:
-      context: .
-      dockerfile: dockerbase/send_events.Dockerfile
-
-    networks:
-    - siesta-net
-
-  preprocess:
-    build:
-      context: .
-      dockerfile: dockerbase/REST.Dockerfile
-    ports:
-      - "8000:8000"
-      - "4040:4040"
-    networks:
-      - siesta-net
-    volumes:
-      - preprocesses:/app/pythonAPI/dbSQL
-    environment:
-      #for cassandra
-      cassandra_host: cassandra
-      cassandra_port: 9042
-      cassandra_user: cassandra
-      cassandra_pass: cassandra
-      cassandra_keyspace_name: siesta
-      cassandra_replication_class: SimpleStrategy
-      cassandra_replication_rack: replication_factor
-      cassandra_replication_factor: 3
-      cassandra_write_consistency_level: ONE
-      cassandra_gc_grace_seconds: 864000
-      # for s3 (minio)
-      s3accessKeyAws: minioadmin
-      s3ConnectionTimeout: 600000
-      s3endPointLoc: http://minio:9000
-      s3secretKeyAws: minioadmin
-
-  query:
-    image: mavroudo/siesta-query:2
-    environment:
-      master.uri: local[4] # or local[*]
-      database: s3 # cassandra-rdd or s3
-      #for s3 (minio)
-      s3.endpoint: http://minio:9000
-      s3.user: minioadmin
-      s3.key: minioadmin
-      s3.timetout: 600000
-      #for cassandra
-      cassandra.max_requests_per_local_connection: 32768
-      cassandra.max_requests_per_remote_connection: 22000
-      cassandra.connections_per_host: 1000
-      cassandra.max_queue_size: 1024
-      cassandra.connection_timeout: 30000
-      cassandra.read_timeout: 30000
-      spring.data.cassandra.contact-points: cassandra
-      spring.data.cassandra.port: 9042
-      spring.data.cassandra.user: cassandra
-      spring.data.cassandra.password: cassandra
-      server.port: 8090 # port of the application
-    volumes:
-      - ./build:/root/.m2
-    ports:
-      - '8090:8090'
-    networks:
-      - siesta-net
-
-  ui:
-    image: mavroudo/siesta-ui:2
-    ports:
-      - "80:80"
-      # if you want to modify the base url (for setting it to a server, add and modify the config.json file
-  #    volumes:
-  #      - ./config.json:/usr/share/nginx/html/config.json
-
-
   minio:
     container_name: minio
     image: minio/minio:RELEASE.2023-11-01T01-57-10Z
@@ -87,6 +11,67 @@ services:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     command: server --console-address ":9001" /data
+    networks:
+      - siesta-net
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - siesta-net
+
+  kafka:
+    container_name: siesta-kafka
+    image: wurstmeister/kafka:latest
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9093,OUTSIDE://siesta-kafka:9092
+      KAFKA_LISTENERS: INSIDE://:9093,OUTSIDE://:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    #    volumes:
+    #      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zookeeper
+    networks:
+      - siesta-net
+
+  init-kafka:
+    image: confluentinc/cp-kafka:6.1.1
+    depends_on:
+      - kafka
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka:9093 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:9093 --create --if-not-exists --topic test --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:9093 --list
+      "
+    networks:
+      - siesta-net
+  postgres:
+    container_name: siesta-postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: metrics
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - siesta-net
 
@@ -104,6 +89,32 @@ services:
     networks:
       - siesta-net
 
+  preprocess:
+    build:
+      context: .
+      dockerfile: dockerbase/REST.Dockerfile
+    ports:
+      - "8000:8000"
+      - "4040:4040"
+    networks:
+      - siesta-net
+    volumes:
+      - preprocesses:/app/pythonAPI/dbSQL
+      - ./experiments/input:/app/pythonAPI/uploadedfiles
+    environment:
+      s3accessKeyAws: minioadmin
+      s3ConnectionTimeout: 600000
+      s3endPointLoc: http://minio:9000
+      s3secretKeyAws: minioadmin
+
+x-disabled:
+  send_events: #send example events in form .withTimestamp
+    build:
+      context: .
+      dockerfile: send_events.Dockerfile
+    networks:
+      - siesta-net
+
 
 networks:
   siesta-net:
@@ -113,3 +124,4 @@ networks:
 volumes:
   minio_storage: {}
   preprocesses: {}
+  postgres-data: {}

@@ -3,9 +3,9 @@
         <head>
           <meta http-equiv="X-UA-Compatible" content="IE=edge" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-          <title>SIESTA preprocess documentation  - auth.datalab.siesta.BusinessLogic.Metadata.MetaData</title>
-          <meta name="description" content="SIESTA preprocess documentation - auth.datalab.siesta.BusinessLogic.Metadata.MetaData" />
-          <meta name="keywords" content="SIESTA preprocess documentation auth.datalab.siesta.BusinessLogic.Metadata.MetaData" />
+          <title>sequencedetectionpreprocess documentation  - auth.datalab.siesta.BusinessLogic.Metadata.MetaData</title>
+          <meta name="description" content="sequencedetectionpreprocess documentation - auth.datalab.siesta.BusinessLogic.Metadata.MetaData" />
+          <meta name="keywords" content="sequencedetectionpreprocess documentation auth.datalab.siesta.BusinessLogic.Metadata.MetaData" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       
@@ -28,7 +28,7 @@
         </head>
         <body>
       <div id="search">
-        <span id="doc-title">SIESTA preprocess documentation<span id="doc-version"></span></span>
+        <span id="doc-title">sequencedetectionpreprocess documentation<span id="doc-version"></span></span>
         <span class="close-results"><span class="left">&lt;</span> Back</span>
         <div id="textfilter">
           <span class="input">
@@ -180,15 +180,15 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">MetaData</span><span class="params">(<span name="traces">traces: <span class="extype" name="scala.Long">Long</span></span>, <span name="events">events: <span class="extype" name="scala.Long">Long</span></span>, <span name="pairs">pairs: <span class="extype" name="scala.Long">Long</span></span>, <span name="lookback">lookback: <span class="extype" name="scala.Int">Int</span></span>, <span name="split_every_days">split_every_days: <span class="extype" name="scala.Int">Int</span></span>, <span name="last_interval">last_interval: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="has_previous_stored">has_previous_stored: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="filename">filename: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="log_name">log_name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="mode">mode: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="compression">compression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="last_checked_split">last_checked_split: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span> with <span class="extype" name="scala.Product">Product</span></span>
+        <span class="name">MetaData</span><span class="params">(<span name="traces">traces: <span class="extype" name="scala.Long">Long</span></span>, <span name="events">events: <span class="extype" name="scala.Long">Long</span></span>, <span name="pairs">pairs: <span class="extype" name="scala.Long">Long</span></span>, <span name="lookback">lookback: <span class="extype" name="scala.Int">Int</span></span>, <span name="has_previous_stored">has_previous_stored: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="filename">filename: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="streaming">streaming: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="log_name">log_name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="mode">mode: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="compression">compression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="start_ts">start_ts: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="last_ts">last_ts: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="last_declare_mined">last_declare_mined: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span> with <span class="extype" name="scala.Product">Product</span></span>
       </span>
       </h4>
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class describes the metadata object. This object is stored in the database and maintains some key statistics for
 the log database (e.g. the number of traces, the number of event type pairs) as well as other important parameters
-(e.g. the compression algorithm that will be used, the values for lookback and split_every_days etc)</p></div><dl class="paramcmts block"><dt class="param">traces</dt><dd class="cmt"><p>The number of indexed traces</p></dd><dt class="param">events</dt><dd class="cmt"><p>The number of indexed events</p></dd><dt class="param">pairs</dt><dd class="cmt"><p>The number of indexed pairs</p></dd><dt class="param">lookback</dt><dd class="cmt"><p>The value for the parameter lookback</p></dd><dt class="param">split_every_days</dt><dd class="cmt"><p>The value for the parameter split_every_days</p></dd><dt class="param">last_interval</dt><dd class="cmt"><p>The last interval stored in the database</p></dd><dt class="param">has_previous_stored</dt><dd class="cmt"><p>Flag parameter, shows if there are previously indexed traces in this log database</p></dd><dt class="param">filename</dt><dd class="cmt"><p>The name of the last log file indexed in this log database</p></dd><dt class="param">log_name</dt><dd class="cmt"><p>The name of the log database</p></dd><dt class="param">mode</dt><dd class="cmt"><p>Set to timestamps/positions depending on if the timestamps are stored in the IndexTable or just the events
-            positions</p></dd><dt class="param">compression</dt><dd class="cmt"><p>The compression algorithm that will be used while storing the tables in the database.</p></dd></dl><div class="toggleContainer block">
+(e.g. the compression algorithm that will be used, the values for lookback and split_every_days etc)</p></div><dl class="paramcmts block"><dt class="param">traces</dt><dd class="cmt"><p>The number of indexed traces</p></dd><dt class="param">events</dt><dd class="cmt"><p>The number of indexed events</p></dd><dt class="param">pairs</dt><dd class="cmt"><p>The number of indexed pairs</p></dd><dt class="param">lookback</dt><dd class="cmt"><p>The value for the parameter lookback</p></dd><dt class="param">has_previous_stored</dt><dd class="cmt"><p>Flag parameter, shows if there are previously indexed traces in this log database</p></dd><dt class="param">filename</dt><dd class="cmt"><p>The name of the last log file indexed in this log database</p></dd><dt class="param">log_name</dt><dd class="cmt"><p>The name of the log database</p></dd><dt class="param">mode</dt><dd class="cmt"><p>Set to timestamps/positions depending on if the timestamps are stored in the IndexTable or just the events
+            positions</p></dd><dt class="param">compression</dt><dd class="cmt"><p>The compression algorithm that will be used while storing the tables in the database.</p></dd><dt class="param">start_ts</dt><dd class="cmt"><p>The timestamp of the first event</p></dd><dt class="param">last_ts</dt><dd class="cmt"><p>The timestamp of the last event</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -239,9 +239,9 @@ the log database (e.g. the number of traces, the number of event type pairs) as 
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(traces:Long,events:Long,pairs:Long,lookback:Int,split_every_days:Int,last_interval:String,has_previous_stored:Boolean,filename:String,log_name:String,mode:String,compression:String,last_checked_split:Int):auth.datalab.siesta.BusinessLogic.Metadata.MetaData"></a><a id="&lt;init&gt;:MetaData"></a>
+      <a id="&lt;init&gt;(traces:Long,events:Long,pairs:Long,lookback:Int,has_previous_stored:Boolean,filename:String,streaming:Boolean,log_name:String,mode:String,compression:String,start_ts:String,last_ts:String,last_declare_mined:String):auth.datalab.siesta.BusinessLogic.Metadata.MetaData"></a><a id="&lt;init&gt;:MetaData"></a>
       <span class="permalink">
-      <a href="../../../../../auth/datalab/siesta/BusinessLogic/Metadata/MetaData.html#&lt;init&gt;(traces:Long,events:Long,pairs:Long,lookback:Int,split_every_days:Int,last_interval:String,has_previous_stored:Boolean,filename:String,log_name:String,mode:String,compression:String,last_checked_split:Int):auth.datalab.siesta.BusinessLogic.Metadata.MetaData" title="Permalink">
+      <a href="../../../../../auth/datalab/siesta/BusinessLogic/Metadata/MetaData.html#&lt;init&gt;(traces:Long,events:Long,pairs:Long,lookback:Int,has_previous_stored:Boolean,filename:String,streaming:Boolean,log_name:String,mode:String,compression:String,start_ts:String,last_ts:String,last_declare_mined:String):auth.datalab.siesta.BusinessLogic.Metadata.MetaData" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -250,11 +250,11 @@ the log database (e.g. the number of traces, the number of event type pairs) as 
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">MetaData</span><span class="params">(<span name="traces">traces: <span class="extype" name="scala.Long">Long</span></span>, <span name="events">events: <span class="extype" name="scala.Long">Long</span></span>, <span name="pairs">pairs: <span class="extype" name="scala.Long">Long</span></span>, <span name="lookback">lookback: <span class="extype" name="scala.Int">Int</span></span>, <span name="split_every_days">split_every_days: <span class="extype" name="scala.Int">Int</span></span>, <span name="last_interval">last_interval: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="has_previous_stored">has_previous_stored: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="filename">filename: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="log_name">log_name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="mode">mode: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="compression">compression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="last_checked_split">last_checked_split: <span class="extype" name="scala.Int">Int</span></span>)</span>
+        <span class="name">MetaData</span><span class="params">(<span name="traces">traces: <span class="extype" name="scala.Long">Long</span></span>, <span name="events">events: <span class="extype" name="scala.Long">Long</span></span>, <span name="pairs">pairs: <span class="extype" name="scala.Long">Long</span></span>, <span name="lookback">lookback: <span class="extype" name="scala.Int">Int</span></span>, <span name="has_previous_stored">has_previous_stored: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="filename">filename: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="streaming">streaming: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="log_name">log_name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="mode">mode: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="compression">compression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="start_ts">start_ts: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="last_ts">last_ts: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="last_declare_mined">last_declare_mined: <span class="extype" name="scala.Predef.String">String</span></span>)</span>
       </span>
       
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">traces</dt><dd class="cmt"><p>The number of indexed traces</p></dd><dt class="param">events</dt><dd class="cmt"><p>The number of indexed events</p></dd><dt class="param">pairs</dt><dd class="cmt"><p>The number of indexed pairs</p></dd><dt class="param">lookback</dt><dd class="cmt"><p>The value for the parameter lookback</p></dd><dt class="param">split_every_days</dt><dd class="cmt"><p>The value for the parameter split_every_days</p></dd><dt class="param">last_interval</dt><dd class="cmt"><p>The last interval stored in the database</p></dd><dt class="param">has_previous_stored</dt><dd class="cmt"><p>Flag parameter, shows if there are previously indexed traces in this log database</p></dd><dt class="param">filename</dt><dd class="cmt"><p>The name of the last log file indexed in this log database</p></dd><dt class="param">log_name</dt><dd class="cmt"><p>The name of the log database</p></dd><dt class="param">mode</dt><dd class="cmt"><p>Set to timestamps/positions depending on if the timestamps are stored in the IndexTable or just the events
-            positions</p></dd><dt class="param">compression</dt><dd class="cmt"><p>The compression algorithm that will be used while storing the tables in the database.</p></dd></dl></div>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">traces</dt><dd class="cmt"><p>The number of indexed traces</p></dd><dt class="param">events</dt><dd class="cmt"><p>The number of indexed events</p></dd><dt class="param">pairs</dt><dd class="cmt"><p>The number of indexed pairs</p></dd><dt class="param">lookback</dt><dd class="cmt"><p>The value for the parameter lookback</p></dd><dt class="param">has_previous_stored</dt><dd class="cmt"><p>Flag parameter, shows if there are previously indexed traces in this log database</p></dd><dt class="param">filename</dt><dd class="cmt"><p>The name of the last log file indexed in this log database</p></dd><dt class="param">log_name</dt><dd class="cmt"><p>The name of the log database</p></dd><dt class="param">mode</dt><dd class="cmt"><p>Set to timestamps/positions depending on if the timestamps are stored in the IndexTable or just the events
+            positions</p></dd><dt class="param">compression</dt><dd class="cmt"><p>The compression algorithm that will be used while storing the tables in the database.</p></dd><dt class="param">start_ts</dt><dd class="cmt"><p>The timestamp of the first event</p></dd><dt class="param">last_ts</dt><dd class="cmt"><p>The timestamp of the last event</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -352,7 +352,7 @@ the log database (e.g. the number of traces, the number of event type pairs) as 
               
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData#compression" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
@@ -437,7 +437,7 @@ the log database (e.g. the number of traces, the number of event type pairs) as 
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData#has_previous_stored" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
@@ -472,10 +472,10 @@ the log database (e.g. the number of traces, the number of event type pairs) as 
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData#last_checked_split" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="last_checked_split:Int"></a>
+    </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData#last_declare_mined" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="last_declare_mined:String"></a>
       <span class="permalink">
-      <a href="../../../../../auth/datalab/siesta/BusinessLogic/Metadata/MetaData.html#last_checked_split:Int" title="Permalink">
+      <a href="../../../../../auth/datalab/siesta/BusinessLogic/Metadata/MetaData.html#last_declare_mined:String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -484,14 +484,14 @@ the log database (e.g. the number of traces, the number of event type pairs) as 
         <span class="kind">var</span>
       </span>
       <span class="symbol">
-        <span class="name">last_checked_split</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+        <span class="name">last_declare_mined</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
       
-    </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData#last_interval" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="last_interval:String"></a>
+    </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData#last_ts" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="last_ts:String"></a>
       <span class="permalink">
-      <a href="../../../../../auth/datalab/siesta/BusinessLogic/Metadata/MetaData.html#last_interval:String" title="Permalink">
+      <a href="../../../../../auth/datalab/siesta/BusinessLogic/Metadata/MetaData.html#last_ts:String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -500,7 +500,7 @@ the log database (e.g. the number of traces, the number of event type pairs) as 
         <span class="kind">var</span>
       </span>
       <span class="symbol">
-        <span class="name">last_interval</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">last_ts</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
       
@@ -586,7 +586,7 @@ the log database (e.g. the number of traces, the number of event type pairs) as 
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -607,7 +607,7 @@ the log database (e.g. the number of traces, the number of event type pairs) as 
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData#pairs" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
@@ -626,10 +626,26 @@ the log database (e.g. the number of traces, the number of event type pairs) as 
       </span>
       
       
-    </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData#split_every_days" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="split_every_days:Int"></a>
+    </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData#start_ts" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="start_ts:String"></a>
       <span class="permalink">
-      <a href="../../../../../auth/datalab/siesta/BusinessLogic/Metadata/MetaData.html#split_every_days:Int" title="Permalink">
+      <a href="../../../../../auth/datalab/siesta/BusinessLogic/Metadata/MetaData.html#start_ts:String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">var</span>
+      </span>
+      <span class="symbol">
+        <span class="name">start_ts</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      
+    </li><li name="auth.datalab.siesta.BusinessLogic.Metadata.MetaData#streaming" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="streaming:Boolean"></a>
+      <span class="permalink">
+      <a href="../../../../../auth/datalab/siesta/BusinessLogic/Metadata/MetaData.html#streaming:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -638,7 +654,7 @@ the log database (e.g. the number of traces, the number of event type pairs) as 
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">split_every_days</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+        <span class="name">streaming</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       
       

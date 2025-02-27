@@ -2,7 +2,7 @@ val sparkVersion = "3.5.4"
 val hadoopVersion= "3.3.4"
 
 ThisBuild / name := "Siesta"
-ThisBuild / version := "0.1"
+ThisBuild / version := "3.0.0"
 ThisBuild / scalaVersion := "2.12.17"
 ThisBuild / organization := "auth.datalab"
 
