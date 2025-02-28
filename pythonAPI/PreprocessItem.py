@@ -14,8 +14,8 @@ class PreprocessItem(BaseModel):
     logname: str = ""
     delete_all: Optional[bool] = False
     delete_prev: Optional[bool] = False
-    split_every_days: Optional[int] = 30
     lookback: Optional[int] = 30
+    declare_incremental: Optional[bool] = False
 
     def getAttributes(self):
         s = f" --master {self.spark_master}"
@@ -27,7 +27,7 @@ class PreprocessItem(BaseModel):
         s += f" -m {self.mode}"
         s += f" --system {self.system}"
         s += f" -c {self.compression}"
-        if self.system != "streaming":
+        if self.system != "streaming" and self.file != "":
             if self.file != "synthetic":
                 s += f" -f uploadedfiles/{self.file}"
             else:
@@ -37,5 +37,7 @@ class PreprocessItem(BaseModel):
             s += f" --delete_all"
         if self.delete_prev:
             s += f" --delete_prev"
+        if self.declare_incremental:
+            s += f" --declare_incremental"
         s += f" --lookback {self.lookback}"
         return s
