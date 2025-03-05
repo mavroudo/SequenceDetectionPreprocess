@@ -165,7 +165,7 @@ class S3ConnectorStreaming {
 
     val conf = new SparkConf()
       .setAppName("Siesta streaming")
-      .setMaster("local[*]")
+//      .setMaster("local[*]")
       .set("spark.sql.extensions","io.delta.sql.DeltaSparkSessionExtension")
       .set("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
       .set("spark.sql.streaming.statefulOperator.checkCorrectness.enabled", "false")
