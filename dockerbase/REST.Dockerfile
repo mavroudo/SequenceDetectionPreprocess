@@ -22,7 +22,7 @@ FROM ubuntu:20.04 AS execution
 RUN apt-get update && apt-get install -y gnupg2 curl software-properties-common
 
 #RUN add-apt-repository ppa:deadsnakes/ppa
-RUN apt-get install -y python3.8 python3-pip openjdk-11-jdk
+RUN apt-get update && apt-get install -y python3.8 python3-pip openjdk-11-jdk
 # Install python dependencies
 
 RUN curl -O https://archive.apache.org/dist/spark/spark-3.5.4/spark-3.5.4-bin-hadoop3.tgz && \
