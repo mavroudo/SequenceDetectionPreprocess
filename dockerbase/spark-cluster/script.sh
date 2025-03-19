@@ -6,5 +6,4 @@ if [ "$1" = "build" ]; then
   docker build -t mavroudo/spark-base -f spark-base.Dockerfile .
   docker build -t spark-master -f spark-master.Dockerfile .
   docker build -t spark-worker -f spark-worker.Dockerfile .
-#  docker build -t spark-submit spark-submit/.
 fi
