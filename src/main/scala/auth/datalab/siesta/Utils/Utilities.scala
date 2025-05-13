@@ -2,30 +2,10 @@ package auth.datalab.siesta.Utils
 
 
 import java.sql.Timestamp
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.rdd.RDD
 
 object Utilities {
-
-
-  /**
-   * Compare two values of strings. Since the both positions and timestamp can be used, first compare them
-   * as if they were integers and if that fails compare them as timestamps.
-   *
-   * @param timeA first time
-   * @param timeB second time
-   * @return Return if timeA is less (or before) than timeB
-   */
-  def compareTimes(timeA: String, timeB: String): Boolean = {
-    if (timeA == "") {
-      return true
-    }
-    try {
-      timeA.toInt < timeB.toInt
-    } catch {
-      case _: Throwable =>
-        !Timestamp.valueOf(timeA).after(Timestamp.valueOf(timeB))
-    }
-
-  }
 
   /**
    * Read environment variable
@@ -39,6 +19,20 @@ object Utilities {
     val envVariable = System.getenv(key)
     if (envVariable == null) throw new NullPointerException("Error! Environment variable " + key + " is missing")
     envVariable
+  }
+
+  def get_activity_matrix(event_types_occurrences:scala.collection.Map[String, Long]):RDD[(String,String)]={
+    val spark = SparkSession.builder().getOrCreate()
+
+    val keys: Iterable[String] = event_types_occurrences.keys
+
+    val cartesianProduct: Iterable[(String, String)] = for {
+      key1 <- keys
+      key2 <- keys
+    } yield (key1, key2)
+
+    SparkSession.builder().getOrCreate().sparkContext.parallelize(cartesianProduct.toSeq)
+
   }
 
 

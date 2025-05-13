@@ -3,8 +3,7 @@ package ConnectionToDBAndIncrement
 import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
 import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
-import auth.datalab.siesta.BusinessLogic.Model.Structs
-import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
+import auth.datalab.siesta.BusinessLogic.Model.{Sequence, Structs}
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.rdd.RDD
@@ -14,8 +13,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.BeforeAndAfterAll
 
 class TestMetaData extends AnyFlatSpec with BeforeAndAfterAll {
-//  @transient var dbConnector = new S3Connector()
-  @transient var dbConnector = new ApacheCassandraConnector()
+  @transient var dbConnector = new S3Connector()
 
   it should "Get metadata for the first time" in {
     val c = Config(delete_previous = true, log_name = "test")
@@ -37,7 +35,7 @@ class TestMetaData extends AnyFlatSpec with BeforeAndAfterAll {
     val spark = SparkSession.builder().getOrCreate()
 
     //Main pipeline starts here:
-    val sequenceRDD: RDD[Structs.Sequence] = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
+    val sequenceRDD: RDD[Sequence] = spark.sparkContext.parallelize(CreateRDD.createRDD_1)
 
     val combined = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence table and ignore the output
     val intervals = Intervals.intervals(sequenceRDD, metadata.last_interval, metadata.split_every_days)

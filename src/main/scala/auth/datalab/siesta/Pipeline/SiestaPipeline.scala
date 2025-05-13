@@ -1,11 +1,11 @@
 package auth.datalab.siesta.Pipeline
 
 import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
-import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, ExtractPairsSimple, Intervals}
-import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
+import auth.datalab.siesta.BusinessLogic.ExtractPairs.ExtractPairs
 import auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess
-import auth.datalab.siesta.BusinessLogic.Model.Structs
-import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
+import auth.datalab.siesta.BusinessLogic.Model.Structs.{InvertedSingleFull, LastChecked}
+import auth.datalab.siesta.BusinessLogic.Model.{Event, EventTrait}
+import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.log4j.{Level, Logger}
@@ -13,94 +13,145 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 
-/**
- * This class describes the main pipeline of the index building. The procedure includes the following steps:
- *  - Initialize connection with db (configure spark, drop tables if needed, create the new ones)
- *  - Create/Load Metadata object from the configuration object
- *  - Load/Generate traces to be indexed (based on configuration passed)
- *  - Store traces to the SequenceTable
- *  - Extract single index and store it to SingleTable
- *  - Calculate event type pairs and the last timestamp that they occurred per trace (based on the SingleTable data)
- *  - Store inverted index using event type pairs in IndexTable
- *  - Store the last timestamp for each event type per trace in LastChecked table
- *  - Create/Load-merge statistics for each event type pair and store them in CountTable
- *  - Store the updated Metadata object
- *    The methods that are used to perform the following procedures are described in
- *    [[auth.datalab.siesta.BusinessLogic.DBConnector]] so that SIESTA can be connected with a new database by simply
- *    extend this class and implement the corresponding methods.
- */
+import java.sql.Timestamp
+import java.util.concurrent.TimeUnit
+import auth.datalab.siesta.DeclareIncrementa.DeclareIncrementalPipeline
+
+
 object SiestaPipeline {
 
   def execute(c: Config): Unit = {
 
-    val dbConnector = if (c.database == "cassandra") {
-      new ApacheCassandraConnector()
-    } else {
-      new S3Connector()
-    }
+
+    //If new database is added the dbConnector can be set here.
+    val dbConnector = new S3Connector()
+
+
     dbConnector.initialize_spark(c)
     dbConnector.initialize_db(config = c)
-    val metadata = dbConnector.get_metadata(c)
 
     val spark = SparkSession.builder().getOrCreate()
+    
     spark.time({
-
-      //Main pipeline starts here:s
-      val sequenceRDD: RDD[Structs.Sequence] = IngestingProcess.getData(c) //load data (either from file or generate)
-      sequenceRDD.persist(StorageLevel.MEMORY_AND_DISK)
-      //Extract the last positions of all the traces that are already indexed
-      val last_positions: RDD[Structs.LastPosition] = dbConnector.write_sequence_table(sequenceRDD, metadata) //writes traces to sequence table
-      last_positions.persist(StorageLevel.MEMORY_AND_DISK)
-      //Calculate the intervals based on mix/max timestamp and the last used interval from metadata
-      val intervals = Intervals.intervals(sequenceRDD, metadata.last_interval, metadata.split_every_days)
-      //Extracts single inverted index (ev_type) -> [(trace_id,ts,pos),...]
-      val invertedSingleFull = ExtractSingle.extractFull(sequenceRDD, last_positions)
-      //extract the trace partitions
-      val bsplit = spark.sparkContext.broadcast(metadata.last_checked_split)
-      val trace_partitions = if (metadata.last_checked_split > 0) { //evaluate if the partitions are used
-        sequenceRDD.map(_.sequence_id)
-          .map(x => Math.floor(x / bsplit.value).toLong * bsplit.value)
-          .distinct().collect().toList
-      }
-      else {
-        List.empty[Long]
-      }
-      sequenceRDD.unpersist()
-      last_positions.unpersist()
-      //Read and combine the single inverted index with the previous stored
-      val combinedInvertedFull = dbConnector.write_single_table(invertedSingleFull, metadata)
-      //Read last timestamp for each pair for each event
-      val lastChecked = dbConnector.read_last_checked_partitioned_table(metadata, trace_partitions)
-      //Extract the new pairs and the update lastchecked for each pair for each trace
-      //      val x = ExtractPairs.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
-      val x = ExtractPairsSimple.extract(combinedInvertedFull, lastChecked, intervals, metadata.lookback)
-      combinedInvertedFull.unpersist()
-
-      x._2.persist(StorageLevel.MEMORY_AND_DISK)
-      if (dbConnector.isInstanceOf[S3Connector]) {
-        Logger.getLogger("LastChecked Table ").log(Level.INFO, s"executing S3")
-        val update_last_checked = dbConnector.combine_last_checked_table(x._2, lastChecked)
-        //Persist to Index and LastChecked
-        dbConnector.write_last_checked_table(update_last_checked, metadata)
+      val metadata:MetaData = dbConnector.get_metadata(c)
+      val sequenceRDD: RDD[EventTrait] = if (!c.duration_determination) {
+        IngestingProcess.getData(c).flatMap(_.events)
       } else {
-        Logger.getLogger("LastChecked Table ").log(Level.INFO, s"executing Cassandra")
-        dbConnector.write_last_checked_table(x._2, metadata)
+        val detailedSequenceRDD: RDD[EventTrait] = IngestingProcess.getDataDetailed(c)
+          .flatMap(_.events)
+        dbConnector.write_sequence_table(detailedSequenceRDD, metadata, detailed = true)
+        detailedSequenceRDD
       }
-      x._2.unpersist()
-      x._1.persist(StorageLevel.MEMORY_AND_DISK)
-      dbConnector.write_index_table(x._1, metadata, intervals)
-      val counts = ExtractCounts.extract(x._1)
-      counts.persist(StorageLevel.MEMORY_AND_DISK)
+      println("Number of events: " + sequenceRDD.count())
+
+      implicit def ordered: Ordering[Timestamp] = (x: Timestamp, y: Timestamp) => {
+        x compareTo y
+      }
+
+      val min_ts = sequenceRDD.map(x => Timestamp.valueOf(x.timestamp)).min()
+      val max_ts = sequenceRDD.map(x => Timestamp.valueOf(x.timestamp)).max()
+      //set min max ts in the metadata
+      if (metadata.start_ts.equals("")){
+        metadata.start_ts=min_ts.toString()
+      }
+      if(metadata.last_ts.equals("") || Timestamp.valueOf(metadata.last_ts).before(max_ts)){
+        metadata.last_ts=max_ts.toString()
+      }
+        
+      
+
+      val ids_changed = sequenceRDD.map(_.trace_id).distinct().collect().toSet
+      val bIds_changed = spark.sparkContext.broadcast(ids_changed)
+
+      val prev_events = dbConnector.read_sequence_table(metaData = metadata)
+
+      val fixed_positions: RDD[EventTrait] = if (prev_events != null) {
+        val last_positions = prev_events
+          .filter(x => bIds_changed.value.contains(x.trace_id))
+          .groupBy(_.trace_id).map(x => (x._1, x._2.map(_.position).max + 1)).collectAsMap()
+        val bLast_positions = spark.sparkContext.broadcast(last_positions)
+        sequenceRDD.map(x => {
+          val prev_pos = bLast_positions.value.getOrElse(x.trace_id, 0)
+          new Event(trace_id = x.trace_id, timestamp = x.timestamp, event_type = x.event_type, position = x.position + prev_pos)
+        })
+      } else { //no need to fix
+        sequenceRDD
+      }
+
+      //events with fixed positions are then stored to both sequence table and single table
+      dbConnector.write_sequence_table(sequenceRDD = fixed_positions, metaData = metadata)
+      dbConnector.write_single_table(sequenceRDD = fixed_positions, metaData = metadata)
+
+      //read single table and filter all the events that appear in the traces that changed
+      val singleRDD = dbConnector.read_single_table(metadata)
+        .filter(x => bIds_changed.value.contains(x.trace_id))
+
+      val inverted: RDD[InvertedSingleFull] = singleRDD
+        .groupBy(x => (x.trace_id, x.event_type))
+        .map(x => {
+          val ts_s = x._2.map(y=>(y.position,y.timestamp)).toList.sortWith((a,b)=>a._1<b._1)
+          InvertedSingleFull(x._1._1, x._1._2, ts_s.map(_._2), ts_s.map(_._1))
+        })
+
+      val lastChecked: RDD[LastChecked] = dbConnector.read_last_checked_table(metadata)
+
+      //extract new pairs
+      val pairs = ExtractPairs.extract(inverted, lastChecked, metadata.lookback)
+
+      //merging last checked records
+      val diffInMills = TimeUnit.DAYS.toMillis(metadata.lookback)
+      val bDiffInMills = spark.sparkContext.broadcast(diffInMills)
+      val bmin_ts = spark.sparkContext.broadcast(min_ts.getTime)
+
+      val merged_rdd = if (lastChecked != null) {
+        lastChecked.keyBy(x => (x.eventA, x.eventB, x.id))
+          .fullOuterJoin(pairs._2.keyBy(x => (x.eventA, x.eventB, x.id)))
+          .map(x => {
+            if (x._2._2.isEmpty) {
+              x._2._1.get
+            } else {
+              x._2._2.get
+            }
+          })
+      } else {
+        pairs._2
+      }
+
+      //removing last checked records that are more than 'lookback'- time ago
+
+      val filtered_rdd = merged_rdd.filter(x => {
+        val diff = bmin_ts.value - Timestamp.valueOf(x.timestamp).getTime
+        diff <= 0 || (diff>0 && diff<bDiffInMills.value)
+      })
+//        .foreach(x=>(x.eventA,x.eventB,x.id,x.timestamp))
+      Logger.getLogger("Last Checked records").log(Level.INFO, s"${filtered_rdd.count()}")
+
+      //write merged last checked
+      dbConnector.write_last_checked_table(filtered_rdd, metadata)
+//      pairs._2.unpersist()
+      //write new event pairs
+      dbConnector.write_index_table(pairs._1, metadata)
+//      pairs._1.unpersist()
+      //calculate and write countTable
+      val counts = ExtractCounts.extract(pairs._1)
+//      counts.persist(StorageLevel.MEMORY_AND_DISK)
       dbConnector.write_count_table(counts, metadata)
-      counts.unpersist()
-      x._1.unpersist()
+//      counts.unpersist()
+
       //Update metadata before exiting
       metadata.has_previous_stored = true
-      metadata.last_interval = s"${intervals.last.start.toString}_${intervals.last.end.toString}"
       dbConnector.write_metadata(metadata)
-      dbConnector.closeSpark()
     })
 
+    // execute the Declare Incremental as a post processing step
+    if(c.declare_incremental){
+      spark.time({
+        val metadata = dbConnector.get_metadata(c)
+        DeclareIncrementalPipeline.execute(dbConnector,metadata)
+      })
+    }
+
+    dbConnector.closeSpark()
   }
 
 }

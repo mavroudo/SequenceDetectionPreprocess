@@ -5,7 +5,6 @@ import auth.datalab.siesta.BusinessLogic.ExtractCounts.ExtractCounts
 import auth.datalab.siesta.BusinessLogic.ExtractPairs.{ExtractPairs, Intervals}
 import auth.datalab.siesta.BusinessLogic.ExtractSingle.ExtractSingle
 import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
-import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.sql.SparkSession
@@ -17,7 +16,6 @@ import java.sql.Timestamp
 class TestLastChecked extends AnyFlatSpec with BeforeAndAfterAll{
 
   @transient var dbConnector: DBConnector = new S3Connector()
-//  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
   @transient var metaData: MetaData = null
   @transient var config: Config = null
 

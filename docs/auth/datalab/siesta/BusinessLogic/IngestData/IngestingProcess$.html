@@ -3,9 +3,9 @@
         <head>
           <meta http-equiv="X-UA-Compatible" content="IE=edge" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-          <title>SIESTA Preprocess Component Documentation  - auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess</title>
-          <meta name="description" content="SIESTA Preprocess Component Documentation - auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess" />
-          <meta name="keywords" content="SIESTA Preprocess Component Documentation auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess" />
+          <title>sequencedetectionpreprocess documentation  - auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess</title>
+          <meta name="description" content="sequencedetectionpreprocess documentation - auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess" />
+          <meta name="keywords" content="sequencedetectionpreprocess documentation auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       
@@ -28,7 +28,7 @@
         </head>
         <body>
       <div id="search">
-        <span id="doc-title">SIESTA Preprocess Component Documentation<span id="doc-version"></span></span>
+        <span id="doc-title">sequencedetectionpreprocess documentation<span id="doc-version"></span></span>
         <span class="close-results"><span class="left">&lt;</span> Back</span>
         <div id="textfilter">
           <span class="input">
@@ -330,7 +330,7 @@
               
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -383,13 +383,13 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess#getData" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getData(c:auth.datalab.siesta.CommandLineParser.Config):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]"></a><a id="getData(Config):RDD[Sequence]"></a>
+      <a id="getData(c:auth.datalab.siesta.CommandLineParser.Config):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Sequence]"></a><a id="getData(Config):RDD[Sequence]"></a>
       <span class="permalink">
-      <a href="../../../../../auth/datalab/siesta/BusinessLogic/IngestData/IngestingProcess$.html#getData(c:auth.datalab.siesta.CommandLineParser.Config):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence]" title="Permalink">
+      <a href="../../../../../auth/datalab/siesta/BusinessLogic/IngestData/IngestingProcess$.html#getData(c:auth.datalab.siesta.CommandLineParser.Config):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Sequence]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -398,13 +398,30 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getData</span><span class="params">(<span name="c">c: <a href="../../CommandLineParser/Config.html" class="extype" name="auth.datalab.siesta.CommandLineParser.Config">Config</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Structs$$Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Structs.Sequence">Sequence</a>]</span>
+        <span class="name">getData</span><span class="params">(<span name="c">c: <a href="../../CommandLineParser/Config.html" class="extype" name="auth.datalab.siesta.CommandLineParser.Config">Config</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Sequence">Sequence</a>]</span>
       </span>
       
       <p class="shortcomment cmt">This methods creates the RDD that contains the traces.</p><div class="fullcomment"><div class="comment cmt"><p>This methods creates the RDD that contains the traces. These traces are either parsed from a log file or generated
-based on the user define parameters in configuration file.</p></div><dl class="paramcmts block"><dt class="param">c</dt><dd class="cmt"><p>The configuration object containing the command line parameters. Note that in order to activate the
+based on the user define parameters in configuration file.
+</p></div><dl class="paramcmts block"><dt class="param">c</dt><dd class="cmt"><p>The configuration object containing the command line parameters. Note that in order to activate the
          trace generator, the &quot;filename&quot; parameter in the configuration object must be set to &quot;synthetic&quot;</p></dd><dt>returns</dt><dd class="cmt"><p>The RDD that contains the traces</p></dd></dl><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="ReadLogFile$.html" class="extype" name="auth.datalab.siesta.BusinessLogic.IngestData.ReadLogFile">ReadLogFile</a>,<a href="../../TraceGenerator/TraceGenerator.html" class="extype" name="auth.datalab.siesta.TraceGenerator.TraceGenerator">auth.datalab.siesta.TraceGenerator.TraceGenerator</a> they are responsible for parsing a logfile
      or generate random traces respectively.</p></span></dd></dl></div>
+    </li><li name="auth.datalab.siesta.BusinessLogic.IngestData.IngestingProcess#getDataDetailed" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getDataDetailed(c:auth.datalab.siesta.CommandLineParser.Config):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Sequence]"></a><a id="getDataDetailed(Config):RDD[Sequence]"></a>
+      <span class="permalink">
+      <a href="../../../../../auth/datalab/siesta/BusinessLogic/IngestData/IngestingProcess$.html#getDataDetailed(c:auth.datalab.siesta.CommandLineParser.Config):org.apache.spark.rdd.RDD[auth.datalab.siesta.BusinessLogic.Model.Sequence]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getDataDetailed</span><span class="params">(<span name="c">c: <a href="../../CommandLineParser/Config.html" class="extype" name="auth.datalab.siesta.CommandLineParser.Config">Config</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<a href="../Model/Sequence.html" class="extype" name="auth.datalab.siesta.BusinessLogic.Model.Sequence">Sequence</a>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
@@ -423,7 +440,7 @@ based on the user define parameters in configuration file.</p></div><dl class="p
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -476,7 +493,7 @@ based on the user define parameters in configuration file.</p></div><dl class="p
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -497,7 +514,7 @@ based on the user define parameters in configuration file.</p></div><dl class="p
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">

@@ -1,6 +1,6 @@
 package auth.datalab.siesta.BusinessLogic.ExtractSingle
 
-import auth.datalab.siesta.BusinessLogic.Model.Structs
+import auth.datalab.siesta.BusinessLogic.Model.{Sequence, Structs}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
@@ -35,7 +35,7 @@ object ExtractSingle {
    * @param last_positions The last position of the events stored in the database
    * @return
    */
-  def extractFull(sequences: RDD[Structs.Sequence],last_positions:RDD[Structs.LastPosition]): RDD[Structs.InvertedSingleFull] = {
+  def extractFull(sequences: RDD[Sequence],last_positions:RDD[Structs.LastPosition]): RDD[Structs.InvertedSingleFull] = {
     val rdd = sequences.keyBy(_.sequence_id)
       .join(last_positions.keyBy(_.id))
       .flatMap(x=>{
@@ -43,7 +43,7 @@ object ExtractSingle {
         x._2._1.events.zipWithIndex.map(e=>{
           val event = e._1
           val position = e._2 + starting
-          ((event.event, x._1), event.timestamp, position)
+          ((event.event_type, x._1), event.timestamp, position)
         })
       })
       .groupBy(_._1)

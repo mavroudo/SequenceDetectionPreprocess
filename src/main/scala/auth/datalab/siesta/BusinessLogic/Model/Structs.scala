@@ -2,6 +2,8 @@ package auth.datalab.siesta.BusinessLogic.Model
 
 
 
+import org.apache.spark.streaming.StreamingContext
+
 import java.sql.Timestamp
 
 /**
@@ -11,30 +13,34 @@ import java.sql.Timestamp
  */
 object Structs {
 
+  //For streaming
+
+  case class StreamingPair(eventA: String, eventB: String, id: String, timeA: Timestamp, timeB: Timestamp, positionA: Int, positionB: Int)
+
   //General Model
-  case class Event(timestamp: String, event: String) extends Serializable
   case class EventWithPosition(event_name:String,timestamp:Timestamp,position:Int)
-  case class Sequence(events: List[Event], sequence_id: Long) extends Serializable
-  case class IdTime(id:Long, time: String)
-  case class IdTimePositionList(id: Long, times: List[String], positions:List[Int])
+  case class IdTime(id:String, time: String)
+  case class IdTimePositionList(id: String, times: List[String], positions:List[Int])
 
   //For the single inverted table
   case class InvertedSingle(event_name: String, times: List[IdTimePositionList])
-  case class InvertedSingleFull(id: Long, event_name: String, times:List[String], positions:List[Int])
-  case class LastPosition (id:Long, position:Int)
+  case class InvertedSingleFull(id: String, event_name: String, times:List[String], positions:List[Int])
+  case class LastPosition (id:String, position:Int)
 
   //For last_checked
-  case class LastChecked (eventA:String,eventB:String, id: Long, timestamp:String)
-  case class LastCheckedDF (eventA:String, eventB:String,occurrences: List[IdTime])
-  case class LastCheckedPartitionedDF(eventA:String,eventB:String,timestamp: String, id:Long, partition:Long)
+  case class LastChecked (eventA:String,eventB:String, id: String, timestamp:String)
 
   //Extract Pairs
-  case class PairFull(eventA:String,eventB:String,id:Long,timeA:Timestamp,timeB:Timestamp,positionA:Int,positionB:Int,interval:Interval)
-  //Intervals
-  case class Interval(start:Timestamp,end:Timestamp) extends Serializable
-
+  case class PairFull(eventA:String,eventB:String,id:String,timeA:Timestamp,timeB:Timestamp,positionA:Int,positionB:Int)
   //Count
-  case class CountList(eventA:String,counts:List[(String,Long,Int,Long,Long)])
-  case class Count(eventA:String,eventB:String,sum_duration:Long,count:Int,min_duration:Long,max_duration:Long)
+  case class CountList(eventA:String,counts:List[(String,Long,Int,Long,Long,Double)])
+  case class Count(eventA:String, eventB:String, sum_duration:Long, count:Int, min_duration:Long, max_duration:Long, sum_squares:Double)
+  //Declare case classes
+  case class PositionConstraint(rule:String, event_type:String, occurrences:Double)
+  //each activity in how many traces it is contained exactly
+  case class ActivityExactly(event_type:String, occurrences: Int, contained:Long)
+  case class ExistenceConstraint(rule:String, event_type:String, n: Int, occurrences:Double)
+  case class PairConstraint(rule:String, eventA:String, eventB:String, occurrences:Double)
 
+  case class UnorderedHelper(eventA:String,eventB:String, ua:Long, ub:Long, pairs:Long,key:String)
 }

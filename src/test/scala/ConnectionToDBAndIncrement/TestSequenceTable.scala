@@ -2,7 +2,6 @@ package ConnectionToDBAndIncrement
 
 import auth.datalab.siesta.BusinessLogic.DBConnector.DBConnector
 import auth.datalab.siesta.BusinessLogic.Metadata.MetaData
-import auth.datalab.siesta.CassandraConnector.ApacheCassandraConnector
 import auth.datalab.siesta.CommandLineParser.Config
 import auth.datalab.siesta.S3Connector.S3Connector
 import org.apache.spark.sql.SparkSession
@@ -12,7 +11,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 class TestSequenceTable extends AnyFlatSpec with BeforeAndAfterAll{
   @transient var dbConnector: DBConnector = new S3Connector()
-//  @transient var dbConnector: DBConnector = new ApacheCassandraConnector()
   @transient var metaData: MetaData = null
   @transient var config: Config = null
 

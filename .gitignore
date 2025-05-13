@@ -26,6 +26,9 @@ dockerbase/cassandra/data/*
 !experiments/input/test.withTimestamp
 
 dockerbase/spark-3.0.0-bin-hadoop3.2/*
+dockerbase/offsetexplorer.sh
+python_scripts/env/*
+
 
 #python
 python_scripts/.ipynb_checkpoints/*
@@ -34,6 +37,12 @@ pythonAPI/files
 pythonAPI/.idea
 pythonAPI/venv
 .bsp
+
 *.db
 */env
 */__pycache__/*
+
+#vscode
+.bloop/
+.metals/
+.vscode/

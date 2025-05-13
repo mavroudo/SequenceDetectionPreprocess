@@ -3,9 +3,9 @@
         <head>
           <meta http-equiv="X-UA-Compatible" content="IE=edge" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-          <title>SIESTA Preprocess Component Documentation  - auth.datalab.siesta.Utils.Utilities</title>
-          <meta name="description" content="SIESTA Preprocess Component Documentation - auth.datalab.siesta.Utils.Utilities" />
-          <meta name="keywords" content="SIESTA Preprocess Component Documentation auth.datalab.siesta.Utils.Utilities" />
+          <title>sequencedetectionpreprocess documentation  - auth.datalab.siesta.Utils.Utilities</title>
+          <meta name="description" content="sequencedetectionpreprocess documentation - auth.datalab.siesta.Utils.Utilities" />
+          <meta name="keywords" content="sequencedetectionpreprocess documentation auth.datalab.siesta.Utils.Utilities" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       
@@ -28,7 +28,7 @@
         </head>
         <body>
       <div id="search">
-        <span id="doc-title">SIESTA Preprocess Component Documentation<span id="doc-version"></span></span>
+        <span id="doc-title">sequencedetectionpreprocess documentation<span id="doc-version"></span></span>
         <span class="close-results"><span class="left">&lt;</span> Back</span>
         <div id="textfilter">
           <span class="input">
@@ -309,27 +309,9 @@
               
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="auth.datalab.siesta.Utils.Utilities#compareTimes" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="compareTimes(timeA:String,timeB:String):Boolean"></a><a id="compareTimes(String,String):Boolean"></a>
-      <span class="permalink">
-      <a href="../../../../auth/datalab/siesta/Utils/Utilities$.html#compareTimes(timeA:String,timeB:String):Boolean" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">compareTimes</span><span class="params">(<span name="timeA">timeA: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="timeB">timeB: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      
-      <p class="shortcomment cmt">Compare two values of strings.</p><div class="fullcomment"><div class="comment cmt"><p>Compare two values of strings. Since the both positions and timestamp can be used, first compare them
-as if they were integers and if that fails compare them as timestamps.
-</p></div><dl class="paramcmts block"><dt class="param">timeA</dt><dd class="cmt"><p>first time</p></dd><dt class="param">timeB</dt><dd class="cmt"><p>second time</p></dd><dt>returns</dt><dd class="cmt"><p>Return if timeA is less (or before) than timeB</p></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -380,9 +362,25 @@ as if they were integers and if that fails compare them as timestamps.
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="auth.datalab.siesta.Utils.Utilities#get_activity_matrix" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="get_activity_matrix(event_types_occurrences:scala.collection.Map[String,Long]):org.apache.spark.rdd.RDD[(String,String)]"></a><a id="get_activity_matrix(Map[String,Long]):RDD[(String,String)]"></a>
+      <span class="permalink">
+      <a href="../../../../auth/datalab/siesta/Utils/Utilities$.html#get_activity_matrix(event_types_occurrences:scala.collection.Map[String,Long]):org.apache.spark.rdd.RDD[(String,String)]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">get_activity_matrix</span><span class="params">(<span name="event_types_occurrences">event_types_occurrences: <span class="extype" name="scala.collection.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Long">Long</span>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
@@ -401,7 +399,7 @@ as if they were integers and if that fails compare them as timestamps.
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -454,7 +452,7 @@ as if they were integers and if that fails compare them as timestamps.
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -475,7 +473,7 @@ as if they were integers and if that fails compare them as timestamps.
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
-                <span class="name">@HotSpotIntrinsicCandidate</span><span class="args">()</span>
+                <span class="name">@IntrinsicCandidate</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="auth.datalab.siesta.Utils.Utilities#readEnvVariable" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">

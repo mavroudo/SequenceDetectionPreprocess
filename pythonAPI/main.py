@@ -1,4 +1,5 @@
 import os
+import asyncio
 import uuid
 from threading import Lock, Thread
 
@@ -23,24 +24,12 @@ spark_location = "/opt/spark/bin/spark-submit"
 
 ALLOWED_EXTENSIONS = {'withTimestamp', 'xes'}
 
-cassandra_host = "localhost" if os.environ.get("cassandra_host") is None else os.environ["cassandra_host"]
-cassandra_port = 9042 if os.environ.get("cassandra_port") is None else os.environ["cassandra_port"]
-cassandra_user = "cassandra" if os.environ.get("cassandra_user") is None else os.environ["cassandra_user"]
-cassandra_pass = "cassandra" if os.environ.get("cassandra_pass") is None else os.environ["cassandra_pass"]
-cassandra_replication_factor = 1 if os.environ.get("cassandra_replication_factor") is None else os.environ[
-    "cassandra_replication_factor"]
-cassandra_gc_grace_seconds = 864000 if os.environ.get("cassandra_gc_grace_seconds") is None else os.environ[
-    "cassandra_gc_grace_seconds"]
-
 s3accessKeyAws = "minioadmin" if os.environ.get("s3accessKeyAws") is None else os.environ["s3accessKeyAws"]
 s3secretKeyAws = "minioadmin" if os.environ.get("s3secretKeyAws") is None else os.environ["s3secretKeyAws"]
 s3ConnectionTimeout = 600000 if os.environ.get("s3ConnectionTimeout") is None else os.environ["s3ConnectionTimeout"]
 s3endPointLoc = "http://localhost:9000" if os.environ.get("s3endPointLoc") is None else os.environ["s3endPointLoc"]
 
-env_vars = {"cassandra_host": cassandra_host, "cassandra_port": cassandra_port, "cassandra_user": cassandra_user,
-            "cassandra_pass": cassandra_pass, "cassandra_replication_factor": cassandra_replication_factor,
-            "cassandra_gc_grace_seconds": cassandra_gc_grace_seconds,
-            "s3accessKeyAws": s3accessKeyAws, "s3ConnectionTimeout": s3ConnectionTimeout,
+env_vars = {"s3accessKeyAws": s3accessKeyAws, "s3ConnectionTimeout": s3ConnectionTimeout,
             "s3endPointLoc": s3endPointLoc, "s3secretKeyAws": s3secretKeyAws}
 
 app = FastAPI()
@@ -120,10 +109,6 @@ def get_Environmental_Variables():
             except Exception as e:
                 os.environ[key] = getattr(env, key)
         # pass the default unchangeable env here
-        os.environ["cassandra_keyspace_name"] = "siesta"
-        os.environ["cassandra_replication_class"] = "SimpleStrategy"
-        os.environ["cassandra_replication_rack"] = "replication_factor"
-        os.environ["cassandra_write_consistency_level"] = "ONE"
         return JSONResponse(content=env.dict(), status_code=200)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
@@ -217,18 +202,46 @@ async def get_information_for_all(db: Session = Depends(get_db)):
     return JSONResponse(content=json, status_code=200)
 
 
-# if not lock.locked():
-#     with lock:
-#         try:
-#             process = os.popen(spark_command)
-#             # TODO: redirect standar output and error to capture them and send them to the use
-#             output = process.read()
-#             return JSONResponse(content={"output": output}, status_code=200)
-#         except Exception as e:
-#             return JSONResponse(content={"error": str(e)}, status_code=500)
-# else:
-#     return JSONResponse(content={"message": "Already running a preprocessing job"}, status_code=520)
+@app.post("/stop_streaming/",
+          responses={
+              200:{
+                  "content":{"message":"Streaming stopped successfully"}},
+              400:{
+                  "content": {"error": {}},
+                  "description": "There was no streaming process running"}
+          }
+          )
+async def stop_streaming():
+    '''
+    Finds if there is a running streaming process and terminates it.
+    '''
+    if not lock.locked():
+        return JSONResponse(content={"message": "There is no running preprocess task"}, status_code=400)
 
+    process = await asyncio.create_subprocess_shell(
+        "ps aux | grep streaming | grep -v grep",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+
+    stdout, _ = await process.communicate()
+    output = stdout.decode().strip()
+
+    if not output:
+        return JSONResponse(content={"message": "There is no running streaming preprocess task"}, status_code=400)
+
+    print("Running Process Details:")
+    print(output)
+
+    processes = output.split("\n")
+    for row in processes:
+        columns = row.split()
+        if len(columns) > 1:
+            pid = columns[1]  # PID is in the second column
+            print(f"Terminating process with PID: {pid}")
+            await asyncio.create_subprocess_shell(f"kill -9 {pid}")
+    lock.release()
+    return JSONResponse(content={"message": "Streaming process has been terminated"}, status_code=200)
 
 @app.post("/upload/",
           responses={
