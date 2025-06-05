@@ -7,6 +7,7 @@ import org.deckfour.xes.in.XParserRegistry
 import org.deckfour.xes.model.{XLog, XTrace}
 
 import java.io.{File, FileInputStream}
+import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Scanner
 import scala.collection.convert.ImplicitConversions.`list asScalaBuffer`
@@ -43,7 +44,9 @@ object ReadLogFile {
       this.readFromXes(fileName)
     } else if (fileName.split('.')(1) == "withTimestamp") {
       this.readWithTimestamps(fileName, ",", "/delab/")
-    } else {
+    } else if (fileName.split('.')(1) == "csv") {
+      this.readFromCSV(fileName)
+    }else {
       throw new Exception("Not recognised file type")
     }
   }
@@ -190,5 +193,38 @@ object ReadLogFile {
     val par = spark.sparkContext.parallelize(ar)
     par
   }
+
+  def readFromCSV(fileName: String): RDD[Sequence] = {
+    val spark = SparkSession.builder().getOrCreate()
+    // Read CSV file into DataFrame
+    val df = spark.read.option("header", "true")
+      .csv(fileName)
+      .select("trace_id", "event_type", "timestamp")
+
+    // Convert DataFrame to RDD and group by trace_id
+    val groupedRDD = df.rdd.map(row =>
+      (row.getString(0), new Event(timestamp = row.getString(2), event_type = row.getString(1), trace_id = row.getString(0),
+        position = 0))
+    ).combineByKey(
+      (event: Event) => List(event), // Create a list with the first event
+      (acc: List[Event], event: Event) => event :: acc, // Add event to the list
+      (acc1: List[Event], acc2: List[Event]) => acc1 ++ acc2 // Merge lists from different partitions
+    )
+
+    // Sort by timestamp and assign positions
+    import spark.implicits._
+    val sequencesRDD = groupedRDD.map { case (traceId, events) =>
+      val sortedEvents = events.map(x=>(x,Timestamp.valueOf(x.timestamp).getTime)).toList
+        .sortBy(_._2).zipWithIndex.map {case (event,index)=>
+          new Event(timestamp = event._1.timestamp,event_type = event._1.event_type, trace_id = event._1.trace_id,
+            position = index
+          )
+      }
+      new Sequence(sortedEvents, traceId)
+    }
+
+    sequencesRDD
+  }
+
 
 }
